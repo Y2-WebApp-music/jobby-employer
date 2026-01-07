@@ -29,9 +29,9 @@ bunx prettier . --write
 ### Docker Run
 
 ```bash
-docker build -t jobby .
+docker build -t jobby-employer .
 ```
 
 ```bash
-docker run -p 8080:80 jobby
+docker run -p 8080:88 jobby-employer
 ```
