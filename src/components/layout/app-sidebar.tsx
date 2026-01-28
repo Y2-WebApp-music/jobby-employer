@@ -1,4 +1,11 @@
-import { Calendar, ChevronDown, Home, Inbox, Search, Settings } from "lucide-react";
+import {
+  Calendar,
+  ChevronDown,
+  Home,
+  Inbox,
+  Search,
+  Settings,
+} from "lucide-react";
 import JobbyLogo from "@/assets/icons/JobbyLogo.svg?react";
 
 import { RiFileList3Fill } from "react-icons/ri";
@@ -14,7 +21,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
 
 const items = [
   {
