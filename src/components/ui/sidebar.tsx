@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PanelLeftIcon } from "lucide-react";
+import jobbyemployerLogo from "@/assets/icons/JobbyEmployer.png";
+
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -333,9 +335,11 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-header"
       data-sidebar="header"
-      className={cn("gap-2 p-2 flex flex-col", className)}
+      className={cn("gap-2 p-2 flex flex-col items-center justify-center pt-4", className)}
       {...props}
-    />
+    >
+      <img src={jobbyemployerLogo} alt="Jobby Employer" className="w-[90%] h-[90%]" />
+    </div>
   );
 }
 
@@ -370,7 +374,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        "no-scrollbar gap-2 flex min-h-0 flex-1 flex-col overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "no-scrollbar gap-2 flex min-h-0 flex-1 flex-col overflow-auto group-data-[collapsible=icon]:overflow-hidden py-1",
         className,
       )}
       {...props}
@@ -383,7 +387,7 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn("p-2 relative flex w-full min-w-0 flex-col", className)}
+      className={cn("px-4 py-3p-2 relative flex w-full min-w-0 flex-col", className)}
       {...props}
     />
   );
@@ -401,7 +405,7 @@ function SidebarGroupLabel({
       data-slot="sidebar-group-label"
       data-sidebar="group-label"
       className={cn(
-        "text-sidebar-foreground/70 ring-sidebar-ring h-8 rounded-md px-2 text-xs font-medium transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-4 flex shrink-0 items-center outline-hidden [&>svg]:shrink-0",
+        "text-sidebar-foreground ring-sidebar-ring h-8 rounded-md px-2 text-lg font-medium transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-5 flex shrink-0 items-center outline-hidden [&>svg]:shrink-0 gap-2",
         className,
       )}
       {...props}
@@ -437,18 +441,28 @@ function SidebarGroupContent({
     <div
       data-slot="sidebar-group-content"
       data-sidebar="group-content"
-      className={cn("text-sm w-full", className)}
+      className={cn(
+      "relative text-sm w-full pl-6",
+      className,
+      )}
       {...props}
-    />
+    >
+      {/* vertical line */}
+      <div
+      className="absolute left-3 top-0 bottom-0 w-[1.5px] bg-muted-foreground"
+      />
+      {props.children}
+    </div>
   );
 }
+
 
 function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
       data-slot="sidebar-menu"
       data-sidebar="menu"
-      className={cn("gap-1 flex w-full min-w-0 flex-col", className)}
+      className={cn("mt-2 gap-2 flex w-full min-w-0 flex-col", className)}
       {...props}
     />
   );
