@@ -39,11 +39,15 @@ const items1 = [
 const items2 = [
   {
     title: "Apply Monitor",
-    url: "/apply",
+    url: "/applymonitor",
   },
   {
     title: "Job Monitor",
     url: "sdjxfbnm",
+  },
+  {
+    title: "Create Job",
+    url: "/createjob",
   },
   {
     title: "Message",

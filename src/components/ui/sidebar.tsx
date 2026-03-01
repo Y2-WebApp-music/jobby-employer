@@ -24,7 +24,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PanelLeftIcon } from "lucide-react";
 import jobbyemployerLogo from "@/assets/icons/JobbyEmployer.png";
-
+import sidebarTriggerIcon from "@/assets/icons/SidebarTrigger.png";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -255,9 +255,23 @@ function Sidebar({
 function SidebarTrigger({
   className,
   onClick,
+  style,
+  offsetXExpanded = 17,
+  offsetYExpanded = 1.5,
+  offsetXCollapsed = 1,
+  offsetYCollapsed = 1.5,
   ...props
-}: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+}: React.ComponentProps<typeof Button> & {
+  offsetXExpanded?: number;
+  offsetYExpanded?: number;
+  offsetXCollapsed?: number;
+  offsetYCollapsed?: number;
+}) {
+  const { toggleSidebar, state } = useSidebar();
+
+  const isCollapsed = state === "collapsed";
+  const offsetX = isCollapsed ? offsetXCollapsed : offsetXExpanded;
+  const offsetY = isCollapsed ? offsetYCollapsed : offsetYExpanded;
 
   return (
     <Button
@@ -265,14 +279,25 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon-sm"
-      className={cn(className)}
+      className={cn("z-40 transition-all duration-200", className)}
+      {...props}
+      style={{
+        position: "absolute",
+        left: `${offsetX}rem`,
+        top: `${offsetY}rem`,
+        ...style,
+      }}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
-      {...props}
     >
-      <PanelLeftIcon />
+      <img
+        src={sidebarTriggerIcon}
+        alt=""
+        aria-hidden="true"
+        className="w-8 h-8"
+      />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

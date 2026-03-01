@@ -1,7 +1,9 @@
 import LandingPage from "@/pages/LandingPage";
 import ProfilePage from "@/pages/Profile";
-import ApplyPage from "@/pages/Apply";
+import ApplymonitorPage from "@/pages/applymonitor/applymonitor";
+import ApplyByTitlePage from "@/pages/applybytitle/ApplyByTitle";
 import AccountPage from "@/pages/Account";
+import CreatejobPage from "@/pages/Createjob";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter(
@@ -15,12 +17,20 @@ export const router = createBrowserRouter(
       element: <ProfilePage />,
     },
     {
-      path: "/apply",
-      element: <ApplyPage />,
+      path: "/applymonitor",
+      element: <ApplymonitorPage />,
+    },
+    {
+      path: "/apply/:title",
+      element: <ApplyByTitlePage />,
     },
     {
       path: "/account",
       element: <AccountPage />,
+    },
+    {
+      path: "/createjob",
+      element: <CreatejobPage />,
     },
     {
       path: "/test",
