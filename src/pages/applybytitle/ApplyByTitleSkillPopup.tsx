@@ -1,12 +1,12 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import type { ApplymonitorSkillPopupProps } from "@/types/domain/apply-monitor";
+import type { ApplyByTitleSkillPopupProps } from "@/types/domain/apply-by-title";
 import { X } from "lucide-react";
 
-export default function ApplymonitorSkillPopup({
+export default function ApplyByTitleSkillPopup({
   open,
   onOpenChange,
   skillName,
-}: ApplymonitorSkillPopupProps) {
+}: ApplyByTitleSkillPopupProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[90vw]! max-w-190! sm:max-w-190! rounded-2xl p-0! overflow-hidden">
@@ -44,7 +44,7 @@ export default function ApplymonitorSkillPopup({
               </p>
               <p className="mt-4 text-base font-normal leading-relaxed">
                 At our core, Western Digital is a company of problem solvers. People achieve extraordinary
-                things given the right technology. For decades, we've been doing just that—our technology
+                things given the right technology. For decades, we&apos;ve been doing just that—our technology
                 helped people put a man on the moon and capture the first-ever picture of a black hole.
               </p>
             </div>

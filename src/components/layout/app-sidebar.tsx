@@ -43,7 +43,7 @@ const items2 = [
   },
   {
     title: "Job Monitor",
-    url: "sdjxfbnm",
+    url: "/jobmonitor",
   },
   {
     title: "Create Job",
@@ -51,11 +51,11 @@ const items2 = [
   },
   {
     title: "Message",
-    url: "1234",
+    url: "/message",
   },
   {
     title: "Scouting",
-    url: "98765",
+    url: "/scout",
   },
 ];
 
@@ -101,8 +101,8 @@ export function AppSidebar() {
                 className={[
                   "flex items-center gap-2 rounded-md px-3 py-2 transition-colors",
                   group1Active
-                    ? "bg-[var(--primary)] text-[var(--sidebar)]"
-                    : "text-[var(--sidebar-foreground)] hover:bg-muted",
+                    ? "bg-primary text-sidebar"
+                    : "text-sidebar-foreground hover:bg-muted",
                 ].join(" ")}
               >
                 <RiFileList3Fill />
@@ -146,8 +146,8 @@ export function AppSidebar() {
                 className={[
                   "flex items-center gap-2 rounded-md px-3 py-2 transition-colors",
                   group2Active
-                    ? "bg-[var(--primary)] text-[var(--sidebar)]"
-                    : "text-[var(--sidebar-foreground)] hover:bg-muted",
+                    ? "bg-primary text-sidebar"
+                    : "text-sidebar-foreground hover:bg-muted",
                 ].join(" ")}
               >
                 <RiFileList3Fill />
@@ -191,8 +191,8 @@ export function AppSidebar() {
                 className={[
                   "flex items-center gap-2 rounded-md px-3 py-2 transition-colors",
                   group3Active
-                    ? "bg-[var(--primary)] text-[var(--sidebar)]"
-                    : "text-[var(--sidebar-foreground)] hover:bg-muted",
+                    ? "bg-primary text-sidebar"
+                    : "text-sidebar-foreground hover:bg-muted",
                 ].join(" ")}
               >
                 <RiFileList3Fill />

@@ -24,12 +24,67 @@ import IoTrashBin from "@/assets/icons/IoTrashBin.png"
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react"
 import { Link } from "react-router-dom"
 
+type AddressAutoFillOption = {
+  postalCode: string
+  addressLine: string
+  no: string
+  moo: string
+  soi: string
+  street: string
+  province: string
+  district: string
+  subDistrict: string
+}
+
+const mockAddressOptions: AddressAutoFillOption[] = [
+  {
+    postalCode: "10110",
+    addressLine: "Khlong Toei Area",
+    no: "20",
+    moo: "3",
+    soi: "Soi Sukhumvit 4",
+    street: "Sukhumvit Road",
+    province: "Bangkok",
+    district: "Khlong Toei",
+    subDistrict: "Khlong Toei",
+  },
+  {
+    postalCode: "10111",
+    addressLine: "Khlong Toei Area",
+    no: "20",
+    moo: "3",
+    soi: "Soi Sukhumvit 4",
+    street: "Sukhumvit Road",
+    province: "Bangkok",
+    district: "Khlong Toei",
+    subDistrict: "Khlong Toei Nuea",
+  },
+]
+
 export default function CreatejobPage() {
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
   const [jobDescription, setJobDescription] = useState<string>("")
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [selectedFileType, setSelectedFileType] = useState<string>("")
+  const [selectedPostalCode, setSelectedPostalCode] = useState<string>("")
+
+  const gradientBorderStyle = {
+    borderColor: "transparent",
+    backgroundImage: "linear-gradient(var(--background), var(--background)), var(--gradient-primary)",
+    backgroundOrigin: "border-box",
+    backgroundClip: "padding-box, border-box",
+  }
+
+  const gradientTextStyle = {
+    backgroundImage: "var(--gradient-primary)",
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    color: "transparent",
+  }
+
+  const selectedAddress =
+    mockAddressOptions.find((address) => address.postalCode === selectedPostalCode) || null
 
   const getAcceptedExtensions = (fileType: string): string => {
     const typeMap: Record<string, string> = {
@@ -204,51 +259,65 @@ export default function CreatejobPage() {
                 <label className="text-sm dark:text-accent">
                   Address line
                 </label>
-                <Input placeholder="Bangkok" />
+                <Input value={selectedAddress?.addressLine || ""} placeholder="Auto fill from backend" readOnly />
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">No.</label>
-                <Input placeholder="20" />
+                <Input value={selectedAddress?.no || ""} placeholder="Auto fill from backend" readOnly />
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">Moo</label>
-                <Input placeholder="Text here" />
+                <Input value={selectedAddress?.moo || ""} placeholder="Auto fill from backend" readOnly />
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">Soi</label>
-                <Input placeholder="Text here" />
+                <Input value={selectedAddress?.soi || ""} placeholder="Auto fill from backend" readOnly />
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">Street</label>
-                <Input placeholder="Bangkok" />
+                <Input value={selectedAddress?.street || ""} placeholder="Auto fill from backend" readOnly />
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">Province</label>
-                <Input placeholder="Select" />
+                <Input value={selectedAddress?.province || ""} placeholder="Auto fill from backend" readOnly />
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">District</label>
-                <Input placeholder="Select" />
+                <Input value={selectedAddress?.district || ""} placeholder="Auto fill from backend" readOnly />
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">Sub-district</label>
-                <Input placeholder="Select" />
+                <Input value={selectedAddress?.subDistrict || ""} placeholder="Auto fill from backend" readOnly />
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">
                   Postal code
                 </label>
-                <Input placeholder="XXXXX" />
+                <Select value={selectedPostalCode} onValueChange={setSelectedPostalCode}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select postal code" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockAddressOptions.map((address) => (
+                      <SelectItem key={address.postalCode} value={address.postalCode}>
+                        {address.postalCode}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Address fields are prepared for backend auto-fill. Postal code can have multiple options per area.
+            </p>
           </section>
 
           {/* ===== Skills ===== */}
@@ -256,17 +325,33 @@ export default function CreatejobPage() {
             <h2 className="mb-3 text-lg font-semibold">Skill Use</h2>
 
             <div className="flex flex-wrap gap-1">
-              <button class="p-1 rounded-lg bg-gradient-to-r from-primary to-secondary hover:from-purple-600 hover:to-blue-600 transition-all duration-300">
-                <span class="block bg-white px-3 py-[1%] rounded-md">
-                  <span class="bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text">
-                    Button
-                  </span>
-                </span>
-              </button>
-              <Button variant="outline" size="sm">React</Button>
-              <Button variant="outline" size="sm">React</Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full border bg-transparent hover:bg-transparent"
+                style={gradientBorderStyle}
+              >
+                <span style={gradientTextStyle}>Button</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full border bg-transparent hover:bg-transparent"
+                style={gradientBorderStyle}
+              >
+                <span style={gradientTextStyle}>React</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full border bg-transparent hover:bg-transparent"
+                style={gradientBorderStyle}
+              >
+                <span style={gradientTextStyle}>Typescript</span>
+              </Button>
 
               <Button
+                variant="default"
                 size="sm"
                 className="rounded-full text-white "
                 style={{ background: "var(--gradient-primary)" }}

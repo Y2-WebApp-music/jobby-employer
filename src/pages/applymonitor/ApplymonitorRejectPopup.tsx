@@ -1,11 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import type { ApplymonitorRejectPopupProps } from "@/types/domain/apply-monitor";
 import { X } from "lucide-react";
-
-type ApplymonitorRejectPopupProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-};
 
 export default function ApplymonitorRejectPopup({
   open,
@@ -38,8 +34,9 @@ export default function ApplymonitorRejectPopup({
                 Cancel
               </Button>
               <Button
+                variant="default"
                 size="sm"
-                className="from-primary to-secondary text-primary-foreground rounded-full bg-linear-to-r"
+                className="rounded-full"
                 onClick={() => onOpenChange(false)}
               >
                 Confirm

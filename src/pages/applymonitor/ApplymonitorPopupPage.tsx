@@ -1,16 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import type { ApplicationCard } from "@/mock/applymonitorMock";
+import type { ApplymonitorPopupPageProps } from "@/types/domain/apply-monitor";
 import { Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import ApplymonitorSkillPopup from "@/pages/applymonitor/ApplymonitorSkillPopup";
 import ApplymonitorRejectPopup from "@/pages/applymonitor/ApplymonitorRejectPopup";
-
-type ApplymonitorPopupPageProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  card: ApplicationCard | null;
-};
 
 export default function ApplymonitorPopupPage({
   open,
@@ -184,8 +178,9 @@ export default function ApplymonitorPopupPage({
                 Move To Interview
               </Button>
               <Button
+                variant="default"
                 size="sm"
-                className="from-primary to-secondary text-primary-foreground rounded-full bg-linear-to-r"
+                className="rounded-full"
               >
                 Message
               </Button>

@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-r from-main to-second text-primary-foreground hover:bg-gradient-to-r hover:from-main/80 hover:to-second/80 rounded-full",
+          "bg-linear-to-r from-primary to-secondary text-primary-foreground hover:from-primary/90 hover:to-secondary/90 rounded-full",
         outline:
           "border border-input bg-background text-foreground hover:bg-muted hover:text-foreground rounded-full",
         secondary:

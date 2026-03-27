@@ -5,22 +5,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useEffect, useState, type ReactNode } from "react";
-
-type ApplyByTitleFilterPopupProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  children: ReactNode;
-};
-
-type FilterFieldKey =
-  | "userSkill"
-  | "experience"
-  | "achievement"
-  | "project"
-  | "yearExperience";
-
-type FilterFieldValues = Record<FilterFieldKey, string>;
+import type {
+  ApplyByTitleFilterPopupProps,
+  FilterFieldKey,
+  FilterFieldValues,
+} from "@/types/domain/apply-by-title";
+import { useEffect, useState } from "react";
 
 const initialFieldValues: FilterFieldValues = {
   userSkill: "1",

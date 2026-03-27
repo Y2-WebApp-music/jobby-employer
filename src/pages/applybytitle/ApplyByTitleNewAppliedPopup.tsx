@@ -1,16 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import type { CandidateCard } from "@/mock/applybytitleMock";
+import type {
+  ApplyByTitleNewAppliedPopupProps,
+} from "@/types/domain/apply-by-title";
 import { Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import ApplymonitorSkillPopup from "@/pages/applymonitor/ApplymonitorSkillPopup";
 import ApplymonitorRejectPopup from "@/pages/applymonitor/ApplymonitorRejectPopup";
-
-type ApplyByTitleNewAppliedPopupProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  card: CandidateCard | null;
-};
 
 export default function ApplyByTitleNewAppliedPopup({
   open,
@@ -184,8 +180,9 @@ export default function ApplyByTitleNewAppliedPopup({
                 Move To Interview
               </Button>
               <Button
+                variant="default"
                 size="sm"
-                className="from-primary to-secondary text-primary-foreground rounded-full bg-linear-to-r"
+                className="rounded-full"
               >
                 Message
               </Button>

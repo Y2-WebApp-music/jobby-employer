@@ -1,13 +1,4 @@
-export type CandidateCard = {
-  id: number;
-  name: string;
-  status: "Apply" | "Interview" | "Accept" | "Reject";
-  section: "newApplied" | "applied" | "interview" | "accept" | "reject";
-  appliedAt: string;
-  skillMatch: string;
-  viewed?: boolean;
-  highlightVariant?: "gradient" | "pink" | "green";
-};
+import type { CandidateCard, SectionConfig } from "@/types/domain/apply-by-title";
 
 const candidateNames = [
   "Chotanansub Sophaken",
@@ -46,14 +37,14 @@ const appliedDates = [
   "Applied: 08 Nov 2025 12:16",
 ];
 
-type CandidateSection = CandidateCard["section"];
-
-type SectionConfig = {
-  section: CandidateSection;
-  count: number;
-  status: CandidateCard["status"];
-  highlightVariant?: CandidateCard["highlightVariant"];
-};
+const badgeTextLabels = [
+  "React",
+  "React + TypeScript",
+  "3 Years in Product Team",
+  "Built Internal Dashboard for 2 Departments",
+  "Led End-to-End Feature Delivery Across Web and Mobile",
+  "Handled High-traffic Release Planning and Cross-team Coordination",
+];
 
 const sectionConfigs: SectionConfig[] = [
   { section: "newApplied", count: 18, status: "Apply", highlightVariant: "gradient" },
@@ -76,6 +67,7 @@ export const applybytitleMock: CandidateCard[] = sectionConfigs.flatMap((config,
       status: config.status,
       section: config.section,
       appliedAt: appliedDates[(index + sectionIndex * 3) % appliedDates.length],
+      badgeText: badgeTextLabels[(index + sectionIndex * 4) % badgeTextLabels.length],
       skillMatch: skillMatchLabels[(index + sectionIndex) % skillMatchLabels.length],
       viewed: config.section === "newApplied" ? index % 4 === 0 : index % 3 !== 0,
       highlightVariant: config.highlightVariant,

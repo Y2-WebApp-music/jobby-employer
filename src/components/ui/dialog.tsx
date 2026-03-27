@@ -2,6 +2,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import type { DialogContentProps } from "@/types/ui";
 import {
   CheckCircle2,
   Info,
@@ -67,13 +68,6 @@ function DialogOverlay({
       {...props}
     />
   );
-}
-
-interface DialogContentProps
-  extends
-    React.ComponentProps<typeof DialogPrimitive.Content>,
-    VariantProps<typeof dialogVariants> {
-  showCloseButton?: boolean;
 }
 
 function DialogContent({

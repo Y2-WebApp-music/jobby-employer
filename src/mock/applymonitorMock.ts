@@ -1,23 +1,4 @@
-export type ApplicationCard = {
-  id: number;
-  create_date: string;
-  title: string;
-  status: "Apply" | "Open";
-  detail: string;
-  skillMatch: string;
-  highlighted?: boolean;
-};
-
-export type ActivityCard = {
-  id: number;
-  create_date: string;
-  title: string;
-  status: "Open" | "Apply";
-  period: string;
-  applied: string;
-  badgeText: string;
-  highlighted?: boolean;
-};
+import type { ActivityCard, ApplicationCard } from "@/types/domain/apply-monitor";
 
 const baseNewAppliedCards: Omit<ApplicationCard, "create_date">[] = [
   {

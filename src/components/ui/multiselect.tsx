@@ -2,21 +2,9 @@ import { useMemo, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import type { MultiselectOption, MultiselectProps } from "@/types/ui";
 import { ChevronsUpDown, X } from "lucide-react";
-
-export type MultiselectOption = {
-  label: string;
-  value: string;
-};
-
-type MultiselectProps = {
-  options: MultiselectOption[];
-  selectedValues: string[];
-  onSelectedValuesChange: (values: string[]) => void;
-  placeholder?: string;
-  className?: string;
-  maxDisplayCount?: number;
-};
+export type { MultiselectOption };
 
 export function Multiselect({
   options,

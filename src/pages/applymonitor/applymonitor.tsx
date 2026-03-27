@@ -25,11 +25,11 @@ import {
   activityCards,
   applyStatusOptions,
   jobStatusOptions,
-  type ApplicationCard,
   newAppliedCards,
   skillOptions,
   workCategoryOptions,
 } from "@/mock/applymonitorMock";
+import type { ApplicationCard } from "@/types/domain/apply-monitor";
 import { Star } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -322,14 +322,14 @@ export function ApplymonitorPage() {
                       isInactive ? "text-muted-foreground" : "text-foreground",
                     ].join(" ")}
                   >
-                    <Button
+                    <button
                       type="button"
                       onClick={(event) => {
                         event.stopPropagation();
                         toggleStar(starKey);
                       }}
                       aria-label={isStarSelected ? "Unselect card" : "Select card"}
-                      className="rounded-sm"
+                      className="rounded-sm bg-transparent p-0 hover:bg-transparent"
                     >
                       <Star
                         className={
@@ -340,7 +340,7 @@ export function ApplymonitorPage() {
                               : "text-foreground size-3.5"
                         }
                       />
-                    </Button>
+                    </button>
                     <span>{card.title}</span>
                   </div>
                   <p className={isInactive ? "text-xs text-muted-foreground" : "text-xs"}>

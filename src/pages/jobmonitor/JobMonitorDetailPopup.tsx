@@ -1,14 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import type { ApplyByTitleJobDetailPopupProps } from "@/types/domain/apply-by-title";
+import type { JobMonitorDetailPopupProps } from "@/types/domain/job-monitor";
 import { X } from "lucide-react";
 
-export default function ApplyByTitleJobDetailPopup({
+export default function JobMonitorDetailPopup({
   open,
   onOpenChange,
-  jobTitle,
-}: ApplyByTitleJobDetailPopupProps) {
+  card,
+}: JobMonitorDetailPopupProps) {
   const gradientBorderStyle = {
     border: "1px solid transparent",
     backgroundImage:
@@ -16,6 +16,10 @@ export default function ApplyByTitleJobDetailPopup({
     backgroundOrigin: "border-box",
     backgroundClip: "padding-box, border-box",
   } as const;
+
+  if (!card) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -25,15 +29,17 @@ export default function ApplyByTitleJobDetailPopup({
             type="button"
             aria-label="Close"
             onClick={() => onOpenChange(false)}
-            className="absolute right-3 top-3 rounded-full p-1 text-foreground hover:bg-muted"
+            className="absolute right-3 top-3 z-30 rounded-full border border-border bg-background/95 p-1 text-foreground hover:bg-muted"
           >
             <X className="size-6" />
           </button>
 
           <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-5">
-            <h2 className="pr-10 text-3xl font-medium leading-tight text-foreground">{jobTitle}</h2>
-            <p className="text-muted-foreground">Select Service Partner Ltd.</p>
-            <p className="text-sm text-muted-foreground">Chon Buri, Thailand · posted 1 week ago</p>
+            <div className="sticky top-0 z-10 bg-background pb-3">
+              <h2 className="pr-10 text-3xl font-medium leading-tight text-foreground">{card.title}</h2>
+              <p className="text-muted-foreground">{card.companyName}</p>
+              <p className="text-sm text-muted-foreground">{card.locationPosted}</p>
+            </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
               <Badge
@@ -53,7 +59,11 @@ export default function ApplyByTitleJobDetailPopup({
             <section className="mt-4">
               <h3 className="text-lg font-semibold text-foreground">Skill Use</h3>
               <div className="mt-2 flex flex-wrap gap-2">
-                {["React", "TypeScript", "Figma"].map((skill) => (
+                {[
+                  "React",
+                  "TypeScript",
+                  "Figma",
+                ].map((skill) => (
                   <Badge
                     key={skill}
                     variant="outline"

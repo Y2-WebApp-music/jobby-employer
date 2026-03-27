@@ -1,10 +1,5 @@
 import { cn } from "@/lib/utils"
-
-type ToggleProps = {
-  checked?: boolean
-  onChange?: (checked: boolean) => void
-  className?: string
-}
+import type { ToggleProps } from "@/types/ui"
 
 export default function Toggle({ checked, onChange, className }: ToggleProps) {
   return (

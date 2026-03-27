@@ -2,13 +2,8 @@
 
 import { useEffect, useRef } from "react"
 import Quill from "quill"
+import type { RtfQuillProps } from "@/types/ui"
 import "quill/dist/quill.snow.css"
-
-type RtfQuillProps = {
-  value?: string
-  onChange?: (html: string) => void
-  className?: string
-}
 
 export default function RtfQuill({ value, onChange, className }: RtfQuillProps) {
   const editorRef = useRef<HTMLDivElement | null>(null)

@@ -9,6 +9,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import ApplyByTitleCandidateCard from "@/features/applybytitle/components/ApplyByTitleCandidateCard";
 import { Input } from "@/components/ui/input";
 import SectionPagination from "@/components/ui/pagination";
 import {
@@ -20,16 +21,14 @@ import {
 } from "@/components/ui/select";
 import {
   applybytitleMock,
-  type CandidateCard,
 } from "@/mock/applybytitleMock";
 import ApplyByTitleFilterPopup from "@/pages/applybytitle/ApplyByTitleFilterPopup";
 import ApplyByTitleJobDetailPopup from "@/pages/applybytitle/ApplyByTitleJobDetailPopup";
 import ApplyByTitleNewAppliedPopup from "@/pages/applybytitle/ApplyByTitleNewAppliedPopup";
-import { Star } from "lucide-react";
+import ApplyByTitleSkillPopup from "@/pages/applybytitle/ApplyByTitleSkillPopup";
+import type { ApplyStatusFilter, CandidateCard } from "@/types/domain/apply-by-title";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
-type ApplyStatusFilter = "all" | "apply" | "interview" | "accept" | "reject";
 
 const perPageBySection = {
   newApplied: 6,
@@ -62,7 +61,11 @@ export default function ApplyByTitlePage() {
   const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
   const [isJobDetailPopupOpen, setIsJobDetailPopupOpen] = useState(false);
   const [isNewAppliedPopupOpen, setIsNewAppliedPopupOpen] = useState(false);
+  const [isSkillPopupOpen, setIsSkillPopupOpen] = useState(false);
+  const [selectedSkillName, setSelectedSkillName] = useState("React");
   const [selectedNewAppliedCard, setSelectedNewAppliedCard] = useState<CandidateCard | null>(null);
+
+  const skillNames = ["React", "React"];
 
   const sectionedCards = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -173,147 +176,9 @@ export default function ApplyByTitlePage() {
     setIsNewAppliedPopupOpen(true);
   };
 
-  const renderCard = (card: CandidateCard) => {
-    const isStarSelected = Boolean(selectedStars[card.id]);
-    const isGradient = card.highlightVariant === "gradient";
-    const isInterview = card.status === "Interview";
-    const isAccept = card.status === "Accept";
-    const isReject = card.status === "Reject";
-    const isNewApplied = card.section === "newApplied";
-
-    const cardClass = isGradient
-      ? "rounded-xl bg-card px-3 py-2 min-h-30"
-      : isInterview
-        ? "rounded-xl border status-interview-border status-interview-bg px-3 py-2 min-h-30"
-        : isAccept
-          ? "rounded-xl border status-accept-border status-accept-bg px-3 py-2 min-h-30"
-          : "rounded-xl border border-border bg-card px-3 py-2 min-h-30";
-
-    const cardStyle = isGradient
-      ? {
-          border: "1px solid transparent",
-          backgroundImage:
-            "linear-gradient(var(--card), var(--card)), var(--gradient-primary)",
-          backgroundOrigin: "border-box",
-          backgroundClip: "padding-box, border-box",
-        }
-      : undefined;
-
-    const statusClass =
-      card.status === "Interview"
-        ? "status-interview-text"
-        : card.status === "Accept"
-          ? "status-accept-text"
-          : card.status === "Reject"
-            ? "text-destructive"
-            : "text-primary";
-
-    const showMessage = card.status === "Interview" || card.status === "Accept";
-
-    return (
-      <article
-        key={card.id}
-        className={isNewApplied ? `${cardClass} cursor-pointer` : cardClass}
-        style={cardStyle}
-        role={isNewApplied ? "button" : undefined}
-        tabIndex={isNewApplied ? 0 : undefined}
-        onClick={isNewApplied ? () => handleOpenNewAppliedPopup(card) : undefined}
-        onKeyDown={
-          isNewApplied
-            ? (event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  handleOpenNewAppliedPopup(card);
-                }
-              }
-            : undefined
-        }
-      >
-        <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                toggleStar(card.id);
-              }}
-              aria-label={isStarSelected ? "Unstar candidate" : "Star candidate"}
-              className="rounded-sm"
-            >
-              <Star
-                className={
-                  isStarSelected
-                    ? "size-3 fill-yellow-400 text-yellow-400"
-                    : "size-3 text-foreground"
-                }
-              />
-            </button>
-            <span className="text-[11px] font-medium">{card.name}</span>
-          </div>
-          {card.viewed && <span className="text-muted-foreground text-[10px]">Viewed</span>}
-        </div>
-
-        <p className="text-[10px]">
-          Status: <span className={statusClass}>{card.status}</span>
-        </p>
-        <p className="text-muted-foreground text-[10px]">{card.appliedAt}</p>
-
-        <div className="mt-2 flex items-center justify-between gap-2">
-          {isInterview ? (
-            <Badge
-              variant="outline"
-              className="status-interview-bg rounded-full border-transparent text-[10px]"
-            >
-              <span className="status-interview-text">{card.skillMatch}</span>
-            </Badge>
-          ) : isAccept ? (
-            <Badge
-              variant="outline"
-              className="status-accept-bg rounded-full border-transparent text-[10px]"
-            >
-              <span className="status-accept-text">{card.skillMatch}</span>
-            </Badge>
-          ) : isReject ? (
-            <Badge
-              variant="outline"
-              className="status-reject-bg rounded-full border-transparent text-[10px]"
-            >
-              <span className="status-reject-text">{card.skillMatch}</span>
-            </Badge>
-          ) : (
-            <Badge variant="gradient" className="rounded-full text-[10px]">
-              <span className="gradient-text">{card.skillMatch}</span>
-            </Badge>
-          )}
-
-          {showMessage ? (
-            <Button
-              variant="ghost"
-              size="xs"
-              className="from-primary to-secondary text-primary-foreground rounded-full bg-linear-to-r px-3"
-            >
-              Message
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="xs"
-              className="rounded-full border-muted-foreground/30 bg-transparent text-muted-foreground hover:bg-transparent"
-              onClick={
-                isNewApplied
-                  ? (event) => {
-                      event.stopPropagation();
-                      handleOpenNewAppliedPopup(card);
-                    }
-                  : undefined
-              }
-            >
-              See Detail
-            </Button>
-          )}
-        </div>
-      </article>
-    );
+  const handleOpenSkillPopup = (skillName: string) => {
+    setSelectedSkillName(skillName);
+    setIsSkillPopupOpen(true);
   };
 
   return (
@@ -362,22 +227,18 @@ export default function ApplyByTitlePage() {
           <section className="mb-4">
             <p className="mb-2 text-sm font-medium">Skill Use In This Job</p>
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="xs"
-                className="rounded-full bg-transparent hover:bg-transparent"
-                style={gradientBorderStyle}
-              >
-                <span className="gradient-text">React</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="xs"
-                className="rounded-full bg-transparent hover:bg-transparent"
-                style={gradientBorderStyle}
-              >
-                <span className="gradient-text">React</span>
-              </Button>
+              {skillNames.map((skillName, index) => (
+                <Button
+                  key={`${skillName}-${index}`}
+                  variant="outline"
+                  size="xs"
+                  className="rounded-full bg-transparent hover:bg-transparent"
+                  style={gradientBorderStyle}
+                  onClick={() => handleOpenSkillPopup(skillName)}
+                >
+                  <span className="gradient-text">{skillName}</span>
+                </Button>
+              ))}
             </div>
           </section>
 
@@ -462,7 +323,16 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">New Applied</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.newApplied, newAppliedPage, perPageBySection.newApplied).map(renderCard)}
+                    {getPageItems(sectionedCards.newApplied, newAppliedPage, perPageBySection.newApplied).map((card) => (
+                      <ApplyByTitleCandidateCard
+                        key={card.id}
+                        card={card}
+                        variant="newApplied"
+                        isStarSelected={Boolean(selectedStars[card.id])}
+                        onToggleStar={toggleStar}
+                        onOpenDetail={handleOpenNewAppliedPopup}
+                      />
+                    ))}
                   </div>
                   <SectionPagination
                     total={sectionedCards.newApplied.length}
@@ -478,7 +348,16 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">Applied</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.applied, appliedPage, perPageBySection.applied).map(renderCard)}
+                    {getPageItems(sectionedCards.applied, appliedPage, perPageBySection.applied).map((card) => (
+                      <ApplyByTitleCandidateCard
+                        key={card.id}
+                        card={card}
+                        variant="applied"
+                        isStarSelected={Boolean(selectedStars[card.id])}
+                        onToggleStar={toggleStar}
+                        onOpenDetail={handleOpenNewAppliedPopup}
+                      />
+                    ))}
                   </div>
                   <SectionPagination
                     total={sectionedCards.applied.length}
@@ -494,7 +373,16 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">Interview</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.interview, interviewPage, perPageBySection.interview).map(renderCard)}
+                    {getPageItems(sectionedCards.interview, interviewPage, perPageBySection.interview).map((card) => (
+                      <ApplyByTitleCandidateCard
+                        key={card.id}
+                        card={card}
+                        variant="interview"
+                        isStarSelected={Boolean(selectedStars[card.id])}
+                        onToggleStar={toggleStar}
+                        onOpenDetail={handleOpenNewAppliedPopup}
+                      />
+                    ))}
                   </div>
                   <SectionPagination
                     total={sectionedCards.interview.length}
@@ -510,7 +398,16 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">Accept</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.accept, acceptPage, perPageBySection.accept).map(renderCard)}
+                    {getPageItems(sectionedCards.accept, acceptPage, perPageBySection.accept).map((card) => (
+                      <ApplyByTitleCandidateCard
+                        key={card.id}
+                        card={card}
+                        variant="accept"
+                        isStarSelected={Boolean(selectedStars[card.id])}
+                        onToggleStar={toggleStar}
+                        onOpenDetail={handleOpenNewAppliedPopup}
+                      />
+                    ))}
                   </div>
                   <SectionPagination
                     total={sectionedCards.accept.length}
@@ -526,7 +423,16 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">Reject</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.reject, rejectPage, perPageBySection.reject).map(renderCard)}
+                    {getPageItems(sectionedCards.reject, rejectPage, perPageBySection.reject).map((card) => (
+                      <ApplyByTitleCandidateCard
+                        key={card.id}
+                        card={card}
+                        variant="reject"
+                        isStarSelected={Boolean(selectedStars[card.id])}
+                        onToggleStar={toggleStar}
+                        onOpenDetail={handleOpenNewAppliedPopup}
+                      />
+                    ))}
                   </div>
                   <SectionPagination
                     total={sectionedCards.reject.length}
@@ -554,6 +460,12 @@ export default function ApplyByTitlePage() {
             open={isNewAppliedPopupOpen}
             onOpenChange={setIsNewAppliedPopupOpen}
             card={selectedNewAppliedCard}
+          />
+
+          <ApplyByTitleSkillPopup
+            open={isSkillPopupOpen}
+            onOpenChange={setIsSkillPopupOpen}
+            skillName={selectedSkillName}
           />
         </div>
       </div>

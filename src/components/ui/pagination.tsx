@@ -1,7 +1,8 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import type { PaginationLinkProps, SectionPaginationProps } from "@/types/ui";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -36,11 +37,6 @@ function PaginationContent({
 function PaginationItem({ ...props }: React.ComponentProps<"li">) {
   return <li data-slot="pagination-item" {...props} />;
 }
-
-type PaginationLinkProps = {
-  isActive?: boolean;
-} & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a">;
 
 function PaginationLink({
   className,
@@ -119,14 +115,6 @@ function PaginationEllipsis({
   );
 }
 
-type SectionPaginationProps = {
-  total: number;
-  currentPage: number;
-  onPageChange: (page: number) => void;
-  perPage: number;
-  compact?: boolean;
-};
-
 function getVisiblePages(currentPage: number, totalPages: number, visiblePageCount = 3) {
   const visibleStartPage =
     totalPages <= visiblePageCount
@@ -196,7 +184,7 @@ export default function SectionPagination({
             onClick={() => onPageChange(page)}
             className={
               page === currentPage
-                ? `from-primary to-secondary text-primary-foreground rounded-md bg-linear-to-r ${pageButtonClassName}`
+                ? cn(buttonVariants({ variant: "default" }), "rounded-md", pageButtonClassName)
                 : `text-foreground hover:bg-muted rounded-md ${pageButtonClassName}`
             }
           >

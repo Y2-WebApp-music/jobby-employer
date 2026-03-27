@@ -9,16 +9,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { format } from "date-fns"
+import type { DatePickerProps } from "@/types/ui"
 import { ChevronDownIcon } from "lucide-react"
-
-interface DatePickerProps {
-  date?: Date
-  onDateChange: (date: Date | undefined) => void
-  pairedDate?: Date
-  type?: "start" | "end"
-  placeholder?: string
-  className?: string
-}
 
 export function DatePicker({
   date,
