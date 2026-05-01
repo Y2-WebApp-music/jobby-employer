@@ -1,10 +1,5 @@
 import {
-  Calendar,
   ChevronDown,
-  Home,
-  Inbox,
-  Search,
-  Settings,
   ChevronRight,
 } from "lucide-react";
 import JobbyLogo from "@/assets/icons/JobbyLogo.svg?react";
@@ -66,7 +61,7 @@ const items3 = [
   },
   {
     title: "Approve Work",
-    url: "sdjxfbnm",
+    url: "/approvework",
   },
 ];
 

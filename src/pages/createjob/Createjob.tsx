@@ -16,13 +16,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useState } from "react"
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+import { useLayoutEffect, useRef, useState } from "react"
 import { DatePicker } from "@/components/ui/datepicker"
 import RtfQuill from "@/components/ui/rtf-quill"
 import Toggle from "@/components/ui/toggle"
 import IoTrashBin from "@/assets/icons/IoTrashBin.png"
-import { ChevronDown, ChevronUp, Plus, X } from "lucide-react"
+import { ChevronDown, ChevronUp, GripVertical, Plus, X } from "lucide-react"
 import { Link } from "react-router-dom"
+import CreateJobAddSkillPopup from "./CreateJobAddSkillPopup"
 
 type AddressAutoFillOption = {
   postalCode: string
@@ -34,6 +50,21 @@ type AddressAutoFillOption = {
   province: string
   district: string
   subDistrict: string
+}
+
+type AdditionQuestionType = "open" | "radio" | "checkbox"
+
+type AdditionQuestionAnswer = {
+  id: string
+  text: string
+}
+
+type AdditionQuestionSection = {
+  id: string
+  type: AdditionQuestionType
+  question: string
+  answers: AdditionQuestionAnswer[]
+  maxSelect?: string
 }
 
 const mockAddressOptions: AddressAutoFillOption[] = [
@@ -61,6 +92,120 @@ const mockAddressOptions: AddressAutoFillOption[] = [
   },
 ]
 
+const initialAdditionQuestions: AdditionQuestionSection[] = [
+  {
+    id: "open-answer",
+    type: "open",
+    question: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
+    answers: [],
+  },
+  {
+    id: "radio-answer",
+    type: "radio",
+    question: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
+    answers: Array.from({ length: 5 }, (_, index) => ({
+      id: `radio-answer-item-${index + 1}`,
+      text: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
+    })),
+  },
+  {
+    id: "checkbox-answer",
+    type: "checkbox",
+    question: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
+    answers: Array.from({ length: 2 }, (_, index) => ({
+      id: `checkbox-answer-item-${index + 1}`,
+      text: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
+    })),
+    maxSelect: "3",
+  },
+]
+
+const additionQuestionTypeLabel: Record<AdditionQuestionType, string> = {
+  open: "Open Answer",
+  radio: "Radio Answer",
+  checkbox: "Checkbox Answer",
+}
+
+type SortableAnswerItemProps = {
+  answer: AdditionQuestionAnswer
+  onChange: (value: string) => void
+}
+
+function SortableAnswerItem({ answer, onChange }: SortableAnswerItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: answer.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 ${isDragging ? "opacity-70" : ""}`}
+    >
+      <button
+        type="button"
+        aria-label="Reorder answer"
+        className="text-muted-foreground hover:text-foreground cursor-grab rounded-md p-1 active:cursor-grabbing"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <Input
+        value={answer.text}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </div>
+  )
+}
+
+function createAdditionQuestionSection(type: AdditionQuestionType, id: string): AdditionQuestionSection {
+  const defaultQuestion = "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่"
+  const defaultAnswer = "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่"
+
+  if (type === "open") {
+    return {
+      id,
+      type,
+      question: defaultQuestion,
+      answers: [],
+    }
+  }
+
+  if (type === "radio") {
+    return {
+      id,
+      type,
+      question: defaultQuestion,
+      answers: Array.from({ length: 3 }, (_, index) => ({
+        id: `${id}-item-${index + 1}`,
+        text: defaultAnswer,
+      })),
+    }
+  }
+
+  return {
+    id,
+    type,
+    question: defaultQuestion,
+    answers: Array.from({ length: 2 }, (_, index) => ({
+      id: `${id}-item-${index + 1}`,
+      text: defaultAnswer,
+    })),
+    maxSelect: "2",
+  }
+}
+
 export default function CreatejobPage() {
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
@@ -68,6 +213,22 @@ export default function CreatejobPage() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [selectedFileType, setSelectedFileType] = useState<string>("")
   const [selectedPostalCode, setSelectedPostalCode] = useState<string>("")
+  const [skills, setSkills] = useState<string[]>(["React", "React", "React"])
+  const [isAddSkillPopupOpen, setIsAddSkillPopupOpen] = useState(false)
+  const [skillSearchValue, setSkillSearchValue] = useState("")
+  const [additionQuestions, setAdditionQuestions] = useState<AdditionQuestionSection[]>(initialAdditionQuestions)
+  const additionQuestionRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const previousQuestionPositions = useRef<Record<string, number>>({})
+  const additionQuestionIdCounter = useRef(initialAdditionQuestions.length)
+  const additionQuestionAnswerIdCounter = useRef(
+    initialAdditionQuestions.reduce((count, section) => count + section.answers.length, 0),
+  )
+
+  const answerDndSensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+  )
 
   const gradientBorderStyle = {
     borderColor: "transparent",
@@ -103,6 +264,11 @@ export default function CreatejobPage() {
     }
   }
 
+  const handleJobDescriptionChange = (html: string) => {
+    setJobDescription(html)
+    console.log("[CreateJob][RTF HTML]", html)
+  }
+
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index))
   }
@@ -111,6 +277,163 @@ export default function CreatejobPage() {
     const input = document.getElementById("file-upload") as HTMLInputElement
     input?.click()
   }
+
+  const moveAdditionQuestion = (fromIndex: number, toIndex: number) => {
+    setAdditionQuestions((previous) => {
+      if (toIndex < 0 || toIndex >= previous.length) {
+        return previous
+      }
+
+      const nextQuestions = [...previous]
+      const [movedQuestion] = nextQuestions.splice(fromIndex, 1)
+      nextQuestions.splice(toIndex, 0, movedQuestion)
+      return nextQuestions
+    })
+  }
+
+  const addAdditionQuestion = (type: AdditionQuestionType) => {
+    additionQuestionIdCounter.current += 1
+
+    setAdditionQuestions((previous) => [
+      ...previous,
+      createAdditionQuestionSection(type, `${type}-answer-${additionQuestionIdCounter.current}`),
+    ])
+  }
+
+  const updateAdditionQuestion = (sectionId: string, question: string) => {
+    setAdditionQuestions((previous) =>
+      previous.map((section) =>
+        section.id === sectionId ? { ...section, question } : section,
+      ),
+    )
+  }
+
+  const updateAdditionQuestionAnswer = (sectionId: string, answerId: string, answer: string) => {
+    setAdditionQuestions((previous) =>
+      previous.map((section) => {
+        if (section.id !== sectionId) {
+          return section
+        }
+
+        return {
+          ...section,
+          answers: section.answers.map((currentAnswer) =>
+            currentAnswer.id === answerId ? { ...currentAnswer, text: answer } : currentAnswer,
+          ),
+        }
+      }),
+    )
+  }
+
+  const addAnswerToAdditionQuestion = (sectionId: string) => {
+    additionQuestionAnswerIdCounter.current += 1
+
+    setAdditionQuestions((previous) =>
+      previous.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              answers: [
+                ...section.answers,
+                {
+                  id: `${section.id}-item-${additionQuestionAnswerIdCounter.current}`,
+                  text: "",
+                },
+              ],
+            }
+          : section,
+      ),
+    )
+  }
+
+  const moveAdditionQuestionAnswer = (sectionId: string, activeId: string, overId: string) => {
+    setAdditionQuestions((previous) =>
+      previous.map((section) => {
+        if (section.id !== sectionId) {
+          return section
+        }
+
+        const fromIndex = section.answers.findIndex((answer) => answer.id === activeId)
+        const toIndex = section.answers.findIndex((answer) => answer.id === overId)
+
+        if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
+          return section
+        }
+
+        return {
+          ...section,
+          answers: arrayMove(section.answers, fromIndex, toIndex),
+        }
+      }),
+    )
+  }
+
+  const handleAnswerDragEnd = (sectionId: string, event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    moveAdditionQuestionAnswer(sectionId, String(active.id), String(over.id))
+  }
+
+  const updateAdditionQuestionMaxSelect = (sectionId: string, maxSelect: string) => {
+    setAdditionQuestions((previous) =>
+      previous.map((section) =>
+        section.id === sectionId ? { ...section, maxSelect } : section,
+      ),
+    )
+  }
+
+  const addSkill = (skillName: string) => {
+    const nextSkill = skillName.trim()
+    if (!nextSkill) {
+      return
+    }
+
+    setSkills((previous) => [...previous, nextSkill])
+  }
+
+  const removeSkill = (index: number) => {
+    setSkills((previous) => previous.filter((_, currentIndex) => currentIndex !== index))
+  }
+
+  useLayoutEffect(() => {
+    const nextPositions: Record<string, number> = {}
+
+    additionQuestions.forEach((section) => {
+      const element = additionQuestionRefs.current[section.id]
+      if (!element) {
+        return
+      }
+
+      const nextTop = element.getBoundingClientRect().top
+      nextPositions[section.id] = nextTop
+
+      const previousTop = previousQuestionPositions.current[section.id]
+      if (previousTop === undefined) {
+        return
+      }
+
+      const translateY = previousTop - nextTop
+      if (translateY === 0) {
+        return
+      }
+
+      element.animate(
+        [
+          { transform: `translateY(${translateY}px)` },
+          { transform: "translateY(0)" },
+        ],
+        {
+          duration: 280,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        },
+      )
+    })
+
+    previousQuestionPositions.current = nextPositions
+  }, [additionQuestions])
 
   return (
     <PageLayout>
@@ -325,34 +648,29 @@ export default function CreatejobPage() {
             <h2 className="mb-3 text-lg font-semibold">Skill Use</h2>
 
             <div className="flex flex-wrap gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-full border bg-transparent hover:bg-transparent"
-                style={gradientBorderStyle}
-              >
-                <span style={gradientTextStyle}>Button</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-full border bg-transparent hover:bg-transparent"
-                style={gradientBorderStyle}
-              >
-                <span style={gradientTextStyle}>React</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-full border bg-transparent hover:bg-transparent"
-                style={gradientBorderStyle}
-              >
-                <span style={gradientTextStyle}>Typescript</span>
-              </Button>
+              {skills.map((skill, index) => (
+                <div
+                  key={`${skill}-${index}`}
+                  className="inline-flex items-center gap-2 rounded-full border px-4 py-1 text-sm"
+                  style={gradientBorderStyle}
+                >
+                  <span style={gradientTextStyle}>{skill}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeSkill(index)}
+                    aria-label={`Remove ${skill}`}
+                    className="rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
 
               <Button
                 variant="default"
                 size="sm"
+                type="button"
+                onClick={() => setIsAddSkillPopupOpen(true)}
                 className="rounded-full text-white "
                 style={{ background: "var(--gradient-primary)" }}
               >
@@ -360,6 +678,14 @@ export default function CreatejobPage() {
                 Add Skill
               </Button>
             </div>
+
+            <CreateJobAddSkillPopup
+              open={isAddSkillPopupOpen}
+              onOpenChange={setIsAddSkillPopupOpen}
+              searchValue={skillSearchValue}
+              onSearchChange={setSkillSearchValue}
+              onSubmit={addSkill}
+            />
           </section>
 
           {/*  Job Description  */}
@@ -370,7 +696,7 @@ export default function CreatejobPage() {
 
             <RtfQuill
               value={jobDescription}
-              onChange={setJobDescription}
+              onChange={handleJobDescriptionChange}
               className="min-h-56 w-full rounded-md border bg-background"
             />
           </section>
@@ -399,168 +725,143 @@ export default function CreatejobPage() {
             <h2 className="mb-3 text-lg font-medium gradient-text inline-block">Addition Question</h2>
 
             <div className="space-y-4">
-              {/* Card: Open Answer */}
-              <div className="rounded-xl border bg-background p-4 shadow-sm">
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>Type: Open Answer</span>
-                  <div className="flex items-center gap-3">
-                    <button className="hover:text-foreground inline-flex items-center gap-1">
-                      <ChevronUp className="h-5 w-5" />
-                      Move Up
-                    </button>
-                    <button className="hover:text-foreground inline-flex items-center gap-1">
-                      <ChevronDown className="h-5 w-5" />
-                      Move Down
-                    </button>
-                    <button className="hover:text-foreground inline-flex items-center gap-1" aria-label="Delete">
-                      <img src={IoTrashBin} alt="Delete" className="h-4 w-4" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <label className="text-sm dark:text-accent">Question</label>
-                  <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                </div>
-              </div>
-
-              {/* Card: Radio Answer */}
-              <div className="rounded-xl border bg-background p-4 shadow-sm">
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>Type: Radio Answer</span>
-                  <div className="flex items-center gap-3">
-                    <button className="hover:text-foreground inline-flex items-center gap-1">
-                      <ChevronUp className="h-5 w-5" />
-                      Move Up
-                    </button>
-                    <button className="hover:text-foreground inline-flex items-center gap-1">
-                      <ChevronDown className="h-5 w-5" />
-                      Move Down
-                    </button>
-                    <button className="hover:text-foreground inline-flex items-center gap-1" aria-label="Delete">
-                      <img src={IoTrashBin} alt="Delete" className="h-4 w-4" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <label className="text-sm dark:text-accent">Question</label>
-                    <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                  </div>
-
-                  <div>
-                    <label className="text-sm dark:text-accent">Answer</label>
-                    <div className="mt-2 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">≡</span>
-                        <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">≡</span>
-                        <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">≡</span>
-                        <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">≡</span>
-                        <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">≡</span>
-                        <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                      </div>
-                    </div>
-
-                    <div className="mt-3 flex justify-center">
-                      <Button variant="ghost" size="sm" className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted">
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add Answer
-                      </Button>
+              {additionQuestions.map((section, index) => (
+                <div
+                  key={section.id}
+                  ref={(element) => {
+                    additionQuestionRefs.current[section.id] = element
+                  }}
+                  className="rounded-xl border bg-background p-4 shadow-sm will-change-transform"
+                >
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Type: {additionQuestionTypeLabel[section.type]}</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => moveAdditionQuestion(index, index - 1)}
+                        disabled={index === 0}
+                        className="hover:text-foreground inline-flex items-center gap-1 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <ChevronUp className="h-5 w-5" />
+                        Move Up
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveAdditionQuestion(index, index + 1)}
+                        disabled={index === additionQuestions.length - 1}
+                        className="hover:text-foreground inline-flex items-center gap-1 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <ChevronDown className="h-5 w-5" />
+                        Move Down
+                      </button>
+                      <button className="hover:text-foreground inline-flex items-center gap-1" aria-label="Delete">
+                        <img src={IoTrashBin} alt="Delete" className="h-4 w-4" />
+                        <span>Delete</span>
+                      </button>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Card: Checkbox Answer */}
-              <div className="rounded-xl border bg-background p-4 shadow-sm">
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>Type: Checkbox Answer</span>
-                  <div className="flex items-center gap-3">
-                    <button className="hover:text-foreground inline-flex items-center gap-1">
-                      <ChevronUp className="h-5 w-5" />
-                      Move Up
-                    </button>
-                    <button className="hover:text-foreground inline-flex items-center gap-1">
-                      <ChevronDown className="h-5 w-5" />
-                      Move Down
-                    </button>
-                    <button className="hover:text-foreground inline-flex items-center gap-1" aria-label="Delete">
-                      <img src={IoTrashBin} alt="Delete" className="h-4 w-4" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <label className="text-sm dark:text-accent">Question</label>
-                    <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                  </div>
-
-                  <div>
-                    <label className="text-sm dark:text-accent">Answer</label>
-                    <div className="mt-2 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">≡</span>
-                        <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">≡</span>
-                        <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่" />
-                      </div>
+                  <div className="mt-3 space-y-3">
+                    <div>
+                      <label className="text-sm dark:text-accent">Question</label>
+                      <Input
+                        value={section.question}
+                        onChange={(event) => updateAdditionQuestion(section.id, event.target.value)}
+                      />
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between">
-                      <Button variant="ghost" size="sm" className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted">
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add Answer
-                      </Button>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Can Select Up To</span>
-                        <Select defaultValue="3">
-                          <SelectTrigger className="w-16 h-9">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1</SelectItem>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="3">3</SelectItem>
-                            <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    {section.type === "open" ? null : (
+                      <div>
+                        <label className="text-sm dark:text-accent">Answer</label>
+                        <DndContext
+                          sensors={answerDndSensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={(event) => handleAnswerDragEnd(section.id, event)}
+                        >
+                          <SortableContext
+                            items={section.answers.map((answer) => answer.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="mt-2 space-y-2">
+                              {section.answers.map((answer) => (
+                                <SortableAnswerItem
+                                  key={answer.id}
+                                  answer={answer}
+                                  onChange={(value) => updateAdditionQuestionAnswer(section.id, answer.id, value)}
+                                />
+                              ))}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
+
+                        <div className={`mt-3 flex ${section.type === "checkbox" ? "items-center justify-between" : "justify-center"}`}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => addAnswerToAdditionQuestion(section.id)}
+                            className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add Answer
+                          </Button>
+
+                          {section.type === "checkbox" ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">Can Select Up To</span>
+                              <Select
+                                value={section.maxSelect || "3"}
+                                onValueChange={(value) => updateAdditionQuestionMaxSelect(section.id, value)}
+                              >
+                                <SelectTrigger className="w-16 h-9">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="1">1</SelectItem>
+                                  <SelectItem value="2">2</SelectItem>
+                                  <SelectItem value="3">3</SelectItem>
+                                  <SelectItem value="4">4</SelectItem>
+                                  <SelectItem value="5">5</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              ))}
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3 mt-4">
-                <Button variant="ghost" size="sm" className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addAdditionQuestion("open")}
+                  className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted"
+                >
                   <Plus className="h-4 w-4 mr-1" />
                   Text Answer
                 </Button>
-                <Button variant="ghost" size="sm" className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addAdditionQuestion("radio")}
+                  className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted"
+                >
                   <Plus className="h-4 w-4 mr-1" />
                   Radio
                 </Button>
-                <Button variant="ghost" size="sm" className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addAdditionQuestion("checkbox")}
+                  className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted"
+                >
                   <Plus className="h-4 w-4 mr-1" />
                   Checkbox
                 </Button>

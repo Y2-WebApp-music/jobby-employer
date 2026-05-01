@@ -298,7 +298,7 @@ export default function MessagePage() {
   const messages = conversationMessages[selectedConversation.id] || [];
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
 
   useEffect(() => {
@@ -759,8 +759,8 @@ export default function MessagePage() {
                               <Ellipsis className="size-4" />
                             </button>
                           </div>
-                          <div className="mt-1 size-10 rounded-full bg-muted" />
-                          <div>
+                          <div className="mt-1 size-10 shrink-0 rounded-full bg-muted" />
+                          <div className="min-w-0 flex-1">
                             <div className="mb-1 flex items-center gap-2">
                               <p className="text-xl font-medium">{selectedConversation.name}</p>
                               <span className="text-xs text-muted-foreground">{message.date}</span>
@@ -790,7 +790,7 @@ export default function MessagePage() {
                               onImageClick={(clickedIndex) => handleOpenLightbox(messageImageUrls, clickedIndex)}
                             />
                             {message.text && (
-                              <p className="max-w-5xl whitespace-pre-wrap wrap-break-word text-lg leading-7 text-foreground">
+                              <p className="max-w-full whitespace-pre-wrap wrap-anywhere text-lg leading-7 text-foreground">
                                 {renderHighlightedText(message.text, searchQuery)}
                               </p>
                             )}
