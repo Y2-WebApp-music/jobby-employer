@@ -61,8 +61,9 @@ export type DialogVariant =
   | "error"
   | "promise";
 
-export interface DialogContentProps
-  extends React.ComponentProps<typeof DialogPrimitive.Content> {
+export interface DialogContentProps extends React.ComponentProps<
+  typeof DialogPrimitive.Content
+> {
   showCloseButton?: boolean;
   variant?: DialogVariant;
 }

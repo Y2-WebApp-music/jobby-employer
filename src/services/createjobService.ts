@@ -1,5 +1,9 @@
 import apiService from "./apiService";
-import type { CreateJobRequest, CreateJobResponse, GetJobDetailResponse } from "@/types/createJobTypes";
+import type {
+  CreateJobRequest,
+  CreateJobResponse,
+  GetJobDetailResponse,
+} from "@/types/createJobTypes";
 
 export type {
   AddressRequest,

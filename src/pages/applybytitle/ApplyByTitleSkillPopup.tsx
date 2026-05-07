@@ -25,27 +25,36 @@ export default function ApplyByTitleSkillPopup({
 
             <div>
               <p className="text-lg font-medium">Category</p>
-              <p className="text-muted-foreground text-base">Computer, Tecnology</p>
+              <p className="text-muted-foreground text-base">
+                Computer, Tecnology
+              </p>
             </div>
 
             <div>
               <p className="mb-2 text-lg font-medium">Pre-Skill</p>
               <div className="flex flex-wrap gap-2">
-                <span className="rounded-full border border-primary/40 px-4 py-1 text-primary">TypeScript</span>
-                <span className="rounded-full border border-muted-foreground/30 bg-muted px-4 py-1 text-muted-foreground">Figma</span>
+                <span className="rounded-full border border-primary/40 px-4 py-1 text-primary">
+                  TypeScript
+                </span>
+                <span className="rounded-full border border-muted-foreground/30 bg-muted px-4 py-1 text-muted-foreground">
+                  Figma
+                </span>
               </div>
             </div>
 
             <div>
               <p className="mb-2 text-lg font-medium">Skill Description</p>
               <p className="text-base font-normal leading-relaxed">
-                At Western Digital, our vision is to power global innovation and push the boundaries of
-                technology to make what you thought was once impossible, possible.
+                At Western Digital, our vision is to power global innovation and
+                push the boundaries of technology to make what you thought was
+                once impossible, possible.
               </p>
               <p className="mt-4 text-base font-normal leading-relaxed">
-                At our core, Western Digital is a company of problem solvers. People achieve extraordinary
-                things given the right technology. For decades, we&apos;ve been doing just that—our technology
-                helped people put a man on the moon and capture the first-ever picture of a black hole.
+                At our core, Western Digital is a company of problem solvers.
+                People achieve extraordinary things given the right technology.
+                For decades, we&apos;ve been doing just that—our technology
+                helped people put a man on the moon and capture the first-ever
+                picture of a black hole.
               </p>
             </div>
           </div>

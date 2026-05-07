@@ -33,9 +33,13 @@ function FilterCountField({
 }) {
   return (
     <div>
-      <p className="mb-1 text-base font-medium leading-none text-foreground">{label}</p>
+      <p className="mb-1 text-base font-medium leading-none text-foreground">
+        {label}
+      </p>
       <div className="flex items-center gap-2">
-        <span className="text-sm font-normal text-muted-foreground">More than</span>
+        <span className="text-sm font-normal text-muted-foreground">
+          More than
+        </span>
         <Input
           type="text"
           inputMode="numeric"
@@ -45,7 +49,9 @@ function FilterCountField({
           onBlur={() => onChange(value)}
           className="h-8 w-14 px-2 text-sm"
         />
-        <span className="text-sm font-normal text-muted-foreground">{unit}</span>
+        <span className="text-sm font-normal text-muted-foreground">
+          {unit}
+        </span>
       </div>
     </div>
   );
@@ -56,7 +62,8 @@ export default function ApplyByTitleFilterPopup({
   onOpenChange,
   children,
 }: ApplyByTitleFilterPopupProps) {
-  const [fieldValues, setFieldValues] = useState<FilterFieldValues>(initialFieldValues);
+  const [fieldValues, setFieldValues] =
+    useState<FilterFieldValues>(initialFieldValues);
   const [isAppliedStarredOnly, setIsAppliedStarredOnly] = useState(false);
 
   useEffect(() => {
@@ -132,7 +139,9 @@ export default function ApplyByTitleFilterPopup({
             <Checkbox
               id="applied-starred-only"
               checked={isAppliedStarredOnly}
-              onCheckedChange={(checked) => setIsAppliedStarredOnly(checked === true)}
+              onCheckedChange={(checked) =>
+                setIsAppliedStarredOnly(checked === true)
+              }
             />
             <label
               htmlFor="applied-starred-only"

@@ -351,10 +351,17 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-header"
       data-sidebar="header"
-      className={cn("gap-2 p-2 flex flex-col items-center justify-center pt-4", className)}
+      className={cn(
+        "gap-2 p-2 flex flex-col items-center justify-center pt-4",
+        className,
+      )}
       {...props}
     >
-      <img src={jobbyemployerLogo} alt="Jobby Employer" className="w-[90%] h-[90%]" />
+      <img
+        src={jobbyemployerLogo}
+        alt="Jobby Employer"
+        className="w-[90%] h-[90%]"
+      />
     </div>
   );
 }
@@ -403,7 +410,10 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn("px-4 py-3p-2 relative flex w-full min-w-0 flex-col", className)}
+      className={cn(
+        "px-4 py-3p-2 relative flex w-full min-w-0 flex-col",
+        className,
+      )}
       {...props}
     />
   );
@@ -457,21 +467,15 @@ function SidebarGroupContent({
     <div
       data-slot="sidebar-group-content"
       data-sidebar="group-content"
-      className={cn(
-      "relative text-sm w-full pl-6",
-      className,
-      )}
+      className={cn("relative text-sm w-full pl-6", className)}
       {...props}
     >
       {/* vertical line */}
-      <div
-      className="absolute left-3 top-0 bottom-0 w-[1.5px] bg-muted-foreground"
-      />
+      <div className="absolute left-3 top-0 bottom-0 w-[1.5px] bg-muted-foreground" />
       {props.children}
     </div>
   );
 }
-
 
 function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (

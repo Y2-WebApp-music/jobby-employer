@@ -58,90 +58,108 @@ export default function ApplymonitorPopupPage({
 
           <div className="no-scrollbar h-full min-h-0 overflow-y-scroll overscroll-contain p-6 pr-4">
             <div className="space-y-4 pb-6">
-            <div>
-              <div className="flex items-center gap-2 text-xl font-medium">
-                <h2>{card.title}</h2>
-                <button
-                  type="button"
-                  aria-label={isStarSelected ? "Unstar candidate" : "Star candidate"}
-                  onClick={() => setIsStarSelected((previous) => !previous)}
-                  className="rounded-sm"
-                >
-                  <Star
-                    className={
-                      isStarSelected
-                        ? "size-5 fill-yellow-400 text-yellow-400"
-                        : "size-5 text-foreground"
+              <div>
+                <div className="flex items-center gap-2 text-xl font-medium">
+                  <h2>{card.title}</h2>
+                  <button
+                    type="button"
+                    aria-label={
+                      isStarSelected ? "Unstar candidate" : "Star candidate"
                     }
-                  />
-                </button>
-              </div>
-              <p className="text-lg font-normal">
-                Status: <span className="text-amber-500">Pending</span>
-              </p>
-            </div>
-
-            <div className="grid grid-cols-[120px_1fr] gap-x-3 text-base font-medium">
-              <p>email</p>
-              <p>kunguy.159@gmail.com</p>
-              <p>mobile phone</p>
-              <p>(+66) 62-4311671</p>
-              <p>github</p>
-              <p>https://github.com/</p>
-              <p>linkedin</p>
-              <p>https://www.linkedin.com/feed/</p>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-full border border-muted-foreground/30 bg-transparent text-base font-medium text-muted-foreground"
-            >
-              View Profile
-            </Button>
-
-            <div>
-              <h3 className="text-lg font-medium">Job Application</h3>
-              <p className="text-base font-normal">{card.detail}</p>
-              <p className="text-muted-foreground text-sm font-normal">Applied: 22 Aug 2025 13:56</p>
-            </div>
-
-            <div>
-              <h3 className="mb-2 text-lg font-medium">User Skill</h3>
-              <div className="flex flex-wrap gap-2">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setActiveSkillIndex(index);
-                      openSkillPopup("React");
-                    }}
-                    className={
-                      activeSkillIndex === index
-                        ? "border-primary/40 bg-muted text-primary"
-                        : "border-primary/40 text-primary hover:bg-muted hover:text-primary"
-                    }
+                    onClick={() => setIsStarSelected((previous) => !previous)}
+                    className="rounded-sm"
                   >
-                    React
-                  </Button>
-                ))}
+                    <Star
+                      className={
+                        isStarSelected
+                          ? "size-5 fill-yellow-400 text-yellow-400"
+                          : "size-5 text-foreground"
+                      }
+                    />
+                  </button>
+                </div>
+                <p className="text-lg font-normal">
+                  Status: <span className="text-amber-500">Pending</span>
+                </p>
               </div>
-            </div>
 
-            <div>
-              <h3 className="mb-2 text-lg font-medium">How much impact does it have on our company?</h3>
-              <div className="h-48 rounded-2xl border-2 border-dashed border-secondary/60 bg-background" />
-            </div>
+              <div className="grid grid-cols-[120px_1fr] gap-x-3 text-base font-medium">
+                <p>email</p>
+                <p>kunguy.159@gmail.com</p>
+                <p>mobile phone</p>
+                <p>(+66) 62-4311671</p>
+                <p>github</p>
+                <p>https://github.com/</p>
+                <p>linkedin</p>
+                <p>https://www.linkedin.com/feed/</p>
+              </div>
 
-            <div>
-              <h3 className="mb-2 text-lg font-medium">Application Answer</h3>
-              <p className="text-base font-normal">Question 1 : Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc sit amet ultrices est.</p>
-              <p className="text-muted-foreground text-sm font-normal">Answer : Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-              <p className="mt-2 text-base font-normal">Question 1 : Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc sit amet ultrices est.</p>
-              <p className="text-muted-foreground text-sm font-normal">Answer : Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-            </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full border border-muted-foreground/30 bg-transparent text-base font-medium text-muted-foreground"
+              >
+                View Profile
+              </Button>
+
+              <div>
+                <h3 className="text-lg font-medium">Job Application</h3>
+                <p className="text-base font-normal">{card.detail}</p>
+                <p className="text-muted-foreground text-sm font-normal">
+                  Applied: 22 Aug 2025 13:56
+                </p>
+              </div>
+
+              <div>
+                <h3 className="mb-2 text-lg font-medium">User Skill</h3>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setActiveSkillIndex(index);
+                        openSkillPopup("React");
+                      }}
+                      className={
+                        activeSkillIndex === index
+                          ? "border-primary/40 bg-muted text-primary"
+                          : "border-primary/40 text-primary hover:bg-muted hover:text-primary"
+                      }
+                    >
+                      React
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="mb-2 text-lg font-medium">
+                  How much impact does it have on our company?
+                </h3>
+                <div className="h-48 rounded-2xl border-2 border-dashed border-secondary/60 bg-background" />
+              </div>
+
+              <div>
+                <h3 className="mb-2 text-lg font-medium">Application Answer</h3>
+                <p className="text-base font-normal">
+                  Question 1 : Lorem ipsum dolor sit amet, consectetur
+                  adipiscing elit. Nunc sit amet ultrices est.
+                </p>
+                <p className="text-muted-foreground text-sm font-normal">
+                  Answer : Lorem ipsum dolor sit amet, consectetur adipiscing
+                  elit.
+                </p>
+                <p className="mt-2 text-base font-normal">
+                  Question 1 : Lorem ipsum dolor sit amet, consectetur
+                  adipiscing elit. Nunc sit amet ultrices est.
+                </p>
+                <p className="text-muted-foreground text-sm font-normal">
+                  Answer : Lorem ipsum dolor sit amet, consectetur adipiscing
+                  elit.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -177,11 +195,7 @@ export default function ApplymonitorPopupPage({
               >
                 Move To Interview
               </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="rounded-full"
-              >
+              <Button variant="default" size="sm" className="rounded-full">
                 Message
               </Button>
             </div>

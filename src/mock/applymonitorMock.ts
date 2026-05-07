@@ -1,4 +1,7 @@
-import type { ActivityCard, ApplicationCard } from "@/types/domain/apply-monitor";
+import type {
+  ActivityCard,
+  ApplicationCard,
+} from "@/types/domain/apply-monitor";
 
 const baseNewAppliedCards: Omit<ApplicationCard, "create_date">[] = [
   {
@@ -194,10 +197,12 @@ const baseNewAppliedCards: Omit<ApplicationCard, "create_date">[] = [
   },
 ];
 
-export const newAppliedCards: ApplicationCard[] = baseNewAppliedCards.map((card, index) => ({
-  ...card,
-  create_date: `2025-12-${String(31 - index).padStart(2, "0")}T09:${String(index).padStart(2, "0")}:00Z`,
-}));
+export const newAppliedCards: ApplicationCard[] = baseNewAppliedCards.map(
+  (card, index) => ({
+    ...card,
+    create_date: `2025-12-${String(31 - index).padStart(2, "0")}T09:${String(index).padStart(2, "0")}:00Z`,
+  }),
+);
 
 const baseActivityCards: Omit<ActivityCard, "create_date">[] = [
   {
@@ -277,10 +282,12 @@ const baseActivityCards: Omit<ActivityCard, "create_date">[] = [
   },
 ];
 
-export const activityCards: ActivityCard[] = baseActivityCards.map((card, index) => ({
-  ...card,
-  create_date: `2025-11-${String(30 - index).padStart(2, "0")}T10:${String(index).padStart(2, "0")}:00Z`,
-}));
+export const activityCards: ActivityCard[] = baseActivityCards.map(
+  (card, index) => ({
+    ...card,
+    create_date: `2025-11-${String(30 - index).padStart(2, "0")}T10:${String(index).padStart(2, "0")}:00Z`,
+  }),
+);
 
 export const applyStatusOptions = [
   { label: "Apply", value: "apply" },

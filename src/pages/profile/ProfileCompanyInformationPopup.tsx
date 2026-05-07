@@ -42,7 +42,9 @@ export default function ProfileCompanyInformationPopup({
             <DialogTitle className="pt-0 text-[16px] font-semibold text-foreground">
               Company Infomation
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">~~~~~~~~~~</DialogDescription>
+            <DialogDescription className="text-sm text-muted-foreground">
+              ~~~~~~~~~~
+            </DialogDescription>
           </DialogHeader>
 
           <div className="mt-4 h-105 rounded-xl border border-border bg-background overflow-hidden">

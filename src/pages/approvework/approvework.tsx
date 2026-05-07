@@ -11,13 +11,16 @@ import SectionPagination from "@/components/ui/pagination";
 import { useMemo, useState } from "react";
 import type { ApproveWorkCard } from "@/types/approveWorkTypes";
 
-const approveWorkCards: ApproveWorkCard[] = Array.from({ length: 230 }, (_, index) => ({
-  id: index + 1,
-  applicantName: "Chotanansub Sophaken",
-  workTitle: "Personal Assistant 25 - 35 K (WFH 80%)",
-  companyName: "อ่านพัฒนาการ ยิ้มอิฐนิภากรณ์บุกป่านิ่ง",
-  period: "23 Mar 2026 - 31 Jul 2026",
-}));
+const approveWorkCards: ApproveWorkCard[] = Array.from(
+  { length: 230 },
+  (_, index) => ({
+    id: index + 1,
+    applicantName: "Chotanansub Sophaken",
+    workTitle: "Personal Assistant 25 - 35 K (WFH 80%)",
+    companyName: "อ่านพัฒนาการ ยิ้มอิฐนิภากรณ์บุกป่านิ่ง",
+    period: "23 Mar 2026 - 31 Jul 2026",
+  }),
+);
 
 export default function ApproveWorkPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,7 +57,9 @@ export default function ApproveWorkPage() {
             </Breadcrumb>
           </div>
 
-          <h1 className="mt-[2%] text-4xl font-semibold text-foreground sm:text-3xl">Approve Work</h1>
+          <h1 className="mt-[2%] text-4xl font-semibold text-foreground sm:text-3xl">
+            Approve Work
+          </h1>
 
           <section className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {pagedCards.map((card) => (
@@ -62,10 +67,18 @@ export default function ApproveWorkPage() {
                 key={card.id}
                 className="flex min-h-32 flex-col rounded-xl border border-border bg-card px-4 py-3"
               >
-                <h3 className="text-xl font-semibold leading-6">{card.applicantName}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Work In: {card.workTitle}</p>
-                <p className="text-sm text-muted-foreground">{card.companyName}</p>
-                <p className="mt-1 text-sm text-foreground">Date: {card.period}</p>
+                <h3 className="text-xl font-semibold leading-6">
+                  {card.applicantName}
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Work In: {card.workTitle}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {card.companyName}
+                </p>
+                <p className="mt-1 text-sm text-foreground">
+                  Date: {card.period}
+                </p>
 
                 <div className="mt-auto flex justify-end pt-2">
                   <Button

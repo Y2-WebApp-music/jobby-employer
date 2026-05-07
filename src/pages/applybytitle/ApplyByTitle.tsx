@@ -19,14 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  applybytitleMock,
-} from "@/mock/applybytitleMock";
+import { applybytitleMock } from "@/mock/applybytitleMock";
 import ApplyByTitleFilterPopup from "@/pages/applybytitle/ApplyByTitleFilterPopup";
 import ApplyByTitleJobDetailPopup from "@/pages/applybytitle/ApplyByTitleJobDetailPopup";
 import ApplyByTitleNewAppliedPopup from "@/pages/applybytitle/ApplyByTitleNewAppliedPopup";
 import ApplyByTitleSkillPopup from "@/pages/applybytitle/ApplyByTitleSkillPopup";
-import type { ApplyStatusFilter, CandidateCard } from "@/types/domain/apply-by-title";
+import type {
+  ApplyStatusFilter,
+  CandidateCard,
+} from "@/types/domain/apply-by-title";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -54,16 +55,20 @@ export default function ApplyByTitlePage() {
   const [interviewPage, setInterviewPage] = useState(1);
   const [acceptPage, setAcceptPage] = useState(1);
   const [rejectPage, setRejectPage] = useState(1);
-  const [selectedStars, setSelectedStars] = useState<Record<number, boolean>>({});
+  const [selectedStars, setSelectedStars] = useState<Record<number, boolean>>(
+    {},
+  );
   const [searchQuery, setSearchQuery] = useState("");
-  const [applyStatusFilter, setApplyStatusFilter] = useState<ApplyStatusFilter>("all");
+  const [applyStatusFilter, setApplyStatusFilter] =
+    useState<ApplyStatusFilter>("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
   const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
   const [isJobDetailPopupOpen, setIsJobDetailPopupOpen] = useState(false);
   const [isNewAppliedPopupOpen, setIsNewAppliedPopupOpen] = useState(false);
   const [isSkillPopupOpen, setIsSkillPopupOpen] = useState(false);
   const [selectedSkillName, setSelectedSkillName] = useState("React");
-  const [selectedNewAppliedCard, setSelectedNewAppliedCard] = useState<CandidateCard | null>(null);
+  const [selectedNewAppliedCard, setSelectedNewAppliedCard] =
+    useState<CandidateCard | null>(null);
 
   const skillNames = ["React", "React"];
 
@@ -73,29 +78,42 @@ export default function ApplyByTitlePage() {
     const matchesSearchAndFilter = (card: CandidateCard) => {
       const matchesSearch =
         normalizedQuery.length === 0 ||
-        [card.name, card.status, card.appliedAt, card.skillMatch].some((value) =>
-          value.toLowerCase().includes(normalizedQuery),
+        [card.name, card.status, card.appliedAt, card.skillMatch].some(
+          (value) => value.toLowerCase().includes(normalizedQuery),
         );
 
       const matchesApplyStatus =
-        applyStatusFilter === "all" || card.status.toLowerCase() === applyStatusFilter;
+        applyStatusFilter === "all" ||
+        card.status.toLowerCase() === applyStatusFilter;
 
       return matchesSearch && matchesApplyStatus;
     };
 
     const sortCards = (cards: CandidateCard[]) => {
-      const sortedCards = [...cards].sort((firstCard, secondCard) => firstCard.id - secondCard.id);
+      const sortedCards = [...cards].sort(
+        (firstCard, secondCard) => firstCard.id - secondCard.id,
+      );
       return sortBy === "oldest" ? sortedCards : sortedCards.reverse();
     };
 
     const filteredCards = applybytitleMock.filter(matchesSearchAndFilter);
 
     return {
-      newApplied: sortCards(filteredCards.filter((item) => item.section === "newApplied")),
-      applied: sortCards(filteredCards.filter((item) => item.section === "applied")),
-      interview: sortCards(filteredCards.filter((item) => item.section === "interview")),
-      accept: sortCards(filteredCards.filter((item) => item.section === "accept")),
-      reject: sortCards(filteredCards.filter((item) => item.section === "reject")),
+      newApplied: sortCards(
+        filteredCards.filter((item) => item.section === "newApplied"),
+      ),
+      applied: sortCards(
+        filteredCards.filter((item) => item.section === "applied"),
+      ),
+      interview: sortCards(
+        filteredCards.filter((item) => item.section === "interview"),
+      ),
+      accept: sortCards(
+        filteredCards.filter((item) => item.section === "accept"),
+      ),
+      reject: sortCards(
+        filteredCards.filter((item) => item.section === "reject"),
+      ),
     };
   }, [applyStatusFilter, searchQuery, sortBy]);
 
@@ -108,11 +126,26 @@ export default function ApplyByTitlePage() {
   }, [applyStatusFilter, searchQuery, sortBy]);
 
   useEffect(() => {
-    const newAppliedPages = Math.max(1, Math.ceil(sectionedCards.newApplied.length / perPageBySection.newApplied));
-    const appliedPages = Math.max(1, Math.ceil(sectionedCards.applied.length / perPageBySection.applied));
-    const interviewPages = Math.max(1, Math.ceil(sectionedCards.interview.length / perPageBySection.interview));
-    const acceptPages = Math.max(1, Math.ceil(sectionedCards.accept.length / perPageBySection.accept));
-    const rejectPages = Math.max(1, Math.ceil(sectionedCards.reject.length / perPageBySection.reject));
+    const newAppliedPages = Math.max(
+      1,
+      Math.ceil(sectionedCards.newApplied.length / perPageBySection.newApplied),
+    );
+    const appliedPages = Math.max(
+      1,
+      Math.ceil(sectionedCards.applied.length / perPageBySection.applied),
+    );
+    const interviewPages = Math.max(
+      1,
+      Math.ceil(sectionedCards.interview.length / perPageBySection.interview),
+    );
+    const acceptPages = Math.max(
+      1,
+      Math.ceil(sectionedCards.accept.length / perPageBySection.accept),
+    );
+    const rejectPages = Math.max(
+      1,
+      Math.ceil(sectionedCards.reject.length / perPageBySection.reject),
+    );
 
     if (newAppliedPage > newAppliedPages) {
       setNewAppliedPage(newAppliedPages);
@@ -212,7 +245,9 @@ export default function ApplyByTitlePage() {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl font-medium">{decodedTitle}</h1>
-              <p className="text-[20px] font-normal">Status: <span className="text-primary">Active</span></p>
+              <p className="text-[20px] font-normal">
+                Status: <span className="text-primary">Active</span>
+              </p>
             </div>
             <Button
               variant="outline"
@@ -244,7 +279,9 @@ export default function ApplyByTitlePage() {
 
           <section className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-10">
             <div className="md:col-span-4">
-              <p className="text-foreground mb-1 text-base font-medium">Search</p>
+              <p className="text-foreground mb-1 text-base font-medium">
+                Search
+              </p>
               <Input
                 placeholder="name"
                 value={searchQuery}
@@ -252,10 +289,14 @@ export default function ApplyByTitlePage() {
               />
             </div>
             <div className="md:col-span-3">
-              <p className="text-foreground mb-1 text-base font-medium">Apply Status</p>
+              <p className="text-foreground mb-1 text-base font-medium">
+                Apply Status
+              </p>
               <Select
                 value={applyStatusFilter}
-                onValueChange={(value) => setApplyStatusFilter(value as ApplyStatusFilter)}
+                onValueChange={(value) =>
+                  setApplyStatusFilter(value as ApplyStatusFilter)
+                }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="placeholder" />
@@ -270,8 +311,15 @@ export default function ApplyByTitlePage() {
               </Select>
             </div>
             <div className="md:col-span-3">
-              <p className="text-foreground mb-1 text-base font-medium">Sort By</p>
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as "newest" | "oldest")}>
+              <p className="text-foreground mb-1 text-base font-medium">
+                Sort By
+              </p>
+              <Select
+                value={sortBy}
+                onValueChange={(value) =>
+                  setSortBy(value as "newest" | "oldest")
+                }
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
@@ -291,7 +339,9 @@ export default function ApplyByTitlePage() {
               <span className="gradient-text">Star only ✕</span>
             </Badge>
             <Badge variant="gradient" className="rounded-full text-[12px] py-3">
-              <span className="gradient-text">Had experience to use skill in project ✕</span>
+              <span className="gradient-text">
+                Had experience to use skill in project ✕
+              </span>
             </Badge>
             <ApplyByTitleFilterPopup
               open={isFilterPopupOpen}
@@ -323,7 +373,11 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">New Applied</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.newApplied, newAppliedPage, perPageBySection.newApplied).map((card) => (
+                    {getPageItems(
+                      sectionedCards.newApplied,
+                      newAppliedPage,
+                      perPageBySection.newApplied,
+                    ).map((card) => (
                       <ApplyByTitleCandidateCard
                         key={card.id}
                         card={card}
@@ -348,7 +402,11 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">Applied</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.applied, appliedPage, perPageBySection.applied).map((card) => (
+                    {getPageItems(
+                      sectionedCards.applied,
+                      appliedPage,
+                      perPageBySection.applied,
+                    ).map((card) => (
                       <ApplyByTitleCandidateCard
                         key={card.id}
                         card={card}
@@ -373,7 +431,11 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">Interview</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.interview, interviewPage, perPageBySection.interview).map((card) => (
+                    {getPageItems(
+                      sectionedCards.interview,
+                      interviewPage,
+                      perPageBySection.interview,
+                    ).map((card) => (
                       <ApplyByTitleCandidateCard
                         key={card.id}
                         card={card}
@@ -398,7 +460,11 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">Accept</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.accept, acceptPage, perPageBySection.accept).map((card) => (
+                    {getPageItems(
+                      sectionedCards.accept,
+                      acceptPage,
+                      perPageBySection.accept,
+                    ).map((card) => (
                       <ApplyByTitleCandidateCard
                         key={card.id}
                         card={card}
@@ -423,7 +489,11 @@ export default function ApplyByTitlePage() {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold mb-2">Reject</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                    {getPageItems(sectionedCards.reject, rejectPage, perPageBySection.reject).map((card) => (
+                    {getPageItems(
+                      sectionedCards.reject,
+                      rejectPage,
+                      perPageBySection.reject,
+                    ).map((card) => (
                       <ApplyByTitleCandidateCard
                         key={card.id}
                         card={card}
@@ -446,7 +516,9 @@ export default function ApplyByTitlePage() {
             </>
           ) : (
             <div className="mb-6 rounded-xl border border-border bg-card px-4 py-6 text-center">
-              <p className="text-base font-medium text-foreground">No result match {noResultReason}</p>
+              <p className="text-base font-medium text-foreground">
+                No result match {noResultReason}
+              </p>
             </div>
           )}
 

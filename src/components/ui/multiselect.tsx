@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { MultiselectOption, MultiselectProps } from "@/types/ui";
 import { ChevronsUpDown, X } from "lucide-react";
@@ -22,11 +26,16 @@ export function Multiselect({
   );
 
   const displayedOptions = selectedOptions.slice(0, maxDisplayCount);
-  const remainingCount = Math.max(0, selectedOptions.length - displayedOptions.length);
+  const remainingCount = Math.max(
+    0,
+    selectedOptions.length - displayedOptions.length,
+  );
 
   const toggleValue = (value: string) => {
     if (selectedValues.includes(value)) {
-      onSelectedValuesChange(selectedValues.filter((selectedValue) => selectedValue !== value));
+      onSelectedValuesChange(
+        selectedValues.filter((selectedValue) => selectedValue !== value),
+      );
       return;
     }
 
@@ -79,7 +88,9 @@ export function Multiselect({
               tabIndex={0}
               className={cn(
                 "inline-flex items-center",
-                selectedOptions.length > 0 ? "cursor-pointer" : "cursor-default opacity-60",
+                selectedOptions.length > 0
+                  ? "cursor-pointer"
+                  : "cursor-default opacity-60",
               )}
               onPointerDown={(event) => {
                 event.preventDefault();
@@ -112,7 +123,10 @@ export function Multiselect({
         </button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-2" align="start">
+      <PopoverContent
+        className="w-(--radix-popover-trigger-width) p-2"
+        align="start"
+      >
         <div className="space-y-1">
           {options.map((option) => {
             const checked = selectedValues.includes(option.value);

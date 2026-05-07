@@ -1,4 +1,4 @@
-import PageLayout from "@/components/layout/PageLayout"
+import PageLayout from "@/components/layout/PageLayout";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,16 +6,16 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/breadcrumb";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
   DndContext,
   PointerSensor,
@@ -23,24 +23,31 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from "@dnd-kit/core"
+} from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
-import { DatePicker } from "@/components/ui/datepicker"
-import RtfQuill from "@/components/ui/rtf-quill"
-import Toggle from "@/components/ui/toggle"
-import IoTrashBin from "@/assets/icons/IoTrashBin.png"
-import { ChevronDown, ChevronUp, GripVertical, Plus, X, Loader2 } from "lucide-react"
-import { Link } from "react-router-dom"
-import { toast } from "sonner"
-import CreateJobAddSkillPopup from "./CreateJobAddSkillPopup"
-import { apiCreateJob } from "@/services/createjobService"
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { DatePicker } from "@/components/ui/datepicker";
+import RtfQuill from "@/components/ui/rtf-quill";
+import Toggle from "@/components/ui/toggle";
+import IoTrashBin from "@/assets/icons/IoTrashBin.png";
+import {
+  ChevronDown,
+  ChevronUp,
+  GripVertical,
+  Plus,
+  X,
+  Loader2,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import CreateJobAddSkillPopup from "./CreateJobAddSkillPopup";
+import { apiCreateJob } from "@/services/createjobService";
 import type {
   AddressAutoFillOption,
   AdditionQuestionType,
@@ -48,7 +55,7 @@ import type {
   SortableAnswerItemProps,
   CreateJobRequest,
   SkillRequest,
-} from "@/types/createJobTypes"
+} from "@/types/createJobTypes";
 
 const mockAddressOptions: AddressAutoFillOption[] = [
   {
@@ -73,19 +80,21 @@ const mockAddressOptions: AddressAutoFillOption[] = [
     district: "Khlong Toei",
     subDistrict: "Khlong Toei Nuea",
   },
-]
+];
 
 const initialAdditionQuestions: AdditionQuestionSection[] = [
   {
     id: "open-answer",
     type: "open",
-    question: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
+    question:
+      "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
     answers: [],
   },
   {
     id: "radio-answer",
     type: "radio",
-    question: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
+    question:
+      "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
     answers: Array.from({ length: 5 }, (_, index) => ({
       id: `radio-answer-item-${index + 1}`,
       text: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
@@ -94,20 +103,21 @@ const initialAdditionQuestions: AdditionQuestionSection[] = [
   {
     id: "checkbox-answer",
     type: "checkbox",
-    question: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
+    question:
+      "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
     answers: Array.from({ length: 2 }, (_, index) => ({
       id: `checkbox-answer-item-${index + 1}`,
       text: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
     })),
     maxSelect: "3",
   },
-]
+];
 
 const additionQuestionTypeLabel: Record<AdditionQuestionType, string> = {
   open: "Open Answer",
   radio: "Radio Answer",
   checkbox: "Checkbox Answer",
-}
+};
 
 function SortableAnswerItem({ answer, onChange }: SortableAnswerItemProps) {
   const {
@@ -117,12 +127,12 @@ function SortableAnswerItem({ answer, onChange }: SortableAnswerItemProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: answer.id })
+  } = useSortable({ id: answer.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  }
+  };
 
   return (
     <div
@@ -144,12 +154,17 @@ function SortableAnswerItem({ answer, onChange }: SortableAnswerItemProps) {
         onChange={(event) => onChange(event.target.value)}
       />
     </div>
-  )
+  );
 }
 
-function createAdditionQuestionSection(type: AdditionQuestionType, id: string): AdditionQuestionSection {
-  const defaultQuestion = "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่"
-  const defaultAnswer = "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่"
+function createAdditionQuestionSection(
+  type: AdditionQuestionType,
+  id: string,
+): AdditionQuestionSection {
+  const defaultQuestion =
+    "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่";
+  const defaultAnswer =
+    "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่";
 
   if (type === "open") {
     return {
@@ -157,7 +172,7 @@ function createAdditionQuestionSection(type: AdditionQuestionType, id: string): 
       type,
       question: defaultQuestion,
       answers: [],
-    }
+    };
   }
 
   if (type === "radio") {
@@ -169,7 +184,7 @@ function createAdditionQuestionSection(type: AdditionQuestionType, id: string): 
         id: `${id}-item-${index + 1}`,
         text: defaultAnswer,
       })),
-    }
+    };
   }
 
   return {
@@ -181,58 +196,69 @@ function createAdditionQuestionSection(type: AdditionQuestionType, id: string): 
       text: defaultAnswer,
     })),
     maxSelect: "2",
-  }
+  };
 }
 
 export default function CreatejobPage() {
   // Form States
-  const [jobName, setJobName] = useState<string>("")
-  const [workOption, setWorkOption] = useState<string>("")
-  const [openTo, setOpenTo] = useState<string>("")
-  const [workCategory, setWorkCategory] = useState<string>("")
-  const [startDate, setStartDate] = useState<Date>()
-  const [endDate, setEndDate] = useState<Date>()
-  const [jobDescription, setJobDescription] = useState<string>("")
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
-  const [selectedFileType, setSelectedFileType] = useState<string>("")
-  const [additionFileLabel, setAdditionFileLabel] = useState<string>("")
-  const [additionFileDescription, setAdditionFileDescription] = useState<string>("")
-  const [selectedPostalCode, setSelectedPostalCode] = useState<string>("")
-  const [skills, setSkills] = useState<string[]>(["React", "React", "React"])
-  const [isAddSkillPopupOpen, setIsAddSkillPopupOpen] = useState(false)
-  const [skillSearchValue, setSkillSearchValue] = useState("")
-  const [additionQuestions, setAdditionQuestions] = useState<AdditionQuestionSection[]>(initialAdditionQuestions)
-  const [isLoading, setIsLoading] = useState(false)
-  const additionQuestionRefs = useRef<Record<string, HTMLDivElement | null>>({})
-  const previousQuestionPositions = useRef<Record<string, number>>({})
-  const previousPayloadSnapshotRef = useRef<string>("")
-  const additionQuestionIdCounter = useRef(initialAdditionQuestions.length)
+  const [jobName, setJobName] = useState<string>("");
+  const [workOption, setWorkOption] = useState<string>("");
+  const [openTo, setOpenTo] = useState<string>("");
+  const [workCategory, setWorkCategory] = useState<string>("");
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
+  const [jobDescription, setJobDescription] = useState<string>("");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [selectedFileType, setSelectedFileType] = useState<string>("");
+  const [additionFileLabel, setAdditionFileLabel] = useState<string>("");
+  const [additionFileDescription, setAdditionFileDescription] =
+    useState<string>("");
+  const [selectedPostalCode, setSelectedPostalCode] = useState<string>("");
+  const [skills, setSkills] = useState<string[]>(["React", "React", "React"]);
+  const [isAddSkillPopupOpen, setIsAddSkillPopupOpen] = useState(false);
+  const [skillSearchValue, setSkillSearchValue] = useState("");
+  const [additionQuestions, setAdditionQuestions] = useState<
+    AdditionQuestionSection[]
+  >(initialAdditionQuestions);
+  const [isLoading, setIsLoading] = useState(false);
+  const additionQuestionRefs = useRef<Record<string, HTMLDivElement | null>>(
+    {},
+  );
+  const previousQuestionPositions = useRef<Record<string, number>>({});
+  const previousPayloadSnapshotRef = useRef<string>("");
+  const additionQuestionIdCounter = useRef(initialAdditionQuestions.length);
   const additionQuestionAnswerIdCounter = useRef(
-    initialAdditionQuestions.reduce((count, section) => count + section.answers.length, 0),
-  )
+    initialAdditionQuestions.reduce(
+      (count, section) => count + section.answers.length,
+      0,
+    ),
+  );
 
   const answerDndSensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
     }),
-  )
+  );
 
   const gradientBorderStyle = {
     borderColor: "transparent",
-    backgroundImage: "linear-gradient(var(--background), var(--background)), var(--gradient-primary)",
+    backgroundImage:
+      "linear-gradient(var(--background), var(--background)), var(--gradient-primary)",
     backgroundOrigin: "border-box",
     backgroundClip: "padding-box, border-box",
-  }
+  };
 
   const gradientTextStyle = {
     backgroundImage: "var(--gradient-primary)",
     WebkitBackgroundClip: "text",
     backgroundClip: "text",
     color: "transparent",
-  }
+  };
 
   const selectedAddress =
-    mockAddressOptions.find((address) => address.postalCode === selectedPostalCode) || null
+    mockAddressOptions.find(
+      (address) => address.postalCode === selectedPostalCode,
+    ) || null;
 
   const getAcceptedExtensions = (fileType: string): string => {
     const typeMap: Record<string, string> = {
@@ -240,31 +266,31 @@ export default function CreatejobPage() {
       txt: ".txt",
       jpeg: ".jpeg,.jpg",
       png: ".png",
-    }
-    return typeMap[fileType] || ""
-  }
+    };
+    return typeMap[fileType] || "";
+  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
+    const files = event.target.files;
     if (files) {
-      setUploadedFiles((prev) => [...prev, ...Array.from(files)])
+      setUploadedFiles((prev) => [...prev, ...Array.from(files)]);
     }
-  }
+  };
 
   const handleJobDescriptionChange = (html: string) => {
-    setJobDescription(html)
-  }
+    setJobDescription(html);
+  };
 
   const mapAdditionQuestionTypeToApi = (type: AdditionQuestionType): number => {
     // Backend enum: 1=select-one, 2=multi-select, 3=open-answer
     if (type === "radio") {
-      return 1
+      return 1;
     }
     if (type === "checkbox") {
-      return 2
+      return 2;
     }
-    return 3
-  }
+    return 3;
+  };
 
   const mapAdditionFileTypeToApi = (type: string): number => {
     // Backend enum: 1=pdf, 2=jpeg/png, 3=work/txt
@@ -274,32 +300,37 @@ export default function CreatejobPage() {
       png: 2,
       txt: 3,
       work: 3,
-    }
-    return map[type] || 0
-  }
+    };
+    return map[type] || 0;
+  };
 
   const buildCreateJobPayloadPreview = () => {
-    const address = selectedAddress || mockAddressOptions[0]
+    const address = selectedAddress || mockAddressOptions[0];
 
     const skillsData: SkillRequest[] = skills.map((skill, index) => ({
       index,
       skill_id: `skill-${index}`,
       skill_name: skill,
-    }))
+    }));
 
-    const additionQuestionsPayload = additionQuestions.map((section, questionIndex) => ({
-      id: questionIndex,
-      type: mapAdditionQuestionTypeToApi(section.type),
-      question: section.question,
-      options: section.answers.map((answer, answerIndex) => ({
-        id: answerIndex,
-        label: answer.text,
-      })),
-      max_select: section.type === "checkbox" ? Number(section.maxSelect || 1) : 1,
-    }))
+    const additionQuestionsPayload = additionQuestions.map(
+      (section, questionIndex) => ({
+        id: questionIndex,
+        type: mapAdditionQuestionTypeToApi(section.type),
+        question: section.question,
+        options: section.answers.map((answer, answerIndex) => ({
+          id: answerIndex,
+          label: answer.text,
+        })),
+        max_select:
+          section.type === "checkbox" ? Number(section.maxSelect || 1) : 1,
+      }),
+    );
 
     const additionFilePayload =
-      additionFileLabel.trim() || additionFileDescription.trim() || selectedFileType
+      additionFileLabel.trim() ||
+      additionFileDescription.trim() ||
+      selectedFileType
         ? [
             {
               id: 0,
@@ -308,7 +339,7 @@ export default function CreatejobPage() {
               description: additionFileDescription,
             },
           ]
-        : []
+        : [];
 
     return {
       name: jobName,
@@ -343,31 +374,36 @@ export default function CreatejobPage() {
         open_to: openTo,
         work_category: workCategory,
       },
-    }
-  }
+    };
+  };
 
   const buildCreateJobPayloadForSubmit = (): CreateJobRequest => {
-    const address = selectedAddress || mockAddressOptions[0]
+    const address = selectedAddress || mockAddressOptions[0];
 
     const skillsData: SkillRequest[] = skills.map((skill, index) => ({
       index,
       skill_id: `skill-${index}`,
       skill_name: skill,
-    }))
+    }));
 
-    const additionQuestionsPayload = additionQuestions.map((section, questionIndex) => ({
-      id: questionIndex,
-      type: mapAdditionQuestionTypeToApi(section.type),
-      question: section.question,
-      options: section.answers.map((answer, answerIndex) => ({
-        id: answerIndex,
-        label: answer.text,
-      })),
-      max_select: section.type === "checkbox" ? Number(section.maxSelect || 1) : 1,
-    }))
+    const additionQuestionsPayload = additionQuestions.map(
+      (section, questionIndex) => ({
+        id: questionIndex,
+        type: mapAdditionQuestionTypeToApi(section.type),
+        question: section.question,
+        options: section.answers.map((answer, answerIndex) => ({
+          id: answerIndex,
+          label: answer.text,
+        })),
+        max_select:
+          section.type === "checkbox" ? Number(section.maxSelect || 1) : 1,
+      }),
+    );
 
     const additionFilePayload =
-      additionFileLabel.trim() || additionFileDescription.trim() || selectedFileType
+      additionFileLabel.trim() ||
+      additionFileDescription.trim() ||
+      selectedFileType
         ? [
             {
               id: 0,
@@ -376,7 +412,7 @@ export default function CreatejobPage() {
               description: additionFileDescription,
             },
           ]
-        : []
+        : [];
 
     return {
       name: jobName,
@@ -406,67 +442,76 @@ export default function CreatejobPage() {
       skills: skillsData,
       addition_questions: additionQuestionsPayload,
       addition_file: additionFilePayload,
-    }
-  }
+    };
+  };
 
   const removeFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index))
-  }
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const triggerFileInput = () => {
-    const input = document.getElementById("file-upload") as HTMLInputElement
-    input?.click()
-  }
+    const input = document.getElementById("file-upload") as HTMLInputElement;
+    input?.click();
+  };
 
   const moveAdditionQuestion = (fromIndex: number, toIndex: number) => {
     setAdditionQuestions((previous) => {
       if (toIndex < 0 || toIndex >= previous.length) {
-        return previous
+        return previous;
       }
 
-      const nextQuestions = [...previous]
-      const [movedQuestion] = nextQuestions.splice(fromIndex, 1)
-      nextQuestions.splice(toIndex, 0, movedQuestion)
-      return nextQuestions
-    })
-  }
+      const nextQuestions = [...previous];
+      const [movedQuestion] = nextQuestions.splice(fromIndex, 1);
+      nextQuestions.splice(toIndex, 0, movedQuestion);
+      return nextQuestions;
+    });
+  };
 
   const addAdditionQuestion = (type: AdditionQuestionType) => {
-    additionQuestionIdCounter.current += 1
+    additionQuestionIdCounter.current += 1;
 
     setAdditionQuestions((previous) => [
       ...previous,
-      createAdditionQuestionSection(type, `${type}-answer-${additionQuestionIdCounter.current}`),
-    ])
-  }
+      createAdditionQuestionSection(
+        type,
+        `${type}-answer-${additionQuestionIdCounter.current}`,
+      ),
+    ]);
+  };
 
   const updateAdditionQuestion = (sectionId: string, question: string) => {
     setAdditionQuestions((previous) =>
       previous.map((section) =>
         section.id === sectionId ? { ...section, question } : section,
       ),
-    )
-  }
+    );
+  };
 
-  const updateAdditionQuestionAnswer = (sectionId: string, answerId: string, answer: string) => {
+  const updateAdditionQuestionAnswer = (
+    sectionId: string,
+    answerId: string,
+    answer: string,
+  ) => {
     setAdditionQuestions((previous) =>
       previous.map((section) => {
         if (section.id !== sectionId) {
-          return section
+          return section;
         }
 
         return {
           ...section,
           answers: section.answers.map((currentAnswer) =>
-            currentAnswer.id === answerId ? { ...currentAnswer, text: answer } : currentAnswer,
+            currentAnswer.id === answerId
+              ? { ...currentAnswer, text: answer }
+              : currentAnswer,
           ),
-        }
+        };
       }),
-    )
-  }
+    );
+  };
 
   const addAnswerToAdditionQuestion = (sectionId: string) => {
-    additionQuestionAnswerIdCounter.current += 1
+    additionQuestionAnswerIdCounter.current += 1;
 
     setAdditionQuestions((previous) =>
       previous.map((section) =>
@@ -483,92 +528,109 @@ export default function CreatejobPage() {
             }
           : section,
       ),
-    )
-  }
+    );
+  };
 
-  const moveAdditionQuestionAnswer = (sectionId: string, activeId: string, overId: string) => {
+  const moveAdditionQuestionAnswer = (
+    sectionId: string,
+    activeId: string,
+    overId: string,
+  ) => {
     setAdditionQuestions((previous) =>
       previous.map((section) => {
         if (section.id !== sectionId) {
-          return section
+          return section;
         }
 
-        const fromIndex = section.answers.findIndex((answer) => answer.id === activeId)
-        const toIndex = section.answers.findIndex((answer) => answer.id === overId)
+        const fromIndex = section.answers.findIndex(
+          (answer) => answer.id === activeId,
+        );
+        const toIndex = section.answers.findIndex(
+          (answer) => answer.id === overId,
+        );
 
         if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
-          return section
+          return section;
         }
 
         return {
           ...section,
           answers: arrayMove(section.answers, fromIndex, toIndex),
-        }
+        };
       }),
-    )
-  }
+    );
+  };
 
   const handleAnswerDragEnd = (sectionId: string, event: DragEndEvent) => {
-    const { active, over } = event
+    const { active, over } = event;
     if (!over || active.id === over.id) {
-      return
+      return;
     }
 
-    moveAdditionQuestionAnswer(sectionId, String(active.id), String(over.id))
-  }
+    moveAdditionQuestionAnswer(sectionId, String(active.id), String(over.id));
+  };
 
-  const updateAdditionQuestionMaxSelect = (sectionId: string, maxSelect: string) => {
+  const updateAdditionQuestionMaxSelect = (
+    sectionId: string,
+    maxSelect: string,
+  ) => {
     setAdditionQuestions((previous) =>
       previous.map((section) =>
         section.id === sectionId ? { ...section, maxSelect } : section,
       ),
-    )
-  }
+    );
+  };
 
   const addSkill = (skillName: string) => {
-    const nextSkill = skillName.trim()
+    const nextSkill = skillName.trim();
     if (!nextSkill) {
-      return
+      return;
     }
 
-    setSkills((previous) => [...previous, nextSkill])
-  }
+    setSkills((previous) => [...previous, nextSkill]);
+  };
 
   const removeSkill = (index: number) => {
-    setSkills((previous) => previous.filter((_, currentIndex) => currentIndex !== index))
-  }
+    setSkills((previous) =>
+      previous.filter((_, currentIndex) => currentIndex !== index),
+    );
+  };
 
   const handleCreateJob = async () => {
     // Validation
     if (!jobName.trim()) {
-      toast.error("Job name is required")
-      return
+      toast.error("Job name is required");
+      return;
     }
     if (!startDate || !endDate) {
-      toast.error("Start and end apply dates are required")
-      return
+      toast.error("Start and end apply dates are required");
+      return;
     }
     if (!selectedPostalCode) {
-      toast.error("Address is required")
-      return
+      toast.error("Address is required");
+      return;
     }
     if (skills.length === 0) {
-      toast.error("At least one skill is required")
-      return
+      toast.error("At least one skill is required");
+      return;
     }
 
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
-      const createJobPayload: CreateJobRequest = buildCreateJobPayloadForSubmit()
-      console.log("[CreateJob][Submit Payload]", createJobPayload)
-      console.log("[CreateJob][Submit Payload JSON]", JSON.stringify(createJobPayload, null, 2))
+      const createJobPayload: CreateJobRequest =
+        buildCreateJobPayloadForSubmit();
+      console.log("[CreateJob][Submit Payload]", createJobPayload);
+      console.log(
+        "[CreateJob][Submit Payload JSON]",
+        JSON.stringify(createJobPayload, null, 2),
+      );
 
       // Call the API
-      const response = await apiCreateJob(createJobPayload)
+      const response = await apiCreateJob(createJobPayload);
 
-      toast.success("Job created successfully!")
-      console.log("Create Job Response:", response)
+      toast.success("Job created successfully!");
+      console.log("Create Job Response:", response);
 
       // Reset form on success (optional)
       // setJobName("")
@@ -576,27 +638,27 @@ export default function CreatejobPage() {
       // setStartDate(undefined)
       // setEndDate(undefined)
     } catch (error) {
-      console.error("Error creating job:", error)
-      toast.error("Failed to create job. Please try again.")
+      console.error("Error creating job:", error);
+      toast.error("Failed to create job. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      const previewPayload = buildCreateJobPayloadPreview()
-      const currentSnapshot = JSON.stringify(previewPayload)
+      const previewPayload = buildCreateJobPayloadPreview();
+      const currentSnapshot = JSON.stringify(previewPayload);
 
       if (currentSnapshot !== previousPayloadSnapshotRef.current) {
-        previousPayloadSnapshotRef.current = currentSnapshot
-        console.log("[CreateJob][Preview Payload]", previewPayload)
+        previousPayloadSnapshotRef.current = currentSnapshot;
+        console.log("[CreateJob][Preview Payload]", previewPayload);
       }
-    }, 1000)
+    }, 1000);
 
     return () => {
-      window.clearInterval(intervalId)
-    }
+      window.clearInterval(intervalId);
+    };
   }, [
     jobName,
     workOption,
@@ -611,28 +673,28 @@ export default function CreatejobPage() {
     additionFileLabel,
     additionFileDescription,
     selectedAddress,
-  ])
+  ]);
 
   useLayoutEffect(() => {
-    const nextPositions: Record<string, number> = {}
+    const nextPositions: Record<string, number> = {};
 
     additionQuestions.forEach((section) => {
-      const element = additionQuestionRefs.current[section.id]
+      const element = additionQuestionRefs.current[section.id];
       if (!element) {
-        return
+        return;
       }
 
-      const nextTop = element.getBoundingClientRect().top
-      nextPositions[section.id] = nextTop
+      const nextTop = element.getBoundingClientRect().top;
+      nextPositions[section.id] = nextTop;
 
-      const previousTop = previousQuestionPositions.current[section.id]
+      const previousTop = previousQuestionPositions.current[section.id];
       if (previousTop === undefined) {
-        return
+        return;
       }
 
-      const translateY = previousTop - nextTop
+      const translateY = previousTop - nextTop;
       if (translateY === 0) {
-        return
+        return;
       }
 
       element.animate(
@@ -644,11 +706,11 @@ export default function CreatejobPage() {
           duration: 280,
           easing: "cubic-bezier(0.22, 1, 0.36, 1)",
         },
-      )
-    })
+      );
+    });
 
-    previousQuestionPositions.current = nextPositions
-  }, [additionQuestions])
+    previousQuestionPositions.current = nextPositions;
+  }, [additionQuestions]);
 
   return (
     <PageLayout>
@@ -684,24 +746,19 @@ export default function CreatejobPage() {
             {/* Grid */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-10">
               <div className="md:col-span-6">
-                <label className="text-sm  dark:text-accent">
-                  Job name
-                </label>
-                <Input 
-                  placeholder="Personal Assistant 25 - 35 K (WFH 80%)" 
+                <label className="text-sm  dark:text-accent">Job name</label>
+                <Input
+                  placeholder="Personal Assistant 25 - 35 K (WFH 80%)"
                   value={jobName}
                   onChange={(e) => setJobName(e.target.value)}
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-sm dark:text-accent">
-                  Work Option
-                </label>
+                <label className="text-sm dark:text-accent">Work Option</label>
                 <Select value={workOption} onValueChange={setWorkOption}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select" />
-
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="online">Online</SelectItem>
@@ -712,18 +769,19 @@ export default function CreatejobPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-sm dark:text-accent">
-                  Open To
-                </label>
+                <label className="text-sm dark:text-accent">Open To</label>
                 <Select value={openTo} onValueChange={setOpenTo}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select" />
-
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="experienced">Experienced Only</SelectItem>
-                    <SelectItem value="fresh-graduate">Fresh Graduates</SelectItem>
+                    <SelectItem value="experienced">
+                      Experienced Only
+                    </SelectItem>
+                    <SelectItem value="fresh-graduate">
+                      Fresh Graduates
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -735,37 +793,58 @@ export default function CreatejobPage() {
                 <Select value={workCategory} onValueChange={setWorkCategory}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select" />
-
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="software-development">Software Development</SelectItem>
-                    <SelectItem value="web-development">Web Development</SelectItem>
-                    <SelectItem value="mobile-development">Mobile Development</SelectItem>
+                    <SelectItem value="software-development">
+                      Software Development
+                    </SelectItem>
+                    <SelectItem value="web-development">
+                      Web Development
+                    </SelectItem>
+                    <SelectItem value="mobile-development">
+                      Mobile Development
+                    </SelectItem>
                     <SelectItem value="data-science">Data Science</SelectItem>
                     <SelectItem value="ui-ux-design">UI/UX Design</SelectItem>
-                    <SelectItem value="graphic-design">Graphic Design</SelectItem>
-                    <SelectItem value="digital-marketing">Digital Marketing</SelectItem>
-                    <SelectItem value="content-writing">Content Writing</SelectItem>
+                    <SelectItem value="graphic-design">
+                      Graphic Design
+                    </SelectItem>
+                    <SelectItem value="digital-marketing">
+                      Digital Marketing
+                    </SelectItem>
+                    <SelectItem value="content-writing">
+                      Content Writing
+                    </SelectItem>
                     <SelectItem value="sales">Sales</SelectItem>
-                    <SelectItem value="customer-service">Customer Service</SelectItem>
-                    <SelectItem value="human-resources">Human Resources</SelectItem>
+                    <SelectItem value="customer-service">
+                      Customer Service
+                    </SelectItem>
+                    <SelectItem value="human-resources">
+                      Human Resources
+                    </SelectItem>
                     <SelectItem value="accounting">Accounting</SelectItem>
                     <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="project-management">Project Management</SelectItem>
-                    <SelectItem value="business-analyst">Business Analyst</SelectItem>
-                    <SelectItem value="quality-assurance">Quality Assurance</SelectItem>
+                    <SelectItem value="project-management">
+                      Project Management
+                    </SelectItem>
+                    <SelectItem value="business-analyst">
+                      Business Analyst
+                    </SelectItem>
+                    <SelectItem value="quality-assurance">
+                      Quality Assurance
+                    </SelectItem>
                     <SelectItem value="devops">DevOps</SelectItem>
                     <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
                     <SelectItem value="consulting">Consulting</SelectItem>
-                    <SelectItem value="administrative">Administrative</SelectItem>
+                    <SelectItem value="administrative">
+                      Administrative
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-                <div className="md:col-span-2">
-                <label className="text-sm dark:text-accent">
-                  Start Apply
-                </label>
+              <div className="md:col-span-2">
+                <label className="text-sm dark:text-accent">Start Apply</label>
                 <DatePicker
                   date={startDate}
                   onDateChange={setStartDate}
@@ -773,12 +852,10 @@ export default function CreatejobPage() {
                   type="start"
                   placeholder="Pick a date"
                 />
-                </div>
+              </div>
 
-                <div className="md:col-span-2">
-                <label className="text-sm dark:text-accent">
-                  End Apply
-                </label>
+              <div className="md:col-span-2">
+                <label className="text-sm dark:text-accent">End Apply</label>
                 <DatePicker
                   date={endDate}
                   onDateChange={setEndDate}
@@ -786,70 +863,118 @@ export default function CreatejobPage() {
                   type="end"
                   placeholder="Pick a date"
                 />
-                </div>
+              </div>
             </div>
           </section>
 
           {/*  Address Information  */}
           <section className="mt-10">
-            <h2 className="mb-4 text-lg font-medium">
-              Address Information
-            </h2>
+            <h2 className="mb-4 text-lg font-medium">Address Information</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
               <div className="md:col-span-3">
-                <label className="text-sm dark:text-accent">
-                  Address line
+                <label className="text-sm dark:text-accent">Address line</label>
+                <Input
+                  value={selectedAddress?.addressLine || ""}
+                  placeholder="Auto fill from backend"
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-foreground dark:text-accent">
+                  No.
                 </label>
-                <Input value={selectedAddress?.addressLine || ""} placeholder="Auto fill from backend" readOnly />
+                <Input
+                  value={selectedAddress?.no || ""}
+                  placeholder="Auto fill from backend"
+                  readOnly
+                />
               </div>
 
               <div>
-                <label className="text-sm text-foreground dark:text-accent">No.</label>
-                <Input value={selectedAddress?.no || ""} placeholder="Auto fill from backend" readOnly />
+                <label className="text-sm text-foreground dark:text-accent">
+                  Moo
+                </label>
+                <Input
+                  value={selectedAddress?.moo || ""}
+                  placeholder="Auto fill from backend"
+                  readOnly
+                />
               </div>
 
               <div>
-                <label className="text-sm text-foreground dark:text-accent">Moo</label>
-                <Input value={selectedAddress?.moo || ""} placeholder="Auto fill from backend" readOnly />
+                <label className="text-sm text-foreground dark:text-accent">
+                  Soi
+                </label>
+                <Input
+                  value={selectedAddress?.soi || ""}
+                  placeholder="Auto fill from backend"
+                  readOnly
+                />
               </div>
 
               <div>
-                <label className="text-sm text-foreground dark:text-accent">Soi</label>
-                <Input value={selectedAddress?.soi || ""} placeholder="Auto fill from backend" readOnly />
+                <label className="text-sm text-foreground dark:text-accent">
+                  Street
+                </label>
+                <Input
+                  value={selectedAddress?.street || ""}
+                  placeholder="Auto fill from backend"
+                  readOnly
+                />
               </div>
 
               <div>
-                <label className="text-sm text-foreground dark:text-accent">Street</label>
-                <Input value={selectedAddress?.street || ""} placeholder="Auto fill from backend" readOnly />
+                <label className="text-sm text-foreground dark:text-accent">
+                  Province
+                </label>
+                <Input
+                  value={selectedAddress?.province || ""}
+                  placeholder="Auto fill from backend"
+                  readOnly
+                />
               </div>
 
               <div>
-                <label className="text-sm text-foreground dark:text-accent">Province</label>
-                <Input value={selectedAddress?.province || ""} placeholder="Auto fill from backend" readOnly />
+                <label className="text-sm text-foreground dark:text-accent">
+                  District
+                </label>
+                <Input
+                  value={selectedAddress?.district || ""}
+                  placeholder="Auto fill from backend"
+                  readOnly
+                />
               </div>
 
               <div>
-                <label className="text-sm text-foreground dark:text-accent">District</label>
-                <Input value={selectedAddress?.district || ""} placeholder="Auto fill from backend" readOnly />
-              </div>
-
-              <div>
-                <label className="text-sm text-foreground dark:text-accent">Sub-district</label>
-                <Input value={selectedAddress?.subDistrict || ""} placeholder="Auto fill from backend" readOnly />
+                <label className="text-sm text-foreground dark:text-accent">
+                  Sub-district
+                </label>
+                <Input
+                  value={selectedAddress?.subDistrict || ""}
+                  placeholder="Auto fill from backend"
+                  readOnly
+                />
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">
                   Postal code
                 </label>
-                <Select value={selectedPostalCode} onValueChange={setSelectedPostalCode}>
+                <Select
+                  value={selectedPostalCode}
+                  onValueChange={setSelectedPostalCode}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select postal code" />
                   </SelectTrigger>
                   <SelectContent>
                     {mockAddressOptions.map((address) => (
-                      <SelectItem key={address.postalCode} value={address.postalCode}>
+                      <SelectItem
+                        key={address.postalCode}
+                        value={address.postalCode}
+                      >
                         {address.postalCode}
                       </SelectItem>
                     ))}
@@ -858,7 +983,8 @@ export default function CreatejobPage() {
               </div>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Address fields are prepared for backend auto-fill. Postal code can have multiple options per area.
+              Address fields are prepared for backend auto-fill. Postal code can
+              have multiple options per area.
             </p>
           </section>
 
@@ -909,9 +1035,7 @@ export default function CreatejobPage() {
 
           {/*  Job Description  */}
           <section className="mt-10">
-            <h2 className="mb-3 text-lg font-semibold">
-              Job Description
-            </h2>
+            <h2 className="mb-3 text-lg font-semibold">Job Description</h2>
 
             <RtfQuill
               value={jobDescription}
@@ -922,7 +1046,9 @@ export default function CreatejobPage() {
 
           {/* ===== Profile Need ===== */}
           <section className="mt-10">
-            <h2 className="mb-3 text-lg font-medium gradient-text inline-block">Profile Need</h2>
+            <h2 className="mb-3 text-lg font-medium gradient-text inline-block">
+              Profile Need
+            </h2>
             <div className="space-y-3">
               <label className="flex items-center gap-3 text-sm">
                 <Toggle />
@@ -941,14 +1067,16 @@ export default function CreatejobPage() {
 
           {/* ===== Addition Question ===== */}
           <section className="mt-10">
-            <h2 className="mb-3 text-lg font-medium gradient-text inline-block">Addition Question</h2>
+            <h2 className="mb-3 text-lg font-medium gradient-text inline-block">
+              Addition Question
+            </h2>
 
             <div className="space-y-4">
               {additionQuestions.map((section, index) => (
                 <div
                   key={section.id}
                   ref={(element) => {
-                    additionQuestionRefs.current[section.id] = element
+                    additionQuestionRefs.current[section.id] = element;
                   }}
                   className="rounded-xl border bg-background p-4 shadow-sm will-change-transform"
                 >
@@ -973,8 +1101,15 @@ export default function CreatejobPage() {
                         <ChevronDown className="h-5 w-5" />
                         Move Down
                       </button>
-                      <button className="hover:text-foreground inline-flex items-center gap-1" aria-label="Delete">
-                        <img src={IoTrashBin} alt="Delete" className="h-4 w-4" />
+                      <button
+                        className="hover:text-foreground inline-flex items-center gap-1"
+                        aria-label="Delete"
+                      >
+                        <img
+                          src={IoTrashBin}
+                          alt="Delete"
+                          className="h-4 w-4"
+                        />
                         <span>Delete</span>
                       </button>
                     </div>
@@ -982,20 +1117,28 @@ export default function CreatejobPage() {
 
                   <div className="mt-3 space-y-3">
                     <div>
-                      <label className="text-sm dark:text-accent">Question</label>
+                      <label className="text-sm dark:text-accent">
+                        Question
+                      </label>
                       <Input
                         value={section.question}
-                        onChange={(event) => updateAdditionQuestion(section.id, event.target.value)}
+                        onChange={(event) =>
+                          updateAdditionQuestion(section.id, event.target.value)
+                        }
                       />
                     </div>
 
                     {section.type === "open" ? null : (
                       <div>
-                        <label className="text-sm dark:text-accent">Answer</label>
+                        <label className="text-sm dark:text-accent">
+                          Answer
+                        </label>
                         <DndContext
                           sensors={answerDndSensors}
                           collisionDetection={closestCenter}
-                          onDragEnd={(event) => handleAnswerDragEnd(section.id, event)}
+                          onDragEnd={(event) =>
+                            handleAnswerDragEnd(section.id, event)
+                          }
                         >
                           <SortableContext
                             items={section.answers.map((answer) => answer.id)}
@@ -1006,19 +1149,29 @@ export default function CreatejobPage() {
                                 <SortableAnswerItem
                                   key={answer.id}
                                   answer={answer}
-                                  onChange={(value) => updateAdditionQuestionAnswer(section.id, answer.id, value)}
+                                  onChange={(value) =>
+                                    updateAdditionQuestionAnswer(
+                                      section.id,
+                                      answer.id,
+                                      value,
+                                    )
+                                  }
                                 />
                               ))}
                             </div>
                           </SortableContext>
                         </DndContext>
 
-                        <div className={`mt-3 flex ${section.type === "checkbox" ? "items-center justify-between" : "justify-center"}`}>
+                        <div
+                          className={`mt-3 flex ${section.type === "checkbox" ? "items-center justify-between" : "justify-center"}`}
+                        >
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => addAnswerToAdditionQuestion(section.id)}
+                            onClick={() =>
+                              addAnswerToAdditionQuestion(section.id)
+                            }
                             className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted"
                           >
                             <Plus className="h-4 w-4 mr-1" />
@@ -1027,10 +1180,17 @@ export default function CreatejobPage() {
 
                           {section.type === "checkbox" ? (
                             <div className="flex items-center gap-2">
-                              <span className="text-sm text-muted-foreground">Can Select Up To</span>
+                              <span className="text-sm text-muted-foreground">
+                                Can Select Up To
+                              </span>
                               <Select
                                 value={section.maxSelect || "3"}
-                                onValueChange={(value) => updateAdditionQuestionMaxSelect(section.id, value)}
+                                onValueChange={(value) =>
+                                  updateAdditionQuestionMaxSelect(
+                                    section.id,
+                                    value,
+                                  )
+                                }
                               >
                                 <SelectTrigger className="w-16 h-9">
                                   <SelectValue />
@@ -1090,7 +1250,9 @@ export default function CreatejobPage() {
 
           {/* ===== Addition File ===== */}
           <section className="mt-10">
-            <h2 className="mb-3 text-lg font-semibold gradient-text inline-block">Addition File</h2>
+            <h2 className="mb-3 text-lg font-semibold gradient-text inline-block">
+              Addition File
+            </h2>
 
             <div className="rounded-lg border p-4 w-3/5">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -1098,13 +1260,18 @@ export default function CreatejobPage() {
                   <label className="text-sm dark:text-accent">Label</label>
                   <Input
                     value={additionFileLabel}
-                    onChange={(event) => setAdditionFileLabel(event.target.value)}
+                    onChange={(event) =>
+                      setAdditionFileLabel(event.target.value)
+                    }
                     placeholder="Text here"
                   />
                 </div>
                 <div>
                   <label className="text-sm dark:text-accent">File Type</label>
-                  <Select value={selectedFileType} onValueChange={setSelectedFileType}>
+                  <Select
+                    value={selectedFileType}
+                    onValueChange={setSelectedFileType}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
@@ -1122,7 +1289,9 @@ export default function CreatejobPage() {
                 <label className="text-sm dark:text-accent">Description</label>
                 <Input
                   value={additionFileDescription}
-                  onChange={(event) => setAdditionFileDescription(event.target.value)}
+                  onChange={(event) =>
+                    setAdditionFileDescription(event.target.value)
+                  }
                   placeholder="Type your message here"
                 />
               </div>
@@ -1146,7 +1315,9 @@ export default function CreatejobPage() {
                       size="sm"
                       className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted w-full justify-start"
                     >
-                      <span className="flex-1 truncate text-left">{file.name}</span>
+                      <span className="flex-1 truncate text-left">
+                        {file.name}
+                      </span>
                       <button
                         onClick={() => removeFile(index)}
                         className="ml-2 hover:text-foreground"
@@ -1185,5 +1356,5 @@ export default function CreatejobPage() {
         </div>
       </div>
     </PageLayout>
-  )
+  );
 }

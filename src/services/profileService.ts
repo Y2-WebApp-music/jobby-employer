@@ -51,10 +51,7 @@ export const apiGetProfileCompanyJobList = (
   companyId: string,
   params: ProfileGetCompanyJobListParams = {},
 ) => {
-  const {
-    page = 0,
-    limit = 10,
-  } = params;
+  const { page = 0, limit = 10 } = params;
 
   return apiService.fetchData<ProfileCompanyJobListResponse>({
     url: `/company/${companyId}/job`,

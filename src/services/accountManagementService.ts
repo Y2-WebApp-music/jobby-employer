@@ -20,10 +20,7 @@ export type {
 
 // get {{employer-bff}}/employee?page=0&limit=10     Employee List
 export const apiGetEmployeeList = (params: GetEmployeeListParams = {}) => {
-  const {
-    page = 0,
-    limit = 10,
-  } = params;
+  const { page = 0, limit = 10 } = params;
 
   return apiService.fetchData<GetEmployeeListResponse>({
     url: "/employee",

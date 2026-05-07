@@ -1,7 +1,4 @@
-import {
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import JobbyLogo from "@/assets/icons/JobbyLogo.svg?react";
 import { RiFileList3Fill } from "react-icons/ri";
 import { Link, useLocation } from "react-router-dom";
@@ -65,7 +62,6 @@ const items3 = [
   },
 ];
 
-
 export function AppSidebar() {
   const location = useLocation();
 
@@ -90,7 +86,14 @@ export function AppSidebar() {
       <SidebarContent>
         <Collapsible defaultOpen className="group/collapsible1">
           <SidebarGroup>
-            <SidebarGroupLabel asChild className={group1Active? "[--sidebar-foreground:var(--sidebar)]": undefined}>
+            <SidebarGroupLabel
+              asChild
+              className={
+                group1Active
+                  ? "[--sidebar-foreground:var(--sidebar)]"
+                  : undefined
+              }
+            >
               <CollapsibleTrigger
                 className={[
                   "flex items-center gap-2 rounded-md px-3 py-2 transition-colors",
@@ -113,14 +116,18 @@ export function AppSidebar() {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                           asChild
-                            isActive={active}
-                            className={
-                              active
-                                ? "[--sidebar-accent:var(--light-primary)] [--sidebar-accent-foreground:var(--primary)]"
-                                : undefined
-                            }
+                          isActive={active}
+                          className={
+                            active
+                              ? "[--sidebar-accent:var(--light-primary)] [--sidebar-accent-foreground:var(--primary)]"
+                              : undefined
+                          }
                         >
-                          <Link to={item.url} className="w-full block" aria-current={active ? "page" : undefined}>
+                          <Link
+                            to={item.url}
+                            className="w-full block"
+                            aria-current={active ? "page" : undefined}
+                          >
                             <span>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -135,7 +142,14 @@ export function AppSidebar() {
 
         <Collapsible defaultOpen className="group/collapsible2">
           <SidebarGroup>
-            <SidebarGroupLabel asChild className={group2Active? "[--sidebar-foreground:var(--sidebar)]": undefined}>
+            <SidebarGroupLabel
+              asChild
+              className={
+                group2Active
+                  ? "[--sidebar-foreground:var(--sidebar)]"
+                  : undefined
+              }
+            >
               <CollapsibleTrigger
                 className={[
                   "flex items-center gap-2 rounded-md px-3 py-2 transition-colors",
@@ -158,14 +172,18 @@ export function AppSidebar() {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                           asChild
-                            isActive={active}
-                            className={
-                              active
-                                ? "[--sidebar-accent:var(--light-primary)] [--sidebar-accent-foreground:var(--primary)]"
-                                : undefined
-                            }
+                          isActive={active}
+                          className={
+                            active
+                              ? "[--sidebar-accent:var(--light-primary)] [--sidebar-accent-foreground:var(--primary)]"
+                              : undefined
+                          }
                         >
-                          <Link to={item.url} className="w-full block" aria-current={active ? "page" : undefined}>
+                          <Link
+                            to={item.url}
+                            className="w-full block"
+                            aria-current={active ? "page" : undefined}
+                          >
                             <span>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -180,7 +198,14 @@ export function AppSidebar() {
 
         <Collapsible defaultOpen className="group/collapsible3">
           <SidebarGroup>
-            <SidebarGroupLabel asChild className={group3Active? "[--sidebar-foreground:var(--sidebar)]": undefined}>
+            <SidebarGroupLabel
+              asChild
+              className={
+                group3Active
+                  ? "[--sidebar-foreground:var(--sidebar)]"
+                  : undefined
+              }
+            >
               <CollapsibleTrigger
                 className={[
                   "flex items-center gap-2 rounded-md px-3 py-2 transition-colors",
@@ -203,14 +228,18 @@ export function AppSidebar() {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                           asChild
-                            isActive={active}
-                            className={
-                              active
-                                ? "[--sidebar-accent:var(--light-primary)] [--sidebar-accent-foreground:var(--primary)]"
-                                : undefined
-                            }
+                          isActive={active}
+                          className={
+                            active
+                              ? "[--sidebar-accent:var(--light-primary)] [--sidebar-accent-foreground:var(--primary)]"
+                              : undefined
+                          }
                         >
-                          <Link to={item.url} className="w-full block" aria-current={active ? "page" : undefined}>
+                          <Link
+                            to={item.url}
+                            className="w-full block"
+                            aria-current={active ? "page" : undefined}
+                          >
                             <span>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -227,31 +256,28 @@ export function AppSidebar() {
       <SidebarFooter className="mt-auto border-t">
         <div className="flex items-center gap-3 px-3 py-3 rounded-md hover:bg-muted cursor-pointer">
           <Link to="/profile" className="flex items-center gap-3 ...">
-          {/* Avatar */}
-          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-            U
-          </div>
-          {/* <img
+            {/* Avatar */}
+            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
+              U
+            </div>
+            {/* <img
             src="/avatar.png"
             alt="Profile"
             className="h-10 w-10 rounded-full object-cover"
           /> */}
-          {/* User info */}
-          <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-sm font-medium truncate">Username</span>
-            <span className="text-xs text-muted-foreground truncate">
-              email@example.com
-            </span>
-          </div>
+            {/* User info */}
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-sm font-medium truncate">Username</span>
+              <span className="text-xs text-muted-foreground truncate">
+                email@example.com
+              </span>
+            </div>
 
-          {/* Action */}
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            {/* Action */}
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </Link>
         </div>
-      
       </SidebarFooter>
-
-
     </Sidebar>
   );
 }

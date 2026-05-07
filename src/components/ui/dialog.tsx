@@ -128,9 +128,7 @@ function DialogContent({
         >
           {isSpecialVariant && <div className="shrink-0">{renderIcon()}</div>}
 
-          <div className="flex-1 flex min-h-0 flex-col gap-2">
-            {children}
-          </div>
+          <div className="flex-1 flex min-h-0 flex-col gap-2">{children}</div>
         </div>
       </DialogPrimitive.Content>
     </DialogPortal>

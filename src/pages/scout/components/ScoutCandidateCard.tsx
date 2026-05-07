@@ -14,7 +14,9 @@ export default function ScoutCandidateCard({
         <button
           type="button"
           onClick={() => onToggleStar(candidate.id)}
-          aria-label={isStarSelected ? "Unselect candidate" : "Select candidate"}
+          aria-label={
+            isStarSelected ? "Unselect candidate" : "Select candidate"
+          }
           className="rounded-sm bg-transparent p-0 hover:bg-transparent"
         >
           <Star
@@ -31,7 +33,9 @@ export default function ScoutCandidateCard({
       <p className="text-xs text-foreground/85">
         Match Job: <span className="line-clamp-1">{candidate.matchJob}</span>
       </p>
-      <p className="mb-2 line-clamp-1 text-[11px] text-muted-foreground">{candidate.description}</p>
+      <p className="mb-2 line-clamp-1 text-[11px] text-muted-foreground">
+        {candidate.description}
+      </p>
 
       <div className="mt-auto flex items-center justify-between gap-2 pt-1">
         <Badge variant="gradient" className="rounded-full text-[10px]">

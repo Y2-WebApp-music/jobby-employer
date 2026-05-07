@@ -28,7 +28,12 @@ export default function AccountPage() {
   const perPage = 15;
 
   const roleOptions = useMemo(
-    () => ["all", ...Array.from(new Set(accountManagementMock.map((account) => account.role)))],
+    () => [
+      "all",
+      ...Array.from(
+        new Set(accountManagementMock.map((account) => account.role)),
+      ),
+    ],
     [],
   );
 
@@ -36,8 +41,11 @@ export default function AccountPage() {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     const matched = accountManagementMock.filter((account) => {
-      const isNameMatched = account.name.toLowerCase().includes(normalizedQuery);
-      const isRoleMatched = selectedRole === "all" || account.role === selectedRole;
+      const isNameMatched = account.name
+        .toLowerCase()
+        .includes(normalizedQuery);
+      const isRoleMatched =
+        selectedRole === "all" || account.role === selectedRole;
       return isNameMatched && isRoleMatched;
     });
 
@@ -78,7 +86,9 @@ export default function AccountPage() {
           </div>
 
           <div className="mb-4 mt-2 flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-4xl font-semibold text-foreground sm:text-2xl">Account Management</h1>
+            <h1 className="text-4xl font-semibold text-foreground sm:text-2xl">
+              Account Management
+            </h1>
             <Button size="lg" className="px-5">
               <Plus className="size-4" />
               Add People
@@ -155,7 +165,10 @@ export default function AccountPage() {
                 </thead>
                 <tbody>
                   {pagedAccounts.map((account) => (
-                    <tr key={account.id} className="border-b border-border last:border-b-0">
+                    <tr
+                      key={account.id}
+                      className="border-b border-border last:border-b-0"
+                    >
                       <td className="px-5 py-3">{account.employeeId}</td>
                       <td className="px-5 py-3">{account.name}</td>
                       <td className="px-5 py-3">{account.email}</td>

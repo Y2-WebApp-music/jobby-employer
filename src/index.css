@@ -32,7 +32,11 @@
   --chart-5: oklch(0.424 0.199 265.638);
   --gradient-start: oklch(0.7538 0.178157 59.215);
   --gradient-end: oklch(0.6425 0.2645 325.38);
-  --gradient-primary: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  --gradient-primary: linear-gradient(
+    to right,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
   --status-interview: #f335ec;
   --status-accept: #00a63e;
   --status-reject-text: #737373;
@@ -108,7 +112,11 @@
 }
 
 .status-interview-bg {
-  background-color: color-mix(in oklch, var(--status-interview) 10%, transparent);
+  background-color: color-mix(
+    in oklch,
+    var(--status-interview) 10%,
+    transparent
+  );
 }
 
 .status-accept-border {

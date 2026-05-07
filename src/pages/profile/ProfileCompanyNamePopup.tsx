@@ -79,7 +79,9 @@ export default function ProfileCompanyNamePopup({
   onSave,
 }: ProfileCompanyNamePopupProps) {
   const [draftValue, setDraftValue] = useState(() => cloneDraftValue(value));
-  const [addressForm, setAddressForm] = useState<AddressFormValue>(() => mapAddressToForm(value.address));
+  const [addressForm, setAddressForm] = useState<AddressFormValue>(() =>
+    mapAddressToForm(value.address),
+  );
 
   useEffect(() => {
     if (open) {
@@ -88,14 +90,21 @@ export default function ProfileCompanyNamePopup({
     }
   }, [open, value]);
 
-  const updateAddressField = (key: keyof AddressFormValue, nextValue: string) => {
+  const updateAddressField = (
+    key: keyof AddressFormValue,
+    nextValue: string,
+  ) => {
     setAddressForm((previous) => ({
       ...previous,
       [key]: nextValue,
     }));
   };
 
-  const updateMediaLink = (index: number, key: "label" | "url", nextValue: string) => {
+  const updateMediaLink = (
+    index: number,
+    key: "label" | "url",
+    nextValue: string,
+  ) => {
     setDraftValue((previous) => ({
       ...previous,
       mediaLinks: previous.mediaLinks.map((link, linkIndex) =>
@@ -120,7 +129,9 @@ export default function ProfileCompanyNamePopup({
   const removeMediaLink = (index: number) => {
     setDraftValue((previous) => ({
       ...previous,
-      mediaLinks: previous.mediaLinks.filter((_, linkIndex) => linkIndex !== index),
+      mediaLinks: previous.mediaLinks.filter(
+        (_, linkIndex) => linkIndex !== index,
+      ),
     }));
   };
 
@@ -159,102 +170,119 @@ export default function ProfileCompanyNamePopup({
             </button>
 
             <DialogHeader className="gap-1 pr-10">
-              <DialogTitle className="pt-0 text-[16px] font-semibold text-foreground">Edit Profile</DialogTitle>
+              <DialogTitle className="pt-0 text-[16px] font-semibold text-foreground">
+                Edit Profile
+              </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground">
-                Make changes to your profile here. Click save when you&apos;re done.
+                Make changes to your profile here. Click save when you&apos;re
+                done.
               </DialogDescription>
             </DialogHeader>
           </div>
 
           <div className="min-h-0 overflow-y-auto overflow-x-hidden px-4 pb-3 pt-4 sm:px-5">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm text-foreground">Company Name</label>
-              <Input
-                value={draftValue.companyName}
-                maxLength={COMPANY_NAME_LIMIT}
-                onChange={(event) => {
-                  setDraftValue((previous) => ({
-                    ...previous,
-                    companyName: event.target.value,
-                  }));
-                }}
-                placeholder="Company name"
-                className="h-10"
-              />
-            </div>
+              <div>
+                <label className="mb-1 block text-sm text-foreground">
+                  Company Name
+                </label>
+                <Input
+                  value={draftValue.companyName}
+                  maxLength={COMPANY_NAME_LIMIT}
+                  onChange={(event) => {
+                    setDraftValue((previous) => ({
+                      ...previous,
+                      companyName: event.target.value,
+                    }));
+                  }}
+                  placeholder="Company name"
+                  className="h-10"
+                />
+              </div>
 
-            <div>
-              <label className="mb-1 block text-sm text-foreground">Company Place</label>
-              <Input
-                value={draftValue.place}
-                maxLength={COMPANY_PLACE_LIMIT}
-                onChange={(event) => {
-                  setDraftValue((previous) => ({
-                    ...previous,
-                    place: event.target.value,
-                  }));
-                }}
-                placeholder="Bangkok"
-                className="h-10"
-              />
-            </div>
+              <div>
+                <label className="mb-1 block text-sm text-foreground">
+                  Company Place
+                </label>
+                <Input
+                  value={draftValue.place}
+                  maxLength={COMPANY_PLACE_LIMIT}
+                  onChange={(event) => {
+                    setDraftValue((previous) => ({
+                      ...previous,
+                      place: event.target.value,
+                    }));
+                  }}
+                  placeholder="Bangkok"
+                  className="h-10"
+                />
+              </div>
             </div>
 
             <div className="mt-3">
-              <p className="text-[22px] font-semibold leading-8 text-foreground">Contact</p>
+              <p className="text-[22px] font-semibold leading-8 text-foreground">
+                Contact
+              </p>
               <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div>
-                <label className="mb-1 block text-sm text-foreground">Region</label>
-                <Input
-                  value={draftValue.region}
-                  maxLength={50}
-                  onChange={(event) => {
-                    setDraftValue((previous) => ({
-                      ...previous,
-                      region: event.target.value,
-                    }));
-                  }}
-                  placeholder="THA"
-                  className="h-10"
-                />
-              </div>
+                <div>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Region
+                  </label>
+                  <Input
+                    value={draftValue.region}
+                    maxLength={50}
+                    onChange={(event) => {
+                      setDraftValue((previous) => ({
+                        ...previous,
+                        region: event.target.value,
+                      }));
+                    }}
+                    placeholder="THA"
+                    className="h-10"
+                  />
+                </div>
 
-              <div>
-                <label className="mb-1 block text-sm text-foreground">Tel.</label>
-                <Input
-                  value={draftValue.phone}
-                  maxLength={PHONE_DIGIT_LIMIT}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  onChange={(event) => {
-                    const nextPhone = event.target.value.replace(/\D/g, "").slice(0, PHONE_DIGIT_LIMIT);
-                    setDraftValue((previous) => ({
-                      ...previous,
-                      phone: nextPhone,
-                    }));
-                  }}
-                  placeholder="062XXXXXXX"
-                  className="h-10"
-                />
-              </div>
+                <div>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Tel.
+                  </label>
+                  <Input
+                    value={draftValue.phone}
+                    maxLength={PHONE_DIGIT_LIMIT}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    onChange={(event) => {
+                      const nextPhone = event.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, PHONE_DIGIT_LIMIT);
+                      setDraftValue((previous) => ({
+                        ...previous,
+                        phone: nextPhone,
+                      }));
+                    }}
+                    placeholder="062XXXXXXX"
+                    className="h-10"
+                  />
+                </div>
 
-              <div>
-                <label className="mb-1 block text-sm text-foreground">Email</label>
-                <Input
-                  type="email"
-                  value={draftValue.email}
-                  maxLength={EMAIL_LIMIT}
-                  onChange={(event) => {
-                    setDraftValue((previous) => ({
-                      ...previous,
-                      email: event.target.value,
-                    }));
-                  }}
-                  placeholder="company@email.com"
-                  className="h-10"
-                />
-              </div>
+                <div>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Email
+                  </label>
+                  <Input
+                    type="email"
+                    value={draftValue.email}
+                    maxLength={EMAIL_LIMIT}
+                    onChange={(event) => {
+                      setDraftValue((previous) => ({
+                        ...previous,
+                        email: event.target.value,
+                      }));
+                    }}
+                    placeholder="company@email.com"
+                    className="h-10"
+                  />
+                </div>
               </div>
             </div>
 
@@ -262,22 +290,30 @@ export default function ProfileCompanyNamePopup({
               {draftValue.mediaLinks.map((link, index) => (
                 <div key={index} className="grid grid-cols-12 gap-2">
                   <div className="col-span-12 sm:col-span-3">
-                    <label className="mb-1 block text-sm text-foreground">Label</label>
+                    <label className="mb-1 block text-sm text-foreground">
+                      Label
+                    </label>
                     <Input
                       value={link.label}
                       maxLength={LINK_LABEL_LIMIT}
-                      onChange={(event) => updateMediaLink(index, "label", event.target.value)}
+                      onChange={(event) =>
+                        updateMediaLink(index, "label", event.target.value)
+                      }
                       placeholder="linkedin"
                       className="h-10"
                     />
                   </div>
 
                   <div className="col-span-10 sm:col-span-8">
-                    <label className="mb-1 block text-sm text-foreground">Link</label>
+                    <label className="mb-1 block text-sm text-foreground">
+                      Link
+                    </label>
                     <Input
                       value={link.url}
                       maxLength={LINK_URL_LIMIT}
-                      onChange={(event) => updateMediaLink(index, "url", event.target.value)}
+                      onChange={(event) =>
+                        updateMediaLink(index, "url", event.target.value)
+                      }
                       placeholder="https://www.linkedin.com/in"
                       className="h-10"
                     />
@@ -311,104 +347,142 @@ export default function ProfileCompanyNamePopup({
             </div>
 
             <section className="mt-5">
-              <h2 className="mb-3 text-lg font-medium text-foreground">Address Information</h2>
+              <h2 className="mb-3 text-lg font-medium text-foreground">
+                Address Information
+              </h2>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">
                 <div className="sm:col-span-3">
-                  <label className="mb-1 block text-sm text-foreground">Address line</label>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Address line
+                  </label>
                   <Input
                     value={addressForm.addressLine}
                     maxLength={ADDRESS_LINE_LIMIT}
-                    onChange={(event) => updateAddressField("addressLine", event.target.value)}
+                    onChange={(event) =>
+                      updateAddressField("addressLine", event.target.value)
+                    }
                     placeholder="Address line"
                     className="h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm text-foreground">No.</label>
+                  <label className="mb-1 block text-sm text-foreground">
+                    No.
+                  </label>
                   <Input
                     value={addressForm.no}
                     maxLength={ADDRESS_PART_LIMIT}
-                    onChange={(event) => updateAddressField("no", event.target.value)}
+                    onChange={(event) =>
+                      updateAddressField("no", event.target.value)
+                    }
                     placeholder="No."
                     className="h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm text-foreground">Moo</label>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Moo
+                  </label>
                   <Input
                     value={addressForm.moo}
                     maxLength={ADDRESS_PART_LIMIT}
-                    onChange={(event) => updateAddressField("moo", event.target.value)}
+                    onChange={(event) =>
+                      updateAddressField("moo", event.target.value)
+                    }
                     placeholder="Moo"
                     className="h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm text-foreground">Soi</label>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Soi
+                  </label>
                   <Input
                     value={addressForm.soi}
                     maxLength={ADDRESS_PART_LIMIT}
-                    onChange={(event) => updateAddressField("soi", event.target.value)}
+                    onChange={(event) =>
+                      updateAddressField("soi", event.target.value)
+                    }
                     placeholder="Soi"
                     className="h-10"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="mb-1 block text-sm text-foreground">Street</label>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Street
+                  </label>
                   <Input
                     value={addressForm.street}
                     maxLength={ADDRESS_PART_LIMIT}
-                    onChange={(event) => updateAddressField("street", event.target.value)}
+                    onChange={(event) =>
+                      updateAddressField("street", event.target.value)
+                    }
                     placeholder="Street"
                     className="h-10"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="mb-1 block text-sm text-foreground">Province</label>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Province
+                  </label>
                   <Input
                     value={addressForm.province}
                     maxLength={ADDRESS_PART_LIMIT}
-                    onChange={(event) => updateAddressField("province", event.target.value)}
+                    onChange={(event) =>
+                      updateAddressField("province", event.target.value)
+                    }
                     placeholder="Province"
                     className="h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm text-foreground">District</label>
+                  <label className="mb-1 block text-sm text-foreground">
+                    District
+                  </label>
                   <Input
                     value={addressForm.district}
                     maxLength={ADDRESS_PART_LIMIT}
-                    onChange={(event) => updateAddressField("district", event.target.value)}
+                    onChange={(event) =>
+                      updateAddressField("district", event.target.value)
+                    }
                     placeholder="District"
                     className="h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm text-foreground">Sub-district</label>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Sub-district
+                  </label>
                   <Input
                     value={addressForm.subDistrict}
                     maxLength={ADDRESS_PART_LIMIT}
-                    onChange={(event) => updateAddressField("subDistrict", event.target.value)}
+                    onChange={(event) =>
+                      updateAddressField("subDistrict", event.target.value)
+                    }
                     placeholder="Sub-district"
                     className="h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm text-foreground">Postal code</label>
+                  <label className="mb-1 block text-sm text-foreground">
+                    Postal code
+                  </label>
                   <Input
                     value={addressForm.postalCode}
                     maxLength={POSTAL_CODE_LIMIT}
                     onChange={(event) => {
-                      const nextPostalCode = event.target.value.replace(/\s/g, "").slice(0, POSTAL_CODE_LIMIT);
+                      const nextPostalCode = event.target.value
+                        .replace(/\s/g, "")
+                        .slice(0, POSTAL_CODE_LIMIT);
                       updateAddressField("postalCode", nextPostalCode);
                     }}
                     placeholder="Postal code"
@@ -429,11 +503,7 @@ export default function ProfileCompanyNamePopup({
               >
                 Cancel
               </Button>
-              <Button
-                type="button"
-                onClick={handleSave}
-                className="min-w-28"
-              >
+              <Button type="button" onClick={handleSave} className="min-w-28">
                 Save Change
               </Button>
             </div>

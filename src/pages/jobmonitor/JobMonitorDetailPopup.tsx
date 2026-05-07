@@ -36,9 +36,13 @@ export default function JobMonitorDetailPopup({
 
           <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-5">
             <div className="sticky top-0 z-10 bg-background pb-3">
-              <h2 className="pr-10 text-3xl font-medium leading-tight text-foreground">{card.title}</h2>
+              <h2 className="pr-10 text-3xl font-medium leading-tight text-foreground">
+                {card.title}
+              </h2>
               <p className="text-muted-foreground">{card.companyName}</p>
-              <p className="text-sm text-muted-foreground">{card.locationPosted}</p>
+              <p className="text-sm text-muted-foreground">
+                {card.locationPosted}
+              </p>
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
@@ -57,13 +61,11 @@ export default function JobMonitorDetailPopup({
             </div>
 
             <section className="mt-4">
-              <h3 className="text-lg font-semibold text-foreground">Skill Use</h3>
+              <h3 className="text-lg font-semibold text-foreground">
+                Skill Use
+              </h3>
               <div className="mt-2 flex flex-wrap gap-2">
-                {[
-                  "React",
-                  "TypeScript",
-                  "Figma",
-                ].map((skill) => (
+                {["React", "TypeScript", "Figma"].map((skill) => (
                   <Badge
                     key={skill}
                     variant="outline"
@@ -77,30 +79,52 @@ export default function JobMonitorDetailPopup({
             </section>
 
             <section className="mt-4">
-              <h3 className="text-lg font-semibold text-foreground">About this job</h3>
-              <h4 className="mt-1 text-base font-semibold text-foreground">Company Description</h4>
+              <h3 className="text-lg font-semibold text-foreground">
+                About this job
+              </h3>
+              <h4 className="mt-1 text-base font-semibold text-foreground">
+                Company Description
+              </h4>
 
               <p className="mt-2 text-base text-foreground">
-                At Western Digital, our vision is to power global innovation and push the boundaries of technology to make what you thought was once impossible, possible.
+                At Western Digital, our vision is to power global innovation and
+                push the boundaries of technology to make what you thought was
+                once impossible, possible.
               </p>
 
               <p className="mt-3 text-base text-foreground">
-                At our core, Western Digital is a company of problem solvers. People achieve extraordinary things given the right technology. For decades, we&apos;ve been doing just that—our technology helped people put a man on the moon and capture the first-ever picture of a black hole.
+                At our core, Western Digital is a company of problem solvers.
+                People achieve extraordinary things given the right technology.
+                For decades, we&apos;ve been doing just that—our technology
+                helped people put a man on the moon and capture the first-ever
+                picture of a black hole.
               </p>
 
               <p className="mt-3 text-base text-foreground">
-                We offer an expansive portfolio of technologies, HDDs, and platforms for business, creative professionals, and consumers alike under our Western Digital®, WD®, WD_BLACK™, and SanDisk® Professional brands.
+                We offer an expansive portfolio of technologies, HDDs, and
+                platforms for business, creative professionals, and consumers
+                alike under our Western Digital®, WD®, WD_BLACK™, and SanDisk®
+                Professional brands.
               </p>
 
               <p className="mt-3 text-base text-foreground">
-                We are a key partner to some of the largest and highest-growth organizations in the world. From enabling systems to make cities safer and more connected, to powering the data centers behind many of the world&apos;s biggest companies and hyperscale cloud providers, to meeting the massive and ever-growing data storage needs of the AI era, Western Digital is fueling a brighter, smarter future.
+                We are a key partner to some of the largest and highest-growth
+                organizations in the world. From enabling systems to make cities
+                safer and more connected, to powering the data centers behind
+                many of the world&apos;s biggest companies and hyperscale cloud
+                providers, to meeting the massive and ever-growing data storage
+                needs of the AI era, Western Digital is fueling a brighter,
+                smarter future.
               </p>
 
               <p className="mt-3 text-base text-foreground">
-                Today&apos;s exceptional challenges require your unique skills. Together, we can build the future of data storage.
+                Today&apos;s exceptional challenges require your unique skills.
+                Together, we can build the future of data storage.
               </p>
 
-              <p className="mt-3 text-base font-medium text-foreground">Location:</p>
+              <p className="mt-3 text-base font-medium text-foreground">
+                Location:
+              </p>
             </section>
           </div>
 

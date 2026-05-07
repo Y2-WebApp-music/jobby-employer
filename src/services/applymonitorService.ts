@@ -55,13 +55,7 @@ export type {
 
 // get {{employer-bff}}/job-monitor/job?search&job_status_id=1&sort_by_id=3&page=0&limit=10     job monitor
 export const apiGetJobMonitorJobs = (params: GetJobMonitorJobsParams = {}) => {
-  const {
-    search,
-    job_status_id,
-    sort_by_id,
-    page = 0,
-    limit = 10,
-  } = params;
+  const { search, job_status_id, sort_by_id, page = 0, limit = 10 } = params;
 
   return apiService.fetchData<GetJobMonitorJobsResponse>({
     url: "/job-monitor/job",
@@ -112,7 +106,9 @@ export const apiApplyMonitorSearchJob = (
       ...(experienceMoreThan !== undefined ? { experienceMoreThan } : {}),
       ...(achievementMoreThan !== undefined ? { achievementMoreThan } : {}),
       ...(projectMoreThan !== undefined ? { projectMoreThan } : {}),
-      ...(yearExperienceMoreThan !== undefined ? { yearExperienceMoreThan } : {}),
+      ...(yearExperienceMoreThan !== undefined
+        ? { yearExperienceMoreThan }
+        : {}),
       ...(starredOnly !== undefined ? { starredOnly } : {}),
       ...(sortBy !== undefined ? { sortBy } : {}),
       page,
@@ -125,11 +121,7 @@ export const apiApplyMonitorSearchJob = (
 export const apiApplyMonitorSearchApply = (
   params: ApplyMonitorSearchApplyParams = {},
 ) => {
-  const {
-    sortById,
-    page = 0,
-    limit = 10,
-  } = params;
+  const { sortById, page = 0, limit = 10 } = params;
 
   return apiService.fetchData<ApplyMonitorSearchApplyResponse>({
     url: "/apply-monitor/search/apply",
@@ -196,7 +188,9 @@ export const apiGetApplyMonitorJobApplies = (
       ...(experienceMoreThan !== undefined ? { experienceMoreThan } : {}),
       ...(achievementMoreThan !== undefined ? { achievementMoreThan } : {}),
       ...(projectMoreThan !== undefined ? { projectMoreThan } : {}),
-      ...(yearExperienceMoreThan !== undefined ? { yearExperienceMoreThan } : {}),
+      ...(yearExperienceMoreThan !== undefined
+        ? { yearExperienceMoreThan }
+        : {}),
       ...(starredOnly !== undefined ? { starredOnly } : {}),
       ...(sortById !== undefined ? { sortById } : {}),
       page,

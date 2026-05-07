@@ -21,9 +21,19 @@ export type SectionConfig = {
   highlightVariant?: CandidateCard["highlightVariant"];
 };
 
-export type ApplyStatusFilter = "all" | "apply" | "interview" | "accept" | "reject";
+export type ApplyStatusFilter =
+  | "all"
+  | "apply"
+  | "interview"
+  | "accept"
+  | "reject";
 
-export type ApplyByTitleCardVariant = "newApplied" | "applied" | "interview" | "accept" | "reject";
+export type ApplyByTitleCardVariant =
+  | "newApplied"
+  | "applied"
+  | "interview"
+  | "accept"
+  | "reject";
 
 export type ApplyByTitleCandidateCardProps = {
   card: CandidateCard;

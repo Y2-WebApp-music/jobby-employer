@@ -1,6 +1,6 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { X } from "lucide-react"
-import type { SkillDetailPopupProps } from "@/types/createJobTypes"
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X } from "lucide-react";
+import type { SkillDetailPopupProps } from "@/types/createJobTypes";
 
 export default function SkillDetailPopup({
   open,
@@ -25,7 +25,9 @@ export default function SkillDetailPopup({
 
           <div className="space-y-4">
             <div className="pr-8">
-              <h3 className="text-[34px] leading-none font-medium gradient-text">{skillName}</h3>
+              <h3 className="text-[34px] leading-none font-medium gradient-text">
+                {skillName}
+              </h3>
             </div>
 
             <div>
@@ -63,5 +65,5 @@ export default function SkillDetailPopup({
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

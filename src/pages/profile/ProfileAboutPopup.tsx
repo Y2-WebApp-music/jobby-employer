@@ -50,7 +50,11 @@ function computeWeightedLength(value: string, charactersPerLine: number) {
   return total;
 }
 
-function trimValueToLimit(value: string, charactersPerLine: number, limit: number) {
+function trimValueToLimit(
+  value: string,
+  charactersPerLine: number,
+  limit: number,
+) {
   const normalizedValue = normalizeNewlines(value);
   let acceptedValue = "";
   let total = 0;
@@ -58,7 +62,9 @@ function trimValueToLimit(value: string, charactersPerLine: number, limit: numbe
 
   for (const character of normalizedValue) {
     const nextCost =
-      character === "\n" ? getLineBreakCost(currentLineLength, charactersPerLine) : 1;
+      character === "\n"
+        ? getLineBreakCost(currentLineLength, charactersPerLine)
+        : 1;
 
     if (total + nextCost > limit) {
       break;
@@ -80,7 +86,8 @@ function trimValueToLimit(value: string, charactersPerLine: number, limit: numbe
 
 function measureCharactersPerLine(textarea: HTMLTextAreaElement) {
   const computedStyle = window.getComputedStyle(textarea);
-  const sampleText = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".repeat(3);
+  const sampleText =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".repeat(3);
   const measurementNode = document.createElement("span");
 
   measurementNode.textContent = sampleText;
@@ -96,8 +103,12 @@ function measureCharactersPerLine(textarea: HTMLTextAreaElement) {
 
   const paddingLeft = Number.parseFloat(computedStyle.paddingLeft) || 0;
   const paddingRight = Number.parseFloat(computedStyle.paddingRight) || 0;
-  const availableWidth = Math.max(textarea.clientWidth - paddingLeft - paddingRight, 1);
-  const averageCharacterWidth = measurementNode.getBoundingClientRect().width / sampleText.length;
+  const availableWidth = Math.max(
+    textarea.clientWidth - paddingLeft - paddingRight,
+    1,
+  );
+  const averageCharacterWidth =
+    measurementNode.getBoundingClientRect().width / sampleText.length;
 
   document.body.removeChild(measurementNode);
 
@@ -115,7 +126,9 @@ export default function ProfileAboutPopup({
   onSave,
 }: ProfileAboutPopupProps) {
   const [draftValue, setDraftValue] = useState(value);
-  const [charactersPerLine, setCharactersPerLine] = useState(DEFAULT_CHARACTERS_PER_LINE);
+  const [charactersPerLine, setCharactersPerLine] = useState(
+    DEFAULT_CHARACTERS_PER_LINE,
+  );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const weightedLength = computeWeightedLength(draftValue, charactersPerLine);
@@ -166,7 +179,9 @@ export default function ProfileAboutPopup({
           </button>
 
           <DialogHeader className="gap-1 pr-10">
-            <DialogTitle className="pt-0 text-[16px] font-semibold text-foreground">About Me</DialogTitle>
+            <DialogTitle className="pt-0 text-[16px] font-semibold text-foreground">
+              About Me
+            </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
               Make changes to your About here. Click save when you&apos;re done.
             </DialogDescription>

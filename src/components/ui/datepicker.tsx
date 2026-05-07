@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { format } from "date-fns"
-import type { DatePickerProps } from "@/types/ui"
-import { ChevronDownIcon } from "lucide-react"
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import type { DatePickerProps } from "@/types/ui";
+import { ChevronDownIcon } from "lucide-react";
 
 export function DatePicker({
   date,
@@ -22,44 +22,44 @@ export function DatePicker({
 }: DatePickerProps) {
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (!selectedDate) {
-      onDateChange(undefined)
-      return
+      onDateChange(undefined);
+      return;
     }
 
     if (type === "start" && pairedDate && selectedDate > pairedDate) {
-      onDateChange(selectedDate)
-      return
+      onDateChange(selectedDate);
+      return;
     }
 
     if (type === "end" && pairedDate && selectedDate < pairedDate) {
-      onDateChange(selectedDate)
-      return
+      onDateChange(selectedDate);
+      return;
     }
 
-    onDateChange(selectedDate)
-  }
+    onDateChange(selectedDate);
+  };
 
   const isDisabled = (checkDate: Date) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     // Disable dates before today
     if (checkDate < today) {
-      return true
+      return true;
     }
 
-    if (!pairedDate) return false
-    
+    if (!pairedDate) return false;
+
     if (type === "start") {
-      return checkDate > pairedDate
+      return checkDate > pairedDate;
     }
-    
+
     if (type === "end") {
-      return checkDate < pairedDate
+      return checkDate < pairedDate;
     }
-    
-    return false
-  }
+
+    return false;
+  };
 
   return (
     <Popover>
@@ -83,5 +83,5 @@ export function DatePicker({
         />
       </PopoverContent>
     </Popover>
-  )
+  );
 }

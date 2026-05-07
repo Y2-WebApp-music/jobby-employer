@@ -78,7 +78,11 @@ export default function ProfileCompanyProfilePicturePopup({
           <div className="mt-4 rounded-xl border border-border bg-background p-4">
             <div className="mx-auto size-40 overflow-hidden rounded-full border-4 border-card bg-[#c8ccd2] shadow-sm">
               {draftImageUrl ? (
-                <img src={draftImageUrl} alt={companyName} className="h-full w-full object-cover" />
+                <img
+                  src={draftImageUrl}
+                  alt={companyName}
+                  className="h-full w-full object-cover"
+                />
               ) : null}
             </div>
 
@@ -114,7 +118,9 @@ export default function ProfileCompanyProfilePicturePopup({
               Recommended: square image, at least 512 x 512 px
             </p>
             {errorMessage ? (
-              <p className="mt-1 text-center text-xs text-destructive">{errorMessage}</p>
+              <p className="mt-1 text-center text-xs text-destructive">
+                {errorMessage}
+              </p>
             ) : null}
           </div>
 

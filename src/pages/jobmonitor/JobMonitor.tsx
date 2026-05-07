@@ -9,7 +9,9 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Multiselect, { type MultiselectOption } from "@/components/ui/multiselect";
+import Multiselect, {
+  type MultiselectOption,
+} from "@/components/ui/multiselect";
 import {
   Select,
   SelectContent,
@@ -33,7 +35,10 @@ const jobStatusOptions: MultiselectOption[] = [
 
 export default function JobMonitorPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusValues, setStatusValues] = useState<string[]>(["open", "closed"]);
+  const [statusValues, setStatusValues] = useState<string[]>([
+    "open",
+    "closed",
+  ]);
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
   const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<JobMonitorCard | null>(null);
@@ -47,7 +52,9 @@ export default function JobMonitorPage() {
   } as const;
 
   const sortCards = (cards: JobMonitorCard[]) => {
-    const sortedCards = [...cards].sort((firstCard, secondCard) => firstCard.id - secondCard.id);
+    const sortedCards = [...cards].sort(
+      (firstCard, secondCard) => firstCard.id - secondCard.id,
+    );
     return sortBy === "oldest" ? sortedCards : sortedCards.reverse();
   };
 
@@ -89,7 +96,9 @@ export default function JobMonitorPage() {
       key={card.id}
       className="rounded-xl border border-border bg-card px-4 py-3 min-h-33.5 flex flex-col"
     >
-      <h3 className="text-sm font-medium leading-5 line-clamp-2">{card.title}</h3>
+      <h3 className="text-sm font-medium leading-5 line-clamp-2">
+        {card.title}
+      </h3>
       <p className="mt-1 text-xs">
         Status: <span className="text-primary">{card.status}</span>
       </p>
@@ -134,7 +143,9 @@ export default function JobMonitorPage() {
 
           <section className="mt-[2%] mb-4 grid grid-cols-1 gap-3 md:grid-cols-10">
             <div className="md:col-span-4">
-              <p className="text-foreground mb-1 text-base font-medium">Search</p>
+              <p className="text-foreground mb-1 text-base font-medium">
+                Search
+              </p>
               <Input
                 placeholder="Search name"
                 value={searchQuery}
@@ -142,7 +153,9 @@ export default function JobMonitorPage() {
               />
             </div>
             <div className="md:col-span-3">
-              <p className="text-foreground mb-1 text-base font-medium">Status</p>
+              <p className="text-foreground mb-1 text-base font-medium">
+                Status
+              </p>
               <Multiselect
                 options={jobStatusOptions}
                 selectedValues={statusValues}
@@ -151,8 +164,15 @@ export default function JobMonitorPage() {
               />
             </div>
             <div className="md:col-span-3">
-              <p className="text-foreground mb-1 text-base font-medium">Sort By</p>
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as "newest" | "oldest")}>
+              <p className="text-foreground mb-1 text-base font-medium">
+                Sort By
+              </p>
+              <Select
+                value={sortBy}
+                onValueChange={(value) =>
+                  setSortBy(value as "newest" | "oldest")
+                }
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
@@ -165,14 +185,18 @@ export default function JobMonitorPage() {
           </section>
 
           <section className="mb-4">
-            <h2 className="text-foreground mb-2 text-lg font-semibold">New Applied</h2>
+            <h2 className="text-foreground mb-2 text-lg font-semibold">
+              New Applied
+            </h2>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
               {newAppliedCards.map(renderCard)}
             </div>
           </section>
 
           <section>
-            <h2 className="text-foreground mb-2 text-lg font-semibold">Latest Job activities</h2>
+            <h2 className="text-foreground mb-2 text-lg font-semibold">
+              Latest Job activities
+            </h2>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
               {latestCards.map(renderCard)}
             </div>

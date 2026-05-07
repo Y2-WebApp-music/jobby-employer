@@ -115,7 +115,11 @@ function PaginationEllipsis({
   );
 }
 
-function getVisiblePages(currentPage: number, totalPages: number, visiblePageCount = 3) {
+function getVisiblePages(
+  currentPage: number,
+  totalPages: number,
+  visiblePageCount = 3,
+) {
   const visibleStartPage =
     totalPages <= visiblePageCount
       ? 1
@@ -174,7 +178,9 @@ export default function SectionPagination({
         </button>
 
         {visibleStartPage > 1 && (
-          <span className="text-muted-foreground px-2 text-lg font-bold">...</span>
+          <span className="text-muted-foreground px-2 text-lg font-bold">
+            ...
+          </span>
         )}
 
         {visiblePages.map((page) => (
@@ -184,7 +190,11 @@ export default function SectionPagination({
             onClick={() => onPageChange(page)}
             className={
               page === currentPage
-                ? cn(buttonVariants({ variant: "default" }), "rounded-md", pageButtonClassName)
+                ? cn(
+                    buttonVariants({ variant: "default" }),
+                    "rounded-md",
+                    pageButtonClassName,
+                  )
                 : `text-foreground hover:bg-muted rounded-md ${pageButtonClassName}`
             }
           >
@@ -193,7 +203,9 @@ export default function SectionPagination({
         ))}
 
         {visibleEndPage < totalPages && (
-          <span className="text-muted-foreground px-2 text-lg font-bold">...</span>
+          <span className="text-muted-foreground px-2 text-lg font-bold">
+            ...
+          </span>
         )}
 
         <button

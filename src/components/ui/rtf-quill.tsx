@@ -1,16 +1,20 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import Quill from "quill"
-import type { RtfQuillProps } from "@/types/ui"
-import "quill/dist/quill.snow.css"
+import { useEffect, useRef } from "react";
+import Quill from "quill";
+import type { RtfQuillProps } from "@/types/ui";
+import "quill/dist/quill.snow.css";
 
-export default function RtfQuill({ value, onChange, className }: RtfQuillProps) {
-  const editorRef = useRef<HTMLDivElement | null>(null)
-  const quillRef = useRef<Quill | null>(null)
+export default function RtfQuill({
+  value,
+  onChange,
+  className,
+}: RtfQuillProps) {
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const quillRef = useRef<Quill | null>(null);
 
   useEffect(() => {
-    if (!editorRef.current || quillRef.current) return
+    if (!editorRef.current || quillRef.current) return;
 
     const quill = new Quill(editorRef.current, {
       theme: "snow",
@@ -25,22 +29,22 @@ export default function RtfQuill({ value, onChange, className }: RtfQuillProps) 
           ["clean"],
         ],
       },
-    })
+    });
 
-    quillRef.current = quill
+    quillRef.current = quill;
 
     quill.on("text-change", () => {
-      onChange?.(quill.root.innerHTML)
-    })
-  }, [onChange])
+      onChange?.(quill.root.innerHTML);
+    });
+  }, [onChange]);
 
   useEffect(() => {
-    if (!quillRef.current || value === undefined) return
-    const current = quillRef.current.root.innerHTML
+    if (!quillRef.current || value === undefined) return;
+    const current = quillRef.current.root.innerHTML;
     if (value !== current) {
-      quillRef.current.clipboard.dangerouslyPasteHTML(value)
+      quillRef.current.clipboard.dangerouslyPasteHTML(value);
     }
-  }, [value])
+  }, [value]);
 
-  return <div ref={editorRef} className={className} />
+  return <div ref={editorRef} className={className} />;
 }

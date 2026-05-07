@@ -38,15 +38,21 @@ export default function ScoutPage() {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedStars, setSelectedStars] = useState<Record<number, boolean>>({});
+  const [selectedStars, setSelectedStars] = useState<Record<number, boolean>>(
+    {},
+  );
 
   const filteredCandidates = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     const matched = scoutMock.filter((candidate) => {
-      const isNameMatched = candidate.name.toLowerCase().includes(normalizedQuery);
-      const isJobMatched = selectedJob === "all" || candidate.matchJob === selectedJob;
-      const isFilterMatched = selectedFilter === "all" || candidate.skillMatch === selectedFilter;
+      const isNameMatched = candidate.name
+        .toLowerCase()
+        .includes(normalizedQuery);
+      const isJobMatched =
+        selectedJob === "all" || candidate.matchJob === selectedJob;
+      const isFilterMatched =
+        selectedFilter === "all" || candidate.skillMatch === selectedFilter;
 
       return isNameMatched && isJobMatched && isFilterMatched;
     });
@@ -102,8 +108,12 @@ export default function ScoutPage() {
           </div>
 
           <div className="mb-4 flex items-baseline gap-2">
-            <h1 className="text-4xl font-semibold text-foreground sm:text-2xl">Scout</h1>
-            <span className="text-4xl font-semibold text-destructive sm:text-2xl">(TBC)</span>
+            <h1 className="text-4xl font-semibold text-foreground sm:text-2xl">
+              Scout
+            </h1>
+            <span className="text-4xl font-semibold text-destructive sm:text-2xl">
+              (TBC)
+            </span>
           </div>
 
           <section className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-12">

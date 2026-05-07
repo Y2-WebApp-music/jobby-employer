@@ -1,6 +1,7 @@
 import type { JobMonitorCard } from "@/types/domain/job-monitor";
 
-const sharedTitle = "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่";
+const sharedTitle =
+  "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่";
 const sharedCompanyName = "Select Service Partner Ltd.";
 const sharedLocationPosted = "Chon Buri, Thailand · posted 1 week ago";
 

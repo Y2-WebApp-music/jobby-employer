@@ -14,12 +14,26 @@ import type {
   Conversation,
   ConversationSearchResult,
 } from "@/types/domain/message";
-import { ArrowUp, ChevronLeft, ChevronRight, Ellipsis, FileText, Heart, Image, Pin, PinOff, Reply, Trash2, X } from "lucide-react";
+import {
+  ArrowUp,
+  ChevronLeft,
+  ChevronRight,
+  Ellipsis,
+  FileText,
+  Heart,
+  Image,
+  Pin,
+  PinOff,
+  Reply,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import MessageDeleteDialog from "./MessageDeleteDialog";
 
-const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const MAX_IMAGE_ATTACHMENTS = 10;
 
 const getMessageImageUrls = (message: ChatMessage): string[] => {
@@ -44,7 +58,9 @@ const getDiscordTileClasses = (total: number, index: number): string => {
   }
 
   if (total === 3) {
-    return index === 0 ? "col-span-4 row-span-6 aspect-[4/5]" : "col-span-2 row-span-3 aspect-square";
+    return index === 0
+      ? "col-span-4 row-span-6 aspect-[4/5]"
+      : "col-span-2 row-span-3 aspect-square";
   }
 
   if (total === 4) {
@@ -52,7 +68,9 @@ const getDiscordTileClasses = (total: number, index: number): string => {
   }
 
   if (total === 5) {
-    return index < 2 ? "col-span-3 row-span-3 aspect-square" : "col-span-2 row-span-3 aspect-square";
+    return index < 2
+      ? "col-span-3 row-span-3 aspect-square"
+      : "col-span-2 row-span-3 aspect-square";
   }
 
   return "col-span-2 row-span-2 aspect-square";
@@ -143,7 +161,10 @@ const getRelativeTime = (timestamp: number): string => {
   if (hours < 24) return `${hours}h ago`;
   if (days === 1) return "Yesterday";
   if (days < 7) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+  return new Date(timestamp).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+  });
 };
 
 const renderHighlightedText = (text: string, query: string) => {
@@ -153,7 +174,9 @@ const renderHighlightedText = (text: string, query: string) => {
     return text;
   }
 
-  const parts = text.split(new RegExp(`(${escapeRegExp(normalizedQuery)})`, "gi"));
+  const parts = text.split(
+    new RegExp(`(${escapeRegExp(normalizedQuery)})`, "gi"),
+  );
 
   return parts.map((part, index) => {
     const isMatch = part.toLowerCase() === normalizedQuery.toLowerCase();
@@ -174,8 +197,18 @@ const renderHighlightedText = (text: string, query: string) => {
 };
 
 const initialConversations: Conversation[] = [
-  { id: 1, name: "Username", preview: "Lorem ipsum, conse...", timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000 },
-  { id: 2, name: "Username", preview: "Lorem ipsum, conse...", timestamp: Date.now() - 8 * 24 * 60 * 60 * 1000 },
+  {
+    id: 1,
+    name: "Username",
+    preview: "Lorem ipsum, conse...",
+    timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
+  },
+  {
+    id: 2,
+    name: "Username",
+    preview: "Lorem ipsum, conse...",
+    timestamp: Date.now() - 8 * 24 * 60 * 60 * 1000,
+  },
 ];
 
 const initialConversationMessages: Record<number, ChatMessage[]> = {
@@ -212,16 +245,26 @@ const initialConversationMessages: Record<number, ChatMessage[]> = {
 export default function MessagePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedConversationId, setSelectedConversationId] = useState(1);
-  const [conversationList, setConversationList] = useState(initialConversations);
+  const [conversationList, setConversationList] =
+    useState(initialConversations);
   const [composerText, setComposerText] = useState("");
-  const [conversationMessages, setConversationMessages] = useState(initialConversationMessages);
+  const [conversationMessages, setConversationMessages] = useState(
+    initialConversationMessages,
+  );
   const [pendingImageUrls, setPendingImageUrls] = useState<string[]>([]);
   const [likedMessageIds, setLikedMessageIds] = useState<number[]>([]);
-  const [pinnedConversationIds, setPinnedConversationIds] = useState<number[]>([]);
+  const [pinnedConversationIds, setPinnedConversationIds] = useState<number[]>(
+    [],
+  );
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedMessageIdForDelete, setSelectedMessageIdForDelete] = useState<number | null>(null);
-  const [lightboxState, setLightboxState] = useState<{ imageUrls: string[]; currentIndex: number } | null>(null);
+  const [selectedMessageIdForDelete, setSelectedMessageIdForDelete] = useState<
+    number | null
+  >(null);
+  const [lightboxState, setLightboxState] = useState<{
+    imageUrls: string[];
+    currentIndex: number;
+  } | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -239,7 +282,8 @@ export default function MessagePage() {
     textarea.style.height = "0px";
     const nextHeight = Math.min(textarea.scrollHeight, maxHeight);
     textarea.style.height = `${nextHeight}px`;
-    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? "auto" : "hidden";
+    textarea.style.overflowY =
+      textarea.scrollHeight > maxHeight ? "auto" : "hidden";
   };
 
   useEffect(() => {
@@ -262,12 +306,17 @@ export default function MessagePage() {
         }))
       : conversationList
           .map((conversation) => {
-            const conversationChatMessages = conversationMessages[conversation.id] || [];
+            const conversationChatMessages =
+              conversationMessages[conversation.id] || [];
             const matchedMessage = [...conversationChatMessages]
               .reverse()
-              .find((message) => message.text.toLowerCase().includes(normalizedQuery));
+              .find((message) =>
+                message.text.toLowerCase().includes(normalizedQuery),
+              );
 
-            const isNameMatched = conversation.name.toLowerCase().includes(normalizedQuery);
+            const isNameMatched = conversation.name
+              .toLowerCase()
+              .includes(normalizedQuery);
 
             if (!isNameMatched && !matchedMessage) {
               return null;
@@ -278,7 +327,9 @@ export default function MessagePage() {
               matchedPreview: matchedMessage?.text || conversation.preview,
             };
           })
-          .filter((conversation): conversation is ConversationSearchResult => Boolean(conversation));
+          .filter((conversation): conversation is ConversationSearchResult =>
+            Boolean(conversation),
+          );
 
     return [...mapped].sort((a, b) => {
       const aIsPinned = pinnedConversationIds.includes(a.id);
@@ -287,10 +338,17 @@ export default function MessagePage() {
       if (!aIsPinned && bIsPinned) return 1;
       return 0;
     });
-  }, [conversationList, conversationMessages, searchQuery, pinnedConversationIds]);
+  }, [
+    conversationList,
+    conversationMessages,
+    searchQuery,
+    pinnedConversationIds,
+  ]);
 
   const selectedConversation =
-    filteredConversations.find((conversation) => conversation.id === selectedConversationId) ||
+    filteredConversations.find(
+      (conversation) => conversation.id === selectedConversationId,
+    ) ||
     filteredConversations[0] ||
     conversationList[0] ||
     initialConversations[0];
@@ -320,7 +378,8 @@ export default function MessagePage() {
 
           return {
             ...previous,
-            currentIndex: (previous.currentIndex + 1) % previous.imageUrls.length,
+            currentIndex:
+              (previous.currentIndex + 1) % previous.imageUrls.length,
           };
         });
         return;
@@ -335,7 +394,8 @@ export default function MessagePage() {
           return {
             ...previous,
             currentIndex:
-              (previous.currentIndex - 1 + previous.imageUrls.length) % previous.imageUrls.length,
+              (previous.currentIndex - 1 + previous.imageUrls.length) %
+              previous.imageUrls.length,
           };
         });
       }
@@ -359,8 +419,13 @@ export default function MessagePage() {
       return;
     }
 
-    const validImageFiles = selectedFiles.filter((file) => file.type.startsWith("image/"));
-    const availableSlots = Math.max(0, MAX_IMAGE_ATTACHMENTS - pendingImageUrls.length);
+    const validImageFiles = selectedFiles.filter((file) =>
+      file.type.startsWith("image/"),
+    );
+    const availableSlots = Math.max(
+      0,
+      MAX_IMAGE_ATTACHMENTS - pendingImageUrls.length,
+    );
 
     if (availableSlots === 0 || validImageFiles.length === 0) {
       event.target.value = "";
@@ -374,14 +439,19 @@ export default function MessagePage() {
       return objectUrl;
     });
 
-    setPendingImageUrls((previousImageUrls) => [...previousImageUrls, ...nextImageUrls]);
+    setPendingImageUrls((previousImageUrls) => [
+      ...previousImageUrls,
+      ...nextImageUrls,
+    ]);
 
     event.target.value = "";
   };
 
   const releaseObjectUrl = (targetUrl: string) => {
     URL.revokeObjectURL(targetUrl);
-    createdObjectUrlsRef.current = createdObjectUrlsRef.current.filter((url) => url !== targetUrl);
+    createdObjectUrlsRef.current = createdObjectUrlsRef.current.filter(
+      (url) => url !== targetUrl,
+    );
   };
 
   const handleRemovePendingImage = (index: number) => {
@@ -392,7 +462,9 @@ export default function MessagePage() {
         releaseObjectUrl(targetUrl);
       }
 
-      return previousImageUrls.filter((_, previousIndex) => previousIndex !== index);
+      return previousImageUrls.filter(
+        (_, previousIndex) => previousIndex !== index,
+      );
     });
   };
 
@@ -470,7 +542,9 @@ export default function MessagePage() {
 
       return [
         updatedConversation,
-        ...previousConversations.filter((conversation) => conversation.id !== selectedConversation.id),
+        ...previousConversations.filter(
+          (conversation) => conversation.id !== selectedConversation.id,
+        ),
       ];
     });
 
@@ -576,7 +650,9 @@ export default function MessagePage() {
 
       return {
         ...previous,
-        currentIndex: (previous.currentIndex - 1 + previous.imageUrls.length) % previous.imageUrls.length,
+        currentIndex:
+          (previous.currentIndex - 1 + previous.imageUrls.length) %
+          previous.imageUrls.length,
       };
     });
   };
@@ -622,8 +698,11 @@ export default function MessagePage() {
                     </div>
                   )}
                   {filteredConversations.map((conversation) => {
-                    const isSelected = conversation.id === selectedConversation.id;
-                    const isPinned = pinnedConversationIds.includes(conversation.id);
+                    const isSelected =
+                      conversation.id === selectedConversation.id;
+                    const isPinned = pinnedConversationIds.includes(
+                      conversation.id,
+                    );
 
                     return (
                       <div
@@ -636,7 +715,9 @@ export default function MessagePage() {
                       >
                         <button
                           type="button"
-                          onClick={() => setSelectedConversationId(conversation.id)}
+                          onClick={() =>
+                            setSelectedConversationId(conversation.id)
+                          }
                           className="w-full px-4 py-3 pr-10 text-left"
                         >
                           <div className="flex items-start gap-3">
@@ -649,25 +730,37 @@ export default function MessagePage() {
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2">
                                 <p className="text-xl font-medium">
-                                  {renderHighlightedText(conversation.name, searchQuery)}
+                                  {renderHighlightedText(
+                                    conversation.name,
+                                    searchQuery,
+                                  )}
                                 </p>
                                 <span className="shrink-0 text-sm text-muted-foreground">
                                   {getRelativeTime(conversation.timestamp)}
                                 </span>
                               </div>
                               <p className="truncate text-base text-muted-foreground">
-                                {renderHighlightedText(conversation.matchedPreview, searchQuery)}
+                                {renderHighlightedText(
+                                  conversation.matchedPreview,
+                                  searchQuery,
+                                )}
                               </p>
                             </div>
                           </div>
                         </button>
                         <button
                           type="button"
-                          aria-label={isPinned ? "Unpin conversation" : "Pin conversation"}
+                          aria-label={
+                            isPinned ? "Unpin conversation" : "Pin conversation"
+                          }
                           onClick={() => handleTogglePin(conversation.id)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover/conv:opacity-100"
                         >
-                          {isPinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
+                          {isPinned ? (
+                            <PinOff className="size-4" />
+                          ) : (
+                            <Pin className="size-4" />
+                          )}
                         </button>
                       </div>
                     );
@@ -680,9 +773,15 @@ export default function MessagePage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="size-12 rounded-full bg-muted" />
-                      <h2 className="text-2xl font-medium">{selectedConversation.name}</h2>
+                      <h2 className="text-2xl font-medium">
+                        {selectedConversation.name}
+                      </h2>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground"
+                    >
                       <Ellipsis className="size-5" />
                     </Button>
                   </div>
@@ -691,12 +790,19 @@ export default function MessagePage() {
                 <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-4">
                   {messages.map((message, index) => {
                     const previous = messages[index - 1];
-                    const showDateSeparator = !previous || previous.createdAt !== message.createdAt;
+                    const showDateSeparator =
+                      !previous || previous.createdAt !== message.createdAt;
                     const isMessageLiked = likedMessageIds.includes(message.id);
                     const isQuotedMessageDeleted =
-                      !!message.replyTo && !messages.some((currentMessage) => currentMessage.id === message.replyTo?.id);
+                      !!message.replyTo &&
+                      !messages.some(
+                        (currentMessage) =>
+                          currentMessage.id === message.replyTo?.id,
+                      );
                     const messageImageUrls = getMessageImageUrls(message);
-                    const quotedImageCount = message.replyTo?.imageUrls?.length || (message.replyTo?.imageUrl ? 1 : 0);
+                    const quotedImageCount =
+                      message.replyTo?.imageUrls?.length ||
+                      (message.replyTo?.imageUrl ? 1 : 0);
 
                     return (
                       <div key={message.id} className="mb-5">
@@ -713,7 +819,9 @@ export default function MessagePage() {
                             <button
                               type="button"
                               aria-label="Unlike message"
-                              onClick={() => handleToggleMessageLike(message.id)}
+                              onClick={() =>
+                                handleToggleMessageLike(message.id)
+                              }
                               className="absolute right-3 top-2 z-10 rounded-md p-1 text-red-500 transition-opacity hover:bg-muted/80 group-hover/message:opacity-0"
                             >
                               <Heart className="size-4 fill-red-500 text-red-500" />
@@ -730,8 +838,14 @@ export default function MessagePage() {
                             </button>
                             <button
                               type="button"
-                              aria-label={isMessageLiked ? "Unlike message" : "Like message"}
-                              onClick={() => handleToggleMessageLike(message.id)}
+                              aria-label={
+                                isMessageLiked
+                                  ? "Unlike message"
+                                  : "Like message"
+                              }
+                              onClick={() =>
+                                handleToggleMessageLike(message.id)
+                              }
                               className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
                               <Heart
@@ -762,8 +876,12 @@ export default function MessagePage() {
                           <div className="mt-1 size-10 shrink-0 rounded-full bg-muted" />
                           <div className="min-w-0 flex-1">
                             <div className="mb-1 flex items-center gap-2">
-                              <p className="text-xl font-medium">{selectedConversation.name}</p>
-                              <span className="text-xs text-muted-foreground">{message.date}</span>
+                              <p className="text-xl font-medium">
+                                {selectedConversation.name}
+                              </p>
+                              <span className="text-xs text-muted-foreground">
+                                {message.date}
+                              </span>
                             </div>
                             {message.replyTo && (
                               <div className="mb-2 max-w-xl rounded-lg border-l-2 border-primary bg-muted/40 px-3 py-2">
@@ -771,27 +889,42 @@ export default function MessagePage() {
                                   {message.replyTo.senderName}
                                 </p>
                                 {isQuotedMessageDeleted && (
-                                  <p className="text-xs text-muted-foreground italic">Message deleted</p>
-                                )}
-                                {!isQuotedMessageDeleted && quotedImageCount > 0 && !message.replyTo.text && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {quotedImageCount > 1 ? `📷 ${quotedImageCount} Photos` : "📷 Photo"}
+                                  <p className="text-xs text-muted-foreground italic">
+                                    Message deleted
                                   </p>
                                 )}
-                                {!isQuotedMessageDeleted && message.replyTo.text && (
-                                  <p className="line-clamp-2 text-sm text-muted-foreground">
-                                    {message.replyTo.text}
-                                  </p>
-                                )}
+                                {!isQuotedMessageDeleted &&
+                                  quotedImageCount > 0 &&
+                                  !message.replyTo.text && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {quotedImageCount > 1
+                                        ? `📷 ${quotedImageCount} Photos`
+                                        : "📷 Photo"}
+                                    </p>
+                                  )}
+                                {!isQuotedMessageDeleted &&
+                                  message.replyTo.text && (
+                                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                                      {message.replyTo.text}
+                                    </p>
+                                  )}
                               </div>
                             )}
                             <MessageImageGrid
                               imageUrls={messageImageUrls}
-                              onImageClick={(clickedIndex) => handleOpenLightbox(messageImageUrls, clickedIndex)}
+                              onImageClick={(clickedIndex) =>
+                                handleOpenLightbox(
+                                  messageImageUrls,
+                                  clickedIndex,
+                                )
+                              }
                             />
                             {message.text && (
                               <p className="max-w-full whitespace-pre-wrap wrap-anywhere text-lg leading-7 text-foreground">
-                                {renderHighlightedText(message.text, searchQuery)}
+                                {renderHighlightedText(
+                                  message.text,
+                                  searchQuery,
+                                )}
                               </p>
                             )}
                           </div>
@@ -821,15 +954,20 @@ export default function MessagePage() {
                         <p className="mb-0.5 text-xs font-medium text-primary">
                           Replying to {selectedConversation.name}
                         </p>
-                        {(replyingTo.imageUrls?.length || replyingTo.imageUrl) && !replyingTo.text && (
-                          <p className="truncate text-xs text-muted-foreground">
-                            {(replyingTo.imageUrls?.length || (replyingTo.imageUrl ? 1 : 0)) > 1
-                              ? `📷 ${replyingTo.imageUrls?.length || 1} Photos`
-                              : "📷 Photo"}
-                          </p>
-                        )}
+                        {(replyingTo.imageUrls?.length ||
+                          replyingTo.imageUrl) &&
+                          !replyingTo.text && (
+                            <p className="truncate text-xs text-muted-foreground">
+                              {(replyingTo.imageUrls?.length ||
+                                (replyingTo.imageUrl ? 1 : 0)) > 1
+                                ? `📷 ${replyingTo.imageUrls?.length || 1} Photos`
+                                : "📷 Photo"}
+                            </p>
+                          )}
                         {replyingTo.text && (
-                          <p className="truncate text-sm text-muted-foreground">{replyingTo.text}</p>
+                          <p className="truncate text-sm text-muted-foreground">
+                            {replyingTo.text}
+                          </p>
                         )}
                       </div>
                       <button
@@ -852,7 +990,11 @@ export default function MessagePage() {
                     >
                       <Image className="size-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground"
+                    >
                       <FileText className="size-5" />
                     </Button>
                     <div className="flex-1">
@@ -861,9 +1003,15 @@ export default function MessagePage() {
                         rows={1}
                         placeholder="Aa"
                         value={composerText}
-                        onChange={(event) => setComposerText(event.target.value)}
+                        onChange={(event) =>
+                          setComposerText(event.target.value)
+                        }
                         onKeyDown={(event) => {
-                          if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
+                          if (
+                            event.key !== "Enter" ||
+                            event.shiftKey ||
+                            event.nativeEvent.isComposing
+                          ) {
                             return;
                           }
 
@@ -875,8 +1023,16 @@ export default function MessagePage() {
                     </div>
                     <Button
                       type="button"
-                      variant={composerText.trim() || pendingImageUrls.length ? "default" : "ghost"}
-                      className={composerText.trim() || pendingImageUrls.length ? "gap-1 px-4" : "gap-1 text-muted-foreground"}
+                      variant={
+                        composerText.trim() || pendingImageUrls.length
+                          ? "default"
+                          : "ghost"
+                      }
+                      className={
+                        composerText.trim() || pendingImageUrls.length
+                          ? "gap-1 px-4"
+                          : "gap-1 text-muted-foreground"
+                      }
                       onClick={handleSendMessage}
                     >
                       <ArrowUp className="size-4" />
@@ -942,7 +1098,8 @@ export default function MessagePage() {
                 />
               </div>
               <div className="absolute bottom-20 rounded-full bg-black/45 px-3 py-1 text-sm text-white">
-                {lightboxState.currentIndex + 1} / {lightboxState.imageUrls.length}
+                {lightboxState.currentIndex + 1} /{" "}
+                {lightboxState.imageUrls.length}
               </div>
             </div>
             {lightboxState.imageUrls.length > 1 && (

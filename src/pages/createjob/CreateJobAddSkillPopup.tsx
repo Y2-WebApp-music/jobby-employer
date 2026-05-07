@@ -1,34 +1,40 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
-import { useState, useMemo } from "react"
-import SkillDetailPopup from "./SkillDetailPopup"
-import type { CreateJobAddSkillPopupProps, Skill } from "@/types/createJobTypes"
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+import { useState, useMemo } from "react";
+import SkillDetailPopup from "./SkillDetailPopup";
+import type {
+  CreateJobAddSkillPopupProps,
+  Skill,
+} from "@/types/createJobTypes";
 
 const AVAILABLE_SKILLS: Skill[] = [
   {
     id: "react",
     name: "React",
     category: "Computer, Technology",
-    description: "At Western Digital, our vision is to power global innovation and push the boundaries of technology to make what you thought was once impossible, possible.\n\nAt our core, Western Digital is a company of problem solvers. People achieve extraordinary things given the right technology. For decades, we've been doing just that—our technology helped people put a man on the moon and capture the first-ever picture of a black hole.",
+    description:
+      "At Western Digital, our vision is to power global innovation and push the boundaries of technology to make what you thought was once impossible, possible.\n\nAt our core, Western Digital is a company of problem solvers. People achieve extraordinary things given the right technology. For decades, we've been doing just that—our technology helped people put a man on the moon and capture the first-ever picture of a black hole.",
     preSkills: ["React", "TypeScript", "Figma"],
   },
   {
     id: "typescript",
     name: "TypeScript",
     category: "Computer, Technology",
-    description: "TypeScript is a typed superset of JavaScript that compiles to plain JavaScript. It is maintained by Microsoft and it is open source.\n\nTypeScript adds optional static typing to JavaScript. Large apps written in JavaScript are hard to understand and difficult to maintain. With the help of types, it is easier to document the intent of code.",
+    description:
+      "TypeScript is a typed superset of JavaScript that compiles to plain JavaScript. It is maintained by Microsoft and it is open source.\n\nTypeScript adds optional static typing to JavaScript. Large apps written in JavaScript are hard to understand and difficult to maintain. With the help of types, it is easier to document the intent of code.",
     preSkills: ["JavaScript", "OOP"],
   },
   {
     id: "figma",
     name: "Figma",
     category: "Design, UI/UX",
-    description: "Figma is a vector graphics editor and prototyping tool which is primarily web-based, with additional offline features enabled by desktop applications for macOS and Windows.\n\nFigma is used for user interface and user experience design, as well as prototyping. The tool is free and subscription-based, and it is online-based software.",
+    description:
+      "Figma is a vector graphics editor and prototyping tool which is primarily web-based, with additional offline features enabled by desktop applications for macOS and Windows.\n\nFigma is used for user interface and user experience design, as well as prototyping. The tool is free and subscription-based, and it is online-based software.",
     preSkills: ["UI Design", "Prototyping"],
   },
-]
+];
 
 export default function CreateJobAddSkillPopup({
   open,
@@ -37,50 +43,52 @@ export default function CreateJobAddSkillPopup({
   onSearchChange,
   onSubmit,
 }: CreateJobAddSkillPopupProps) {
-  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null)
-  const [selectedPreSkill, setSelectedPreSkill] = useState<Skill | null>(null)
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+  const [selectedPreSkill, setSelectedPreSkill] = useState<Skill | null>(null);
 
   const getSkillByName = (skillName: string): Skill | undefined => {
-    return AVAILABLE_SKILLS.find((skill) => skill.name.toLowerCase() === skillName.toLowerCase())
-  }
+    return AVAILABLE_SKILLS.find(
+      (skill) => skill.name.toLowerCase() === skillName.toLowerCase(),
+    );
+  };
 
   const handlePreSkillClick = (preSkillName: string) => {
-    const skill = getSkillByName(preSkillName)
+    const skill = getSkillByName(preSkillName);
     if (skill) {
-      setSelectedPreSkill(skill)
+      setSelectedPreSkill(skill);
     }
-  }
+  };
 
   const filteredSkills = useMemo(() => {
-    if (!searchValue.trim()) return []
+    if (!searchValue.trim()) return [];
     return AVAILABLE_SKILLS.filter((skill) =>
       skill.name.toLowerCase().includes(searchValue.toLowerCase()),
-    )
-  }, [searchValue])
+    );
+  }, [searchValue]);
 
   const handleSelectSkill = (skill: Skill) => {
-    setSelectedSkill(skill)
-  }
+    setSelectedSkill(skill);
+  };
 
   const handleAddSkill = () => {
-    if (!selectedSkill) return
-    onSubmit(selectedSkill.name)
-    onSearchChange("")
-    setSelectedSkill(null)
-    onOpenChange(false)
-  }
+    if (!selectedSkill) return;
+    onSubmit(selectedSkill.name);
+    onSearchChange("");
+    setSelectedSkill(null);
+    onOpenChange(false);
+  };
 
   const handleBack = () => {
-    setSelectedSkill(null)
-    onSearchChange("")
-  }
+    setSelectedSkill(null);
+    onSearchChange("");
+  };
 
   const handleClosePopup = () => {
-    setSelectedSkill(null)
-    setSelectedPreSkill(null)
-    onSearchChange("")
-    onOpenChange(false)
-  }
+    setSelectedSkill(null);
+    setSelectedPreSkill(null);
+    onSearchChange("");
+    onOpenChange(false);
+  };
 
   return (
     <>
@@ -98,12 +106,18 @@ export default function CreateJobAddSkillPopup({
 
             <div className="space-y-4">
               <div className="pr-8">
-                <h3 className="text-[34px] leading-none font-medium gradient-text">Add Skill</h3>
-                <p className="mt-2 text-xs tracking-[0.2em] text-muted-foreground">~~~~~~</p>
+                <h3 className="text-[34px] leading-none font-medium gradient-text">
+                  Add Skill
+                </h3>
+                <p className="mt-2 text-xs tracking-[0.2em] text-muted-foreground">
+                  ~~~~~~
+                </p>
               </div>
 
               <div>
-                <label className="mb-1 block text-base font-medium">Search Skill</label>
+                <label className="mb-1 block text-base font-medium">
+                  Search Skill
+                </label>
                 <Input
                   value={searchValue}
                   onChange={(event) => onSearchChange(event.target.value)}
@@ -152,12 +166,16 @@ export default function CreateJobAddSkillPopup({
 
             <div className="space-y-4">
               <div className="pr-8">
-                <h3 className="text-[34px] leading-none font-medium gradient-text">{selectedSkill?.name}</h3>
+                <h3 className="text-[34px] leading-none font-medium gradient-text">
+                  {selectedSkill?.name}
+                </h3>
               </div>
 
               <div>
                 <p className="text-lg font-medium">Category</p>
-                <p className="text-muted-foreground text-base">{selectedSkill?.category}</p>
+                <p className="text-muted-foreground text-base">
+                  {selectedSkill?.category}
+                </p>
               </div>
 
               <div>
@@ -183,9 +201,11 @@ export default function CreateJobAddSkillPopup({
               <div>
                 <p className="mb-2 text-lg font-medium">Skill Description</p>
                 <div className="space-y-2 text-base font-normal leading-relaxed text-foreground">
-                  {selectedSkill?.description.split("\n\n").map((paragraph, index) => (
-                    <p key={index}>{paragraph}</p>
-                  ))}
+                  {selectedSkill?.description
+                    .split("\n\n")
+                    .map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
                 </div>
               </div>
 
@@ -216,7 +236,7 @@ export default function CreateJobAddSkillPopup({
         <SkillDetailPopup
           open={!!selectedPreSkill}
           onOpenChange={(isOpen) => {
-            if (!isOpen) setSelectedPreSkill(null)
+            if (!isOpen) setSelectedPreSkill(null);
           }}
           skillName={selectedPreSkill?.name || ""}
           category={selectedPreSkill?.category || ""}
@@ -225,5 +245,5 @@ export default function CreateJobAddSkillPopup({
         />
       )}
     </>
-  )
+  );
 }

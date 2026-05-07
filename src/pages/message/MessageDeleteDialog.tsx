@@ -21,7 +21,8 @@ export default function MessageDeleteDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Delete message?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. The selected message will be removed permanently.
+            This action cannot be undone. The selected message will be removed
+            permanently.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

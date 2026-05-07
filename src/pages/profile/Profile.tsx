@@ -43,7 +43,8 @@ const initialCompanyInformationHtml = `
 
 const jobCards = Array.from({ length: 6 }).map((_, index) => ({
   id: index + 1,
-  title: "Personal Assistant 25 - 35 K (WFH 80%) ตำแหน่งงานการปฏิบัติงานที่สำนักงานใหญ่",
+  title:
+    "Personal Assistant 25 - 35 K (WFH 80%) ตำแหน่งงานการปฏิบัติงานที่สำนักงานใหญ่",
   location: "Lat Krabang, Bangkok",
   dateRange: "25 Nov 2025 - 30 Jan 2026",
   applied: "1123 Applied",
@@ -53,11 +54,17 @@ export default function ProfilePage() {
   const [companyProfile, setCompanyProfile] = useState(initialCompanyProfile);
   const [companyProfileImageUrl, setCompanyProfileImageUrl] = useState("");
   const [isCompanyNamePopupOpen, setIsCompanyNamePopupOpen] = useState(false);
-  const [isCompanyProfilePicturePopupOpen, setIsCompanyProfilePicturePopupOpen] = useState(false);
+  const [
+    isCompanyProfilePicturePopupOpen,
+    setIsCompanyProfilePicturePopupOpen,
+  ] = useState(false);
   const [aboutText, setAboutText] = useState(initialAboutText);
   const [isAboutPopupOpen, setIsAboutPopupOpen] = useState(false);
-  const [companyInformationHtml, setCompanyInformationHtml] = useState(initialCompanyInformationHtml);
-  const [isCompanyInformationPopupOpen, setIsCompanyInformationPopupOpen] = useState(false);
+  const [companyInformationHtml, setCompanyInformationHtml] = useState(
+    initialCompanyInformationHtml,
+  );
+  const [isCompanyInformationPopupOpen, setIsCompanyInformationPopupOpen] =
+    useState(false);
 
   const profileTags = [
     companyProfile.email,
@@ -119,7 +126,9 @@ export default function ProfilePage() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-3xl font-semibold">{companyProfile.companyName}</h1>
+                    <h1 className="text-3xl font-semibold">
+                      {companyProfile.companyName}
+                    </h1>
                     <button
                       type="button"
                       aria-label="Edit company name"
@@ -129,7 +138,9 @@ export default function ProfilePage() {
                       <Pencil className="size-4" />
                     </button>
                   </div>
-                  <p className="text-sm text-muted-foreground">{locationText}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {locationText}
+                  </p>
                 </div>
               </div>
 
@@ -164,7 +175,9 @@ export default function ProfilePage() {
 
                 <div className="rounded-xl border border-border bg-background px-4 py-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Company Information</h2>
+                    <h2 className="text-lg font-semibold">
+                      Company Information
+                    </h2>
                     <button
                       type="button"
                       aria-label="Edit company information"

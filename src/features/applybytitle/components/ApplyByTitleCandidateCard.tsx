@@ -79,7 +79,9 @@ export default function ApplyByTitleCandidateCard({
           </button>
           <span className="text-[11px] font-medium">{card.name}</span>
         </div>
-        {card.viewed && <span className="text-muted-foreground text-[10px]">Viewed</span>}
+        {card.viewed && (
+          <span className="text-muted-foreground text-[10px]">Viewed</span>
+        )}
       </div>
 
       <p className="text-[10px]">
@@ -87,7 +89,9 @@ export default function ApplyByTitleCandidateCard({
       </p>
       <p className="text-muted-foreground text-[10px]">{card.appliedAt}</p>
       {card.badgeText && (
-        <p className="mt-1 text-muted-foreground text-[10px]">{card.badgeText}</p>
+        <p className="mt-1 text-muted-foreground text-[10px]">
+          {card.badgeText}
+        </p>
       )}
 
       <div className="mt-auto flex items-center justify-between gap-2 pt-2">
@@ -119,11 +123,7 @@ export default function ApplyByTitleCandidateCard({
         )}
 
         {showMessage ? (
-          <Button
-            variant="default"
-            size="xs"
-            className="rounded-full px-3"
-          >
+          <Button variant="default" size="xs" className="rounded-full px-3">
             Message
           </Button>
         ) : (
