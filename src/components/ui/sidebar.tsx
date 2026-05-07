@@ -21,8 +21,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { SidebarContextProps } from "@/types/ui";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PanelLeftIcon } from "lucide-react";
+import jobbyemployerLogo from "@/assets/icons/JobbyEmployer.png";
+import sidebarTriggerIcon from "@/assets/icons/SidebarTrigger.png";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -30,16 +33,6 @@ const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
-
-type SidebarContextProps = {
-  state: "expanded" | "collapsed";
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  openMobile: boolean;
-  setOpenMobile: (open: boolean) => void;
-  isMobile: boolean;
-  toggleSidebar: () => void;
-};
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
 
@@ -253,9 +246,23 @@ function Sidebar({
 function SidebarTrigger({
   className,
   onClick,
+  style,
+  offsetXExpanded = 17,
+  offsetYExpanded = 1.5,
+  offsetXCollapsed = 1,
+  offsetYCollapsed = 1.5,
   ...props
-}: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+}: React.ComponentProps<typeof Button> & {
+  offsetXExpanded?: number;
+  offsetYExpanded?: number;
+  offsetXCollapsed?: number;
+  offsetYCollapsed?: number;
+}) {
+  const { toggleSidebar, state } = useSidebar();
+
+  const isCollapsed = state === "collapsed";
+  const offsetX = isCollapsed ? offsetXCollapsed : offsetXExpanded;
+  const offsetY = isCollapsed ? offsetYCollapsed : offsetYExpanded;
 
   return (
     <Button
@@ -263,14 +270,25 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon-sm"
-      className={cn(className)}
+      className={cn("z-40 transition-all duration-200", className)}
+      {...props}
+      style={{
+        position: "absolute",
+        left: `${offsetX}rem`,
+        top: `${offsetY}rem`,
+        ...style,
+      }}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
-      {...props}
     >
-      <PanelLeftIcon />
+      <img
+        src={sidebarTriggerIcon}
+        alt=""
+        aria-hidden="true"
+        className="w-8 h-8"
+      />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
@@ -333,9 +351,18 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-header"
       data-sidebar="header"
-      className={cn("gap-2 p-2 flex flex-col", className)}
+      className={cn(
+        "gap-2 p-2 flex flex-col items-center justify-center pt-4",
+        className,
+      )}
       {...props}
-    />
+    >
+      <img
+        src={jobbyemployerLogo}
+        alt="Jobby Employer"
+        className="w-[90%] h-[90%]"
+      />
+    </div>
   );
 }
 
@@ -370,7 +397,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        "no-scrollbar gap-2 flex min-h-0 flex-1 flex-col overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "no-scrollbar gap-2 flex min-h-0 flex-1 flex-col overflow-auto group-data-[collapsible=icon]:overflow-hidden py-1",
         className,
       )}
       {...props}
@@ -383,7 +410,10 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn("p-2 relative flex w-full min-w-0 flex-col", className)}
+      className={cn(
+        "px-4 py-3p-2 relative flex w-full min-w-0 flex-col",
+        className,
+      )}
       {...props}
     />
   );
@@ -401,7 +431,7 @@ function SidebarGroupLabel({
       data-slot="sidebar-group-label"
       data-sidebar="group-label"
       className={cn(
-        "text-sidebar-foreground/70 ring-sidebar-ring h-8 rounded-md px-2 text-xs font-medium transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-4 flex shrink-0 items-center outline-hidden [&>svg]:shrink-0",
+        "text-sidebar-foreground ring-sidebar-ring h-8 rounded-md px-2 text-lg font-medium transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-5 flex shrink-0 items-center outline-hidden [&>svg]:shrink-0 gap-2",
         className,
       )}
       {...props}
@@ -437,9 +467,13 @@ function SidebarGroupContent({
     <div
       data-slot="sidebar-group-content"
       data-sidebar="group-content"
-      className={cn("text-sm w-full", className)}
+      className={cn("relative text-sm w-full pl-6", className)}
       {...props}
-    />
+    >
+      {/* vertical line */}
+      <div className="absolute left-3 top-0 bottom-0 w-[1.5px] bg-muted-foreground" />
+      {props.children}
+    </div>
   );
 }
 
@@ -448,7 +482,7 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
     <ul
       data-slot="sidebar-menu"
       data-sidebar="menu"
-      className={cn("gap-1 flex w-full min-w-0 flex-col", className)}
+      className={cn("mt-2 gap-2 flex w-full min-w-0 flex-col", className)}
       {...props}
     />
   );
