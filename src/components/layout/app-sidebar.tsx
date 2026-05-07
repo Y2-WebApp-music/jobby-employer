@@ -75,7 +75,6 @@ export function AppSidebar() {
     const path = normalize(location.pathname);
     const target = normalize(url);
     const isActive = path === target || path.startsWith(target + "/");
-    console.log(`Path: ${path}, Target: ${target}, Active: ${isActive}`);
     return isActive;
   };
 

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { ProfileCompanyNamePopupProps } from "@/types/domain/profile";
+import type { AddressFormValue } from "@/types/profilePageTypes";
 import { Plus, X } from "lucide-react";
 
 const COMPANY_NAME_LIMIT = 120;
@@ -21,18 +22,6 @@ const POSTAL_CODE_LIMIT = 10;
 const LINK_LABEL_LIMIT = 50;
 const LINK_URL_LIMIT = 200;
 const MAX_MEDIA_LINKS = 6;
-
-type AddressFormValue = {
-  addressLine: string;
-  no: string;
-  moo: string;
-  soi: string;
-  street: string;
-  province: string;
-  district: string;
-  subDistrict: string;
-  postalCode: string;
-};
 
 const EMPTY_ADDRESS_FORM: AddressFormValue = {
   addressLine: "",

@@ -1,12 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-
-type OpenJobCardProps = {
-  title: string;
-  location: string;
-  dateRange: string;
-  applied: string;
-};
+import type { OpenJobCardProps } from "@/types/profilePageTypes";
 
 export default function OpenJobCard({
   title,

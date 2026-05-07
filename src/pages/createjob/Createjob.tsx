@@ -31,41 +31,24 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { DatePicker } from "@/components/ui/datepicker"
 import RtfQuill from "@/components/ui/rtf-quill"
 import Toggle from "@/components/ui/toggle"
 import IoTrashBin from "@/assets/icons/IoTrashBin.png"
-import { ChevronDown, ChevronUp, GripVertical, Plus, X } from "lucide-react"
+import { ChevronDown, ChevronUp, GripVertical, Plus, X, Loader2 } from "lucide-react"
 import { Link } from "react-router-dom"
+import { toast } from "sonner"
 import CreateJobAddSkillPopup from "./CreateJobAddSkillPopup"
-
-type AddressAutoFillOption = {
-  postalCode: string
-  addressLine: string
-  no: string
-  moo: string
-  soi: string
-  street: string
-  province: string
-  district: string
-  subDistrict: string
-}
-
-type AdditionQuestionType = "open" | "radio" | "checkbox"
-
-type AdditionQuestionAnswer = {
-  id: string
-  text: string
-}
-
-type AdditionQuestionSection = {
-  id: string
-  type: AdditionQuestionType
-  question: string
-  answers: AdditionQuestionAnswer[]
-  maxSelect?: string
-}
+import { apiCreateJob } from "@/services/createjobService"
+import type {
+  AddressAutoFillOption,
+  AdditionQuestionType,
+  AdditionQuestionSection,
+  SortableAnswerItemProps,
+  CreateJobRequest,
+  SkillRequest,
+} from "@/types/createJobTypes"
 
 const mockAddressOptions: AddressAutoFillOption[] = [
   {
@@ -124,11 +107,6 @@ const additionQuestionTypeLabel: Record<AdditionQuestionType, string> = {
   open: "Open Answer",
   radio: "Radio Answer",
   checkbox: "Checkbox Answer",
-}
-
-type SortableAnswerItemProps = {
-  answer: AdditionQuestionAnswer
-  onChange: (value: string) => void
 }
 
 function SortableAnswerItem({ answer, onChange }: SortableAnswerItemProps) {
@@ -207,18 +185,27 @@ function createAdditionQuestionSection(type: AdditionQuestionType, id: string): 
 }
 
 export default function CreatejobPage() {
+  // Form States
+  const [jobName, setJobName] = useState<string>("")
+  const [workOption, setWorkOption] = useState<string>("")
+  const [openTo, setOpenTo] = useState<string>("")
+  const [workCategory, setWorkCategory] = useState<string>("")
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
   const [jobDescription, setJobDescription] = useState<string>("")
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [selectedFileType, setSelectedFileType] = useState<string>("")
+  const [additionFileLabel, setAdditionFileLabel] = useState<string>("")
+  const [additionFileDescription, setAdditionFileDescription] = useState<string>("")
   const [selectedPostalCode, setSelectedPostalCode] = useState<string>("")
   const [skills, setSkills] = useState<string[]>(["React", "React", "React"])
   const [isAddSkillPopupOpen, setIsAddSkillPopupOpen] = useState(false)
   const [skillSearchValue, setSkillSearchValue] = useState("")
   const [additionQuestions, setAdditionQuestions] = useState<AdditionQuestionSection[]>(initialAdditionQuestions)
+  const [isLoading, setIsLoading] = useState(false)
   const additionQuestionRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const previousQuestionPositions = useRef<Record<string, number>>({})
+  const previousPayloadSnapshotRef = useRef<string>("")
   const additionQuestionIdCounter = useRef(initialAdditionQuestions.length)
   const additionQuestionAnswerIdCounter = useRef(
     initialAdditionQuestions.reduce((count, section) => count + section.answers.length, 0),
@@ -266,7 +253,160 @@ export default function CreatejobPage() {
 
   const handleJobDescriptionChange = (html: string) => {
     setJobDescription(html)
-    console.log("[CreateJob][RTF HTML]", html)
+  }
+
+  const mapAdditionQuestionTypeToApi = (type: AdditionQuestionType): number => {
+    // Backend enum: 1=select-one, 2=multi-select, 3=open-answer
+    if (type === "radio") {
+      return 1
+    }
+    if (type === "checkbox") {
+      return 2
+    }
+    return 3
+  }
+
+  const mapAdditionFileTypeToApi = (type: string): number => {
+    // Backend enum: 1=pdf, 2=jpeg/png, 3=work/txt
+    const map: Record<string, number> = {
+      pdf: 1,
+      jpeg: 2,
+      png: 2,
+      txt: 3,
+      work: 3,
+    }
+    return map[type] || 0
+  }
+
+  const buildCreateJobPayloadPreview = () => {
+    const address = selectedAddress || mockAddressOptions[0]
+
+    const skillsData: SkillRequest[] = skills.map((skill, index) => ({
+      index,
+      skill_id: `skill-${index}`,
+      skill_name: skill,
+    }))
+
+    const additionQuestionsPayload = additionQuestions.map((section, questionIndex) => ({
+      id: questionIndex,
+      type: mapAdditionQuestionTypeToApi(section.type),
+      question: section.question,
+      options: section.answers.map((answer, answerIndex) => ({
+        id: answerIndex,
+        label: answer.text,
+      })),
+      max_select: section.type === "checkbox" ? Number(section.maxSelect || 1) : 1,
+    }))
+
+    const additionFilePayload =
+      additionFileLabel.trim() || additionFileDescription.trim() || selectedFileType
+        ? [
+            {
+              id: 0,
+              type: mapAdditionFileTypeToApi(selectedFileType),
+              label: additionFileLabel,
+              description: additionFileDescription,
+            },
+          ]
+        : []
+
+    return {
+      name: jobName,
+      description: jobDescription || "",
+      description_rtf: jobDescription,
+      start_apply: startDate ? startDate.toISOString() : null,
+      end_apply: endDate ? endDate.toISOString() : null,
+      cover_letter: true,
+      work_experience: true,
+      education: true,
+      company_id: "company001",
+      address: {
+        address_line: address?.addressLine || "",
+        no: address?.no || "",
+        moo: address?.moo || "",
+        soi: address?.soi || "",
+        street: address?.street || "",
+        sub_district_code: 103003,
+        district_code: 103000,
+        province_code: 100000,
+        country_code: 76400,
+        postal_code: parseInt(address?.postalCode || "", 10) || 0,
+      },
+      category_ids: [1],
+      work_option_ids: [1],
+      work_type_ids: [1],
+      skills: skillsData,
+      addition_questions: additionQuestionsPayload,
+      addition_file: additionFilePayload,
+      meta: {
+        work_option: workOption,
+        open_to: openTo,
+        work_category: workCategory,
+      },
+    }
+  }
+
+  const buildCreateJobPayloadForSubmit = (): CreateJobRequest => {
+    const address = selectedAddress || mockAddressOptions[0]
+
+    const skillsData: SkillRequest[] = skills.map((skill, index) => ({
+      index,
+      skill_id: `skill-${index}`,
+      skill_name: skill,
+    }))
+
+    const additionQuestionsPayload = additionQuestions.map((section, questionIndex) => ({
+      id: questionIndex,
+      type: mapAdditionQuestionTypeToApi(section.type),
+      question: section.question,
+      options: section.answers.map((answer, answerIndex) => ({
+        id: answerIndex,
+        label: answer.text,
+      })),
+      max_select: section.type === "checkbox" ? Number(section.maxSelect || 1) : 1,
+    }))
+
+    const additionFilePayload =
+      additionFileLabel.trim() || additionFileDescription.trim() || selectedFileType
+        ? [
+            {
+              id: 0,
+              type: mapAdditionFileTypeToApi(selectedFileType),
+              label: additionFileLabel,
+              description: additionFileDescription,
+            },
+          ]
+        : []
+
+    return {
+      name: jobName,
+      description: jobDescription || "",
+      description_rtf: jobDescription,
+      start_apply: startDate!.toISOString(),
+      end_apply: endDate!.toISOString(),
+      cover_letter: true,
+      work_experience: true,
+      education: true,
+      company_id: "company001",
+      address: {
+        address_line: address.addressLine,
+        no: address.no,
+        moo: address.moo,
+        soi: address.soi,
+        street: address.street,
+        sub_district_code: 103003,
+        district_code: 103000,
+        province_code: 100000,
+        country_code: 76400,
+        postal_code: parseInt(address.postalCode, 10) || 10900,
+      },
+      category_ids: [1],
+      work_option_ids: [1],
+      work_type_ids: [1],
+      skills: skillsData,
+      addition_questions: additionQuestionsPayload,
+      addition_file: additionFilePayload,
+    }
   }
 
   const removeFile = (index: number) => {
@@ -398,6 +538,81 @@ export default function CreatejobPage() {
     setSkills((previous) => previous.filter((_, currentIndex) => currentIndex !== index))
   }
 
+  const handleCreateJob = async () => {
+    // Validation
+    if (!jobName.trim()) {
+      toast.error("Job name is required")
+      return
+    }
+    if (!startDate || !endDate) {
+      toast.error("Start and end apply dates are required")
+      return
+    }
+    if (!selectedPostalCode) {
+      toast.error("Address is required")
+      return
+    }
+    if (skills.length === 0) {
+      toast.error("At least one skill is required")
+      return
+    }
+
+    try {
+      setIsLoading(true)
+
+      const createJobPayload: CreateJobRequest = buildCreateJobPayloadForSubmit()
+      console.log("[CreateJob][Submit Payload]", createJobPayload)
+      console.log("[CreateJob][Submit Payload JSON]", JSON.stringify(createJobPayload, null, 2))
+
+      // Call the API
+      const response = await apiCreateJob(createJobPayload)
+
+      toast.success("Job created successfully!")
+      console.log("Create Job Response:", response)
+
+      // Reset form on success (optional)
+      // setJobName("")
+      // setSkills([])
+      // setStartDate(undefined)
+      // setEndDate(undefined)
+    } catch (error) {
+      console.error("Error creating job:", error)
+      toast.error("Failed to create job. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const previewPayload = buildCreateJobPayloadPreview()
+      const currentSnapshot = JSON.stringify(previewPayload)
+
+      if (currentSnapshot !== previousPayloadSnapshotRef.current) {
+        previousPayloadSnapshotRef.current = currentSnapshot
+        console.log("[CreateJob][Preview Payload]", previewPayload)
+      }
+    }, 1000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [
+    jobName,
+    workOption,
+    openTo,
+    workCategory,
+    startDate,
+    endDate,
+    jobDescription,
+    selectedPostalCode,
+    skills,
+    additionQuestions,
+    additionFileLabel,
+    additionFileDescription,
+    selectedAddress,
+  ])
+
   useLayoutEffect(() => {
     const nextPositions: Record<string, number> = {}
 
@@ -472,14 +687,18 @@ export default function CreatejobPage() {
                 <label className="text-sm  dark:text-accent">
                   Job name
                 </label>
-                <Input placeholder="Personal Assistant 25 - 35 K (WFH 80%)" />
+                <Input 
+                  placeholder="Personal Assistant 25 - 35 K (WFH 80%)" 
+                  value={jobName}
+                  onChange={(e) => setJobName(e.target.value)}
+                />
               </div>
 
               <div className="md:col-span-2">
                 <label className="text-sm dark:text-accent">
                   Work Option
                 </label>
-                <Select>
+                <Select value={workOption} onValueChange={setWorkOption}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select" />
 
@@ -496,7 +715,7 @@ export default function CreatejobPage() {
                 <label className="text-sm dark:text-accent">
                   Open To
                 </label>
-                <Select>
+                <Select value={openTo} onValueChange={setOpenTo}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select" />
 
@@ -513,7 +732,7 @@ export default function CreatejobPage() {
                 <label className="text-sm dark:text-accent">
                   Work Category
                 </label>
-                <Select>
+                <Select value={workCategory} onValueChange={setWorkCategory}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select" />
 
@@ -877,7 +1096,11 @@ export default function CreatejobPage() {
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div>
                   <label className="text-sm dark:text-accent">Label</label>
-                  <Input placeholder="Text here" />
+                  <Input
+                    value={additionFileLabel}
+                    onChange={(event) => setAdditionFileLabel(event.target.value)}
+                    placeholder="Text here"
+                  />
                 </div>
                 <div>
                   <label className="text-sm dark:text-accent">File Type</label>
@@ -897,7 +1120,11 @@ export default function CreatejobPage() {
 
               <div className="mt-3">
                 <label className="text-sm dark:text-accent">Description</label>
-                <Input placeholder="Type your message here" />
+                <Input
+                  value={additionFileDescription}
+                  onChange={(event) => setAdditionFileDescription(event.target.value)}
+                  placeholder="Type your message here"
+                />
               </div>
             </div>
 
@@ -942,6 +1169,19 @@ export default function CreatejobPage() {
               </Button>
             </div>
           </section>
+
+          {/* Create Job Button */}
+          <div className="flex justify-end mt-10 mb-10">
+            <Button
+              onClick={handleCreateJob}
+              disabled={isLoading}
+              style={{ backgroundImage: "var(--gradient-primary)" }}
+              className="px-8 py-2 text-white rounded-2xl font-normal hover:opacity-90 transition-opacity"
+            >
+              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isLoading ? "Creating..." : "Create Job"}
+            </Button>
+          </div>
         </div>
       </div>
     </PageLayout>

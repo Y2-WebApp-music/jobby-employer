@@ -1,10 +1,4 @@
-export type AccountManagementItem = {
-  id: number;
-  employeeId: string;
-  name: string;
-  email: string;
-  role: "Admin" | "Recruiter" | "HR";
-};
+import type { AccountManagementItem } from "@/types/accountManagementTypes";
 
 const mockNames = [
   "Pimnara Srisuk",

@@ -4,14 +4,7 @@ import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { useState, useMemo } from "react"
 import SkillDetailPopup from "./SkillDetailPopup"
-
-type Skill = {
-  id: string
-  name: string
-  category: string
-  description: string
-  preSkills: string[]
-}
+import type { CreateJobAddSkillPopupProps, Skill } from "@/types/createJobTypes"
 
 const AVAILABLE_SKILLS: Skill[] = [
   {
@@ -36,14 +29,6 @@ const AVAILABLE_SKILLS: Skill[] = [
     preSkills: ["UI Design", "Prototyping"],
   },
 ]
-
-type CreateJobAddSkillPopupProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  searchValue: string
-  onSearchChange: (value: string) => void
-  onSubmit: (skillName: string) => void
-}
 
 export default function CreateJobAddSkillPopup({
   open,

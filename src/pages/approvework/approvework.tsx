@@ -9,14 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import SectionPagination from "@/components/ui/pagination";
 import { useMemo, useState } from "react";
-
-type ApproveWorkCard = {
-  id: number;
-  applicantName: string;
-  workTitle: string;
-  companyName: string;
-  period: string;
-};
+import type { ApproveWorkCard } from "@/types/approveWorkTypes";
 
 const approveWorkCards: ApproveWorkCard[] = Array.from({ length: 230 }, (_, index) => ({
   id: index + 1,

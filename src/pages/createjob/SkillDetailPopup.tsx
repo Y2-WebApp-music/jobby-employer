@@ -1,14 +1,6 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { X } from "lucide-react"
-
-type SkillDetailPopupProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  skillName: string
-  category: string
-  description: string
-  preSkills: string[]
-}
+import type { SkillDetailPopupProps } from "@/types/createJobTypes"
 
 export default function SkillDetailPopup({
   open,
