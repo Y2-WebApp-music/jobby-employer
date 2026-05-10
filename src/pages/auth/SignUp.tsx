@@ -11,8 +11,17 @@ import {
 } from "@/components/ui/select";
 import logo from "@/assets/icons/JobbyEmployer.png";
 import { ChevronDownIcon, UploadIcon } from "lucide-react";
-import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { searchAddressByProvince, type ThaiAddressEntry } from "thai-address-database";
+import {
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+import {
+  searchAddressByProvince,
+  type ThaiAddressEntry,
+} from "thai-address-database";
 import { useNavigate } from "react-router-dom";
 import type {
   CompanyFormState,
@@ -78,7 +87,9 @@ function getRecommendations(options: string[], keyword: string): string[] {
   }
 
   return options
-    .filter((option) => option.toLocaleLowerCase("th").includes(normalizedKeyword))
+    .filter((option) =>
+      option.toLocaleLowerCase("th").includes(normalizedKeyword),
+    )
     .slice(0, MAX_RECOMMENDATIONS);
 }
 
@@ -182,7 +193,9 @@ function SearchSelect({
               ))}
             </div>
           ) : (
-            <div className="px-3 py-2 text-sm text-muted-foreground">No matching options</div>
+            <div className="px-3 py-2 text-sm text-muted-foreground">
+              No matching options
+            </div>
           )}
         </div>
       ) : null}
@@ -192,9 +205,15 @@ function SearchSelect({
 
 export default function SignUpPage() {
   const [formState, setFormState] = useState<SignUpFormState>(initialFormState);
-  const [signInFormState, setSignInFormState] = useState<SignInFormState>(initialSignInFormState);
-  const [companyFormState, setCompanyFormState] = useState<CompanyFormState>(initialCompanyFormState);
-  const [verifyFormState, setVerifyFormState] = useState<VerifyFormState>(initialVerifyFormState);
+  const [signInFormState, setSignInFormState] = useState<SignInFormState>(
+    initialSignInFormState,
+  );
+  const [companyFormState, setCompanyFormState] = useState<CompanyFormState>(
+    initialCompanyFormState,
+  );
+  const [verifyFormState, setVerifyFormState] = useState<VerifyFormState>(
+    initialVerifyFormState,
+  );
   const [errors, setErrors] = useState<SignUpFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeStep, setActiveStep] = useState<FormStep>("account");
@@ -239,7 +258,8 @@ export default function SignUpPage() {
       thaiAddressDataset
         .filter(
           (item) =>
-            item.province === companyFormState.province && item.amphoe === companyFormState.district,
+            item.province === companyFormState.province &&
+            item.amphoe === companyFormState.district,
         )
         .map((item) => item.district),
     );
@@ -260,7 +280,10 @@ export default function SignUpPage() {
   }, [allDistrictOptions, companyFormState.district]);
 
   const subDistrictRecommendations = useMemo(() => {
-    return getRecommendations(allSubDistrictOptions, companyFormState.subDistrict);
+    return getRecommendations(
+      allSubDistrictOptions,
+      companyFormState.subDistrict,
+    );
   }, [allSubDistrictOptions, companyFormState.subDistrict]);
 
   const isFormValid = useMemo(() => {
@@ -324,12 +347,17 @@ export default function SignUpPage() {
     navigate("/");
   };
 
-  const handleVerificationFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleVerificationFileChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
     const selectedFile = event.target.files?.[0] ?? null;
     setVerifyFormState({ verificationFile: selectedFile });
   };
 
-  const updateCompanyField = <K extends keyof CompanyFormState>(field: K, value: CompanyFormState[K]) => {
+  const updateCompanyField = <K extends keyof CompanyFormState>(
+    field: K,
+    value: CompanyFormState[K],
+  ) => {
     setCompanyFormState((previous) => ({
       ...previous,
       [field]: value,
@@ -367,7 +395,9 @@ export default function SignUpPage() {
       return {
         ...previous,
         subDistrict: value,
-        postalCode: matchedRecord ? String(matchedRecord.zipcode) : previous.postalCode,
+        postalCode: matchedRecord
+          ? String(matchedRecord.zipcode)
+          : previous.postalCode,
       };
     });
   };
@@ -405,12 +435,14 @@ export default function SignUpPage() {
               ? "max-w-140"
               : activeStep === "signin"
                 ? "max-w-140"
-              : activeStep === "company"
-                ? "max-w-200"
-                : "max-w-103"
+                : activeStep === "company"
+                  ? "max-w-200"
+                  : "max-w-103"
           }`}
         >
-          <div className={`transition-all duration-220 ease-out ${formTransitionClass}`}>
+          <div
+            className={`transition-all duration-220 ease-out ${formTransitionClass}`}
+          >
             {activeStep === "account" ? (
               <>
                 <CardHeader className="px-7 pt-7 pb-4 sm:px-10">
@@ -422,7 +454,10 @@ export default function SignUpPage() {
                 <CardContent className="px-7 pb-8 sm:px-10">
                   <form className="space-y-4" onSubmit={handleSubmit}>
                     <div className="space-y-1.5">
-                      <label htmlFor="signup-email" className="text-sm font-normal text-foreground/90">
+                      <label
+                        htmlFor="signup-email"
+                        className="text-sm font-normal text-foreground/90"
+                      >
                         Email
                       </label>
                       <Input
@@ -432,16 +467,26 @@ export default function SignUpPage() {
                         autoComplete="email"
                         value={formState.email}
                         onChange={(event) => {
-                          setFormState((previous) => ({ ...previous, email: event.target.value }));
+                          setFormState((previous) => ({
+                            ...previous,
+                            email: event.target.value,
+                          }));
                         }}
                         aria-invalid={Boolean(errors.email)}
                         className="h-11 rounded-lg bg-white"
                       />
-                      {errors.email ? <p className="text-xs text-destructive">{errors.email}</p> : null}
+                      {errors.email ? (
+                        <p className="text-xs text-destructive">
+                          {errors.email}
+                        </p>
+                      ) : null}
                     </div>
 
                     <div className="space-y-1.5">
-                      <label htmlFor="signup-password" className="text-sm font-normal text-foreground/90">
+                      <label
+                        htmlFor="signup-password"
+                        className="text-sm font-normal text-foreground/90"
+                      >
                         Password
                       </label>
                       <Input
@@ -451,12 +496,19 @@ export default function SignUpPage() {
                         autoComplete="new-password"
                         value={formState.password}
                         onChange={(event) => {
-                          setFormState((previous) => ({ ...previous, password: event.target.value }));
+                          setFormState((previous) => ({
+                            ...previous,
+                            password: event.target.value,
+                          }));
                         }}
                         aria-invalid={Boolean(errors.password)}
                         className="h-11 rounded-lg bg-white"
                       />
-                      {errors.password ? <p className="text-xs text-destructive">{errors.password}</p> : null}
+                      {errors.password ? (
+                        <p className="text-xs text-destructive">
+                          {errors.password}
+                        </p>
+                      ) : null}
                     </div>
 
                     <div className="space-y-1.5 pt-1">
@@ -464,7 +516,10 @@ export default function SignUpPage() {
                         <Checkbox
                           checked={formState.acceptedTerms}
                           onCheckedChange={(checked) => {
-                            setFormState((previous) => ({ ...previous, acceptedTerms: checked === true }));
+                            setFormState((previous) => ({
+                              ...previous,
+                              acceptedTerms: checked === true,
+                            }));
                           }}
                           className="mt-0.5"
                           aria-invalid={Boolean(errors.acceptedTerms)}
@@ -472,12 +527,15 @@ export default function SignUpPage() {
                         <span>
                           Accept terms and condition
                           <span className="mt-1 block text-xs text-muted-foreground">
-                            You agree to our Terms of Service and Privacy Policy.
+                            You agree to our Terms of Service and Privacy
+                            Policy.
                           </span>
                         </span>
                       </label>
                       {errors.acceptedTerms ? (
-                        <p className="text-xs text-destructive">{errors.acceptedTerms}</p>
+                        <p className="text-xs text-destructive">
+                          {errors.acceptedTerms}
+                        </p>
                       ) : null}
                     </div>
 
@@ -523,7 +581,10 @@ export default function SignUpPage() {
                         autoComplete="email"
                         value={signInFormState.email}
                         onChange={(event) => {
-                          setSignInFormState((previous) => ({ ...previous, email: event.target.value }));
+                          setSignInFormState((previous) => ({
+                            ...previous,
+                            email: event.target.value,
+                          }));
                         }}
                         className="h-11 rounded-lg bg-white"
                       />
@@ -537,15 +598,24 @@ export default function SignUpPage() {
                         autoComplete="current-password"
                         value={signInFormState.password}
                         onChange={(event) => {
-                          setSignInFormState((previous) => ({ ...previous, password: event.target.value }));
+                          setSignInFormState((previous) => ({
+                            ...previous,
+                            password: event.target.value,
+                          }));
                         }}
                         className="h-11 rounded-lg bg-white"
                       />
-                      <p className="text-right text-xs text-muted-foreground">forget password?</p>
+                      <p className="text-right text-xs text-muted-foreground">
+                        forget password?
+                      </p>
                     </div>
 
                     <div className="flex items-center justify-center pt-1">
-                      <Button type="submit" size="lg" className="h-11 min-w-35 rounded-full px-8 text-base font-medium">
+                      <Button
+                        type="submit"
+                        size="lg"
+                        className="h-11 min-w-35 rounded-full px-8 text-base font-medium"
+                      >
                         Sign In
                       </Button>
                     </div>
@@ -575,27 +645,43 @@ export default function SignUpPage() {
                   <form className="space-y-4" onSubmit={handleCompanySubmit}>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="space-y-1.5">
-                        <label htmlFor="company-name-th" className="text-sm font-normal text-foreground/90">
+                        <label
+                          htmlFor="company-name-th"
+                          className="text-sm font-normal text-foreground/90"
+                        >
                           Company name(TH)
                         </label>
                         <Input
                           id="company-name-th"
                           placeholder="Company name"
                           value={companyFormState.companyNameTh}
-                          onChange={(event) => updateCompanyField("companyNameTh", event.target.value)}
+                          onChange={(event) =>
+                            updateCompanyField(
+                              "companyNameTh",
+                              event.target.value,
+                            )
+                          }
                           className="h-10 rounded-lg bg-white"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label htmlFor="company-name-en" className="text-sm font-normal text-foreground/90">
+                        <label
+                          htmlFor="company-name-en"
+                          className="text-sm font-normal text-foreground/90"
+                        >
                           Company name(ENG)
                         </label>
                         <Input
                           id="company-name-en"
                           placeholder="Company name"
                           value={companyFormState.companyNameEn}
-                          onChange={(event) => updateCompanyField("companyNameEn", event.target.value)}
+                          onChange={(event) =>
+                            updateCompanyField(
+                              "companyNameEn",
+                              event.target.value,
+                            )
+                          }
                           className="h-10 rounded-lg bg-white"
                         />
                       </div>
@@ -603,41 +689,62 @@ export default function SignUpPage() {
 
                     <div className="grid gap-3 sm:grid-cols-[1.1fr_1.1fr_1fr]">
                       <div className="space-y-1.5">
-                        <label htmlFor="company-website" className="text-sm font-normal text-foreground/90">
+                        <label
+                          htmlFor="company-website"
+                          className="text-sm font-normal text-foreground/90"
+                        >
                           Website
                         </label>
                         <Input
                           id="company-website"
                           placeholder="website"
                           value={companyFormState.website}
-                          onChange={(event) => updateCompanyField("website", event.target.value)}
+                          onChange={(event) =>
+                            updateCompanyField("website", event.target.value)
+                          }
                           className="h-10 rounded-lg bg-white"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label htmlFor="company-phone" className="text-sm font-normal text-foreground/90">
+                        <label
+                          htmlFor="company-phone"
+                          className="text-sm font-normal text-foreground/90"
+                        >
                           Phone
                         </label>
                         <Input
                           id="company-phone"
                           placeholder="phone"
                           value={companyFormState.phone}
-                          onChange={(event) => updateCompanyField("phone", toDigitsOnly(event.target.value))}
+                          onChange={(event) =>
+                            updateCompanyField(
+                              "phone",
+                              toDigitsOnly(event.target.value),
+                            )
+                          }
                           inputMode="numeric"
                           className="h-10 rounded-lg bg-white"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label htmlFor="company-category" className="text-sm font-normal text-foreground/90">
+                        <label
+                          htmlFor="company-category"
+                          className="text-sm font-normal text-foreground/90"
+                        >
                           Category
                         </label>
                         <Select
                           value={companyFormState.category}
-                          onValueChange={(value) => updateCompanyField("category", value)}
+                          onValueChange={(value) =>
+                            updateCompanyField("category", value)
+                          }
                         >
-                          <SelectTrigger id="company-category" className="h-10 w-full rounded-lg bg-white">
+                          <SelectTrigger
+                            id="company-category"
+                            className="h-10 w-full rounded-lg bg-white"
+                          >
                             <SelectValue placeholder="Select" />
                           </SelectTrigger>
                           <SelectContent>
@@ -652,58 +759,86 @@ export default function SignUpPage() {
                     </div>
 
                     <div className="space-y-3">
-                      <p className="text-[22px] font-normal text-foreground">Address Information</p>
+                      <p className="text-[22px] font-normal text-foreground">
+                        Address Information
+                      </p>
 
                       <div className="grid gap-3 sm:grid-cols-[2.3fr_0.65fr_0.7fr_0.7fr]">
                         <div className="space-y-1.5">
-                          <label htmlFor="company-address-line" className="text-sm font-normal text-foreground/90">
+                          <label
+                            htmlFor="company-address-line"
+                            className="text-sm font-normal text-foreground/90"
+                          >
                             Address line
                           </label>
                           <Input
                             id="company-address-line"
                             placeholder="bangkok"
                             value={companyFormState.addressLine}
-                            onChange={(event) => updateCompanyField("addressLine", event.target.value)}
+                            onChange={(event) =>
+                              updateCompanyField(
+                                "addressLine",
+                                event.target.value,
+                              )
+                            }
                             className="h-10 rounded-lg bg-white"
                           />
                         </div>
 
                         <div className="space-y-1.5">
-                          <label htmlFor="company-address-no" className="text-sm font-normal text-foreground/90">
+                          <label
+                            htmlFor="company-address-no"
+                            className="text-sm font-normal text-foreground/90"
+                          >
                             No.
                           </label>
                           <Input
                             id="company-address-no"
                             placeholder="20"
                             value={companyFormState.addressNo}
-                            onChange={(event) => updateCompanyField("addressNo", toDigitsOnly(event.target.value))}
+                            onChange={(event) =>
+                              updateCompanyField(
+                                "addressNo",
+                                toDigitsOnly(event.target.value),
+                              )
+                            }
                             inputMode="numeric"
                             className="h-10 rounded-lg bg-white"
                           />
                         </div>
 
                         <div className="space-y-1.5">
-                          <label htmlFor="company-moo" className="text-sm font-normal text-foreground/90">
+                          <label
+                            htmlFor="company-moo"
+                            className="text-sm font-normal text-foreground/90"
+                          >
                             moo
                           </label>
                           <Input
                             id="company-moo"
                             placeholder="Text Here"
                             value={companyFormState.moo}
-                            onChange={(event) => updateCompanyField("moo", event.target.value)}
+                            onChange={(event) =>
+                              updateCompanyField("moo", event.target.value)
+                            }
                             className="h-10 rounded-lg bg-white"
                           />
                         </div>
 
                         <div className="space-y-1.5">
-                          <label htmlFor="company-soi" className="text-sm font-normal text-foreground/90">
+                          <label
+                            htmlFor="company-soi"
+                            className="text-sm font-normal text-foreground/90"
+                          >
                             soi
                           </label>
                           <Input
                             id="company-soi"
                             placeholder="Text Here"
                             value={companyFormState.soi}
-                            onChange={(event) => updateCompanyField("soi", event.target.value)}
+                            onChange={(event) =>
+                              updateCompanyField("soi", event.target.value)
+                            }
                             className="h-10 rounded-lg bg-white"
                           />
                         </div>
@@ -711,20 +846,28 @@ export default function SignUpPage() {
 
                       <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_1fr_0.7fr]">
                         <div className="space-y-1.5">
-                          <label htmlFor="company-street" className="text-sm font-normal text-foreground/90">
+                          <label
+                            htmlFor="company-street"
+                            className="text-sm font-normal text-foreground/90"
+                          >
                             street
                           </label>
                           <Input
                             id="company-street"
                             placeholder="bangkok"
                             value={companyFormState.street}
-                            onChange={(event) => updateCompanyField("street", event.target.value)}
+                            onChange={(event) =>
+                              updateCompanyField("street", event.target.value)
+                            }
                             className="h-10 rounded-lg bg-white"
                           />
                         </div>
 
                         <div className="space-y-1.5">
-                          <label htmlFor="company-province" className="text-sm font-normal text-foreground/90">
+                          <label
+                            htmlFor="company-province"
+                            className="text-sm font-normal text-foreground/90"
+                          >
                             Province
                           </label>
                           <SearchSelect
@@ -737,13 +880,20 @@ export default function SignUpPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label htmlFor="company-district" className="text-sm font-normal text-foreground/90">
+                          <label
+                            htmlFor="company-district"
+                            className="text-sm font-normal text-foreground/90"
+                          >
                             District
                           </label>
                           <SearchSelect
                             id="company-district"
                             value={companyFormState.district}
-                            placeholder={isSelectedProvinceValid ? "Type to search district" : "Select province first"}
+                            placeholder={
+                              isSelectedProvinceValid
+                                ? "Type to search district"
+                                : "Select province first"
+                            }
                             options={districtRecommendations}
                             disabled={!isSelectedProvinceValid}
                             onValueChange={handleDistrictChange}
@@ -751,14 +901,19 @@ export default function SignUpPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label htmlFor="company-sub-district" className="text-sm font-normal text-foreground/90">
+                          <label
+                            htmlFor="company-sub-district"
+                            className="text-sm font-normal text-foreground/90"
+                          >
                             Sub-district
                           </label>
                           <SearchSelect
                             id="company-sub-district"
                             value={companyFormState.subDistrict}
                             placeholder={
-                              isSelectedDistrictValid ? "Type to search sub-district" : "Select district first"
+                              isSelectedDistrictValid
+                                ? "Type to search sub-district"
+                                : "Select district first"
                             }
                             options={subDistrictRecommendations}
                             disabled={!isSelectedDistrictValid}
@@ -767,14 +922,22 @@ export default function SignUpPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label htmlFor="company-postal-code" className="text-sm font-normal text-foreground/90">
+                          <label
+                            htmlFor="company-postal-code"
+                            className="text-sm font-normal text-foreground/90"
+                          >
                             Postal code
                           </label>
                           <Input
                             id="company-postal-code"
                             placeholder="xxxxx"
                             value={companyFormState.postalCode}
-                            onChange={(event) => updateCompanyField("postalCode", event.target.value)}
+                            onChange={(event) =>
+                              updateCompanyField(
+                                "postalCode",
+                                event.target.value,
+                              )
+                            }
                             className="h-10 rounded-lg bg-white"
                           />
                         </div>
@@ -805,7 +968,10 @@ export default function SignUpPage() {
                 <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
                   <form className="space-y-4" onSubmit={handleVerifySubmit}>
                     <div className="space-y-1.5">
-                      <label htmlFor="verification-file" className="text-xs font-normal text-foreground/90">
+                      <label
+                        htmlFor="verification-file"
+                        className="text-xs font-normal text-foreground/90"
+                      >
                         P.C. Form 0401
                       </label>
 
@@ -829,15 +995,20 @@ export default function SignUpPage() {
 
                         <div className="min-w-0">
                           <p className="text-sm font-normal text-foreground">
-                            {verifyFormState.verificationFile ? verifyFormState.verificationFile.name : "Upload File"}
+                            {verifyFormState.verificationFile
+                              ? verifyFormState.verificationFile.name
+                              : "Upload File"}
                           </p>
-                          <p className="text-xs text-muted-foreground">pdf Only Max Size 10 MB</p>
+                          <p className="text-xs text-muted-foreground">
+                            pdf Only Max Size 10 MB
+                          </p>
                         </div>
                       </button>
 
                       <p className="text-[11px] leading-4 text-muted-foreground">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam blandit ligula eu lectus mollis,
-                        non convallis turpis elementum. Sed interdum neque.
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                        Nam blandit ligula eu lectus mollis, non convallis
+                        turpis elementum. Sed interdum neque.
                       </p>
                     </div>
 
