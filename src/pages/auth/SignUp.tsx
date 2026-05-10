@@ -224,7 +224,8 @@ export default function SignUpPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState<FormStep>(() =>
-    location.pathname.includes("sign-in") || location.pathname.includes("signin")
+    location.pathname.includes("sign-in") ||
+    location.pathname.includes("signin")
       ? "signin"
       : "account",
   );
@@ -1091,7 +1092,9 @@ export default function SignUpPage() {
                       <Button
                         type="submit"
                         size="lg"
-                        disabled={!verifyFormState.verificationFile || isSubmitting}
+                        disabled={
+                          !verifyFormState.verificationFile || isSubmitting
+                        }
                         className="h-11 min-w-24 rounded-full px-6 text-base font-medium"
                       >
                         {isSubmitting ? "Creating account..." : "Continue"}

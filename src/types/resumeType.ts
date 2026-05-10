@@ -43,7 +43,7 @@ export type SubDistrictProps = {
 export type PhoneRegionProps = {
   id: number;
   label: string;
-}; 
+};
 
 export type ContactProps = {
   label: string;

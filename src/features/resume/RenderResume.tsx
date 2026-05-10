@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import Template1 from "./resumeTemplate/template-1";
 import Template2 from "./resumeTemplate/template-2";
