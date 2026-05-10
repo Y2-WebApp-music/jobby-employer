@@ -8,6 +8,7 @@ export * from "./envConfigTypes";
 export * from "./profilePageTypes";
 export * from "./profileTypes";
 export * from "./scoutTypes";
+export * from "./authSignUpTypes";
 export * from "./domain/auth";
 export * from "./domain/message";
 export * from "./domain/scout";
