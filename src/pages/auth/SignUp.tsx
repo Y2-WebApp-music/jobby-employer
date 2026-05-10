@@ -19,10 +19,15 @@ import {
   type FormEvent,
 } from "react";
 import {
+  authClient,
+  hydrateAuthStoreFromPayload,
+  hydrateAuthStoreFromSession,
+} from "@/services/authClient";
+import {
   searchAddressByProvince,
   type ThaiAddressEntry,
 } from "thai-address-database";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import type {
   CompanyFormState,
   FormStep,
@@ -204,6 +209,7 @@ function SearchSelect({
 }
 
 export default function SignUpPage() {
+  const location = useLocation();
   const [formState, setFormState] = useState<SignUpFormState>(initialFormState);
   const [signInFormState, setSignInFormState] = useState<SignInFormState>(
     initialSignInFormState,
@@ -216,7 +222,13 @@ export default function SignUpPage() {
   );
   const [errors, setErrors] = useState<SignUpFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeStep, setActiveStep] = useState<FormStep>("account");
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState<FormStep>(() =>
+    location.pathname.includes("sign-in") ||
+    location.pathname.includes("signin")
+      ? "signin"
+      : "account",
+  );
   const [isStepVisible, setIsStepVisible] = useState(true);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
@@ -305,6 +317,7 @@ export default function SignUpPage() {
   ]);
 
   const runStepTransition = (nextStep: FormStep) => {
+    setAuthError(null);
     setIsSubmitting(true);
     setIsStepVisible(false);
 
@@ -317,6 +330,7 @@ export default function SignUpPage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setAuthError(null);
 
     const nextErrors = validateSignUpForm(formState);
     setErrors(nextErrors);
@@ -330,6 +344,7 @@ export default function SignUpPage() {
 
   const handleCompanySubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setAuthError(null);
     if (!isCompanyStepValid) {
       return;
     }
@@ -337,14 +352,64 @@ export default function SignUpPage() {
     runStepTransition("verify");
   };
 
-  const handleSignInSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSignInSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    navigate("/");
+    setAuthError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = (await authClient.signIn.email({
+        email: signInFormState.email,
+        password: signInFormState.password,
+      })) as { error?: { message?: string } };
+
+      if (response?.error) {
+        setAuthError(response.error.message || "Sign in failed");
+        return;
+      }
+
+      const hydrated = hydrateAuthStoreFromPayload(response);
+      if (!hydrated) {
+        await hydrateAuthStoreFromSession();
+      }
+      navigate("/", { replace: true });
+    } catch (error: unknown) {
+      setAuthError(error instanceof Error ? error.message : "Sign in failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleVerifySubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleVerifySubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    navigate("/");
+    setAuthError(null);
+    setIsSubmitting(true);
+
+    try {
+      const signUpResponse = (await authClient.signUp.email({
+        name:
+          companyFormState.companyNameEn.trim() ||
+          companyFormState.companyNameTh.trim() ||
+          formState.email.trim(),
+        email: formState.email.trim(),
+        password: formState.password,
+      })) as { error?: { message?: string } };
+
+      if (signUpResponse?.error) {
+        setAuthError(signUpResponse.error.message || "Sign up failed");
+        return;
+      }
+
+      const hydrated = hydrateAuthStoreFromPayload(signUpResponse);
+      if (!hydrated) {
+        await hydrateAuthStoreFromSession();
+      }
+      navigate("/", { replace: true });
+    } catch (error: unknown) {
+      setAuthError(error instanceof Error ? error.message : "Sign up failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleVerificationFileChange = (
@@ -549,6 +614,11 @@ export default function SignUpPage() {
                         {isSubmitting ? "Joining..." : "Join"}
                       </Button>
                     </div>
+                    {authError ? (
+                      <p className="rounded-md bg-destructive/8 px-3 py-2 text-center text-xs text-destructive">
+                        {authError}
+                      </p>
+                    ) : null}
 
                     <p className="pt-1 text-center text-xs text-muted-foreground">
                       Already have an account?
@@ -614,11 +684,17 @@ export default function SignUpPage() {
                       <Button
                         type="submit"
                         size="lg"
+                        disabled={isSubmitting}
                         className="h-11 min-w-35 rounded-full px-8 text-base font-medium"
                       >
-                        Sign In
+                        {isSubmitting ? "Signing in..." : "Sign In"}
                       </Button>
                     </div>
+                    {authError ? (
+                      <p className="rounded-md bg-destructive/8 px-3 py-2 text-center text-xs text-destructive">
+                        {authError}
+                      </p>
+                    ) : null}
 
                     <p className="pt-1 text-center text-xs text-foreground">
                       New Company?
@@ -1016,12 +1092,19 @@ export default function SignUpPage() {
                       <Button
                         type="submit"
                         size="lg"
-                        disabled={!verifyFormState.verificationFile}
+                        disabled={
+                          !verifyFormState.verificationFile || isSubmitting
+                        }
                         className="h-11 min-w-24 rounded-full px-6 text-base font-medium"
                       >
-                        Continue
+                        {isSubmitting ? "Creating account..." : "Continue"}
                       </Button>
                     </div>
+                    {authError ? (
+                      <p className="rounded-md bg-destructive/8 px-3 py-2 text-center text-xs text-destructive">
+                        {authError}
+                      </p>
+                    ) : null}
                   </form>
                 </CardContent>
               </>
