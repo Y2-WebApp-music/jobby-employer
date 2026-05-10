@@ -8,6 +8,8 @@ import AccountPage from "@/pages/Account";
 import CreatejobPage from "@/pages/createjob/Createjob";
 import ScoutPage from "@/pages/scout/Scout";
 import ApproveWorkPage from "@/pages/approvework/approvework";
+import SignUpPage from "@/pages/auth/SignUp";
+import SignIn from "@/features/authentication/SignIn";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter(
@@ -15,6 +17,22 @@ export const router = createBrowserRouter(
     {
       path: "/",
       element: <LandingPage />,
+    },
+    {
+      path: "/signup",
+      element: <SignUpPage />,
+    },
+    {
+      path: "/sign-up",
+      element: <SignUpPage />,
+    },
+    {
+      path: "/signin",
+      element: <SignIn />,
+    },
+    {
+      path: "/sign-in",
+      element: <SignIn />,
     },
     {
       path: "/profile",
