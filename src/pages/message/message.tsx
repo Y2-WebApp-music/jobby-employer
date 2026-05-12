@@ -11,11 +11,19 @@ import {
 } from "@/services/socketService";
 import { useAuthStore } from "@/store/auth";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ArrowUp,
+  Check,
   Ellipsis,
   FileText,
   Heart,
   Image,
+  Pencil,
   Pin,
   Trash2,
   X,
@@ -177,6 +185,9 @@ export default function MessagePage() {
 
   const selectedThreadIdRef = useRef(selectedThreadId);
   const pendingImagesRef = useRef(pendingImages);
+  const [isEditingChatName, setIsEditingChatName] = useState(false);
+  const [editingChatNameValue, setEditingChatNameValue] = useState("");
+  const chatNameInputRef = useRef<HTMLInputElement | null>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   pendingImagesRef.current = pendingImages;
 
@@ -384,6 +395,34 @@ export default function MessagePage() {
     void loadConversation();
   }, [chatServiceBaseUrl, currentUserId, selectedThreadId]);
 
+  const handleStartEditChatName = () => {
+    setEditingChatNameValue(selectedThread?.name ?? "");
+    setIsEditingChatName(true);
+    window.setTimeout(() => {
+      chatNameInputRef.current?.focus();
+      chatNameInputRef.current?.select();
+    }, 0);
+  };
+
+  const handleConfirmChatName = () => {
+    const trimmed = editingChatNameValue.trim();
+    if (trimmed) {
+      setThreads((previous) =>
+        previous.map((thread) =>
+          thread.id === selectedThreadId
+            ? { ...thread, name: trimmed }
+            : thread,
+        ),
+      );
+    }
+    setIsEditingChatName(false);
+  };
+
+  const handleCancelEditChatName = () => {
+    setIsEditingChatName(false);
+    setEditingChatNameValue("");
+  };
+
   useEffect(() => {
     if (!selectedThreadId) return;
     const unreadIncomingIds = selectedMessages
@@ -587,14 +626,72 @@ export default function MessagePage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="size-12 rounded-full bg-muted" />
-                      <div>
-                        <h2 className="text-2xl font-medium">{selectedThread?.name ?? "Select conversation"}</h2>
-                        <p className="text-sm text-muted-foreground">{selectedThread?.role ?? "No active conversation"}</p>
-                      </div>
+                      {isEditingChatName ? (
+                        <Input
+                          ref={chatNameInputRef}
+                          value={editingChatNameValue}
+                          onChange={(event) =>
+                            setEditingChatNameValue(event.target.value)
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              handleConfirmChatName();
+                            } else if (event.key === "Escape") {
+                              handleCancelEditChatName();
+                            }
+                          }}
+                          className="min-w-0 max-w-72 text-2xl font-medium h-auto py-1"
+                        />
+                      ) : (
+                        <div>
+                          <h2 className="text-2xl font-medium">{selectedThread?.name ?? "Select conversation"}</h2>
+                          <p className="text-sm text-muted-foreground">{selectedThread?.role ?? "No active conversation"}</p>
+                        </div>
+                      )}
                     </div>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground">
-                      <Ellipsis className="size-5" />
-                    </Button>
+                    {isEditingChatName ? (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-green-600 hover:bg-green-50 hover:text-green-700"
+                          aria-label="Confirm chat name"
+                          onClick={handleConfirmChatName}
+                        >
+                          <Check className="size-5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground"
+                          aria-label="Cancel editing"
+                          onClick={handleCancelEditChatName}
+                        >
+                          <X className="size-5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground"
+                            aria-label="Chat settings"
+                          >
+                            <Ellipsis className="size-5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={handleStartEditChatName}>
+                            <Pencil className="mr-2 size-4" />
+                            Edit chat name
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 </div>
 

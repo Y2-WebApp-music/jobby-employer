@@ -1,7 +1,14 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, LogOut } from "lucide-react";
 import JobbyLogo from "@/assets/icons/JobbyLogo.svg?react";
 import { RiFileList3Fill } from "react-icons/ri";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { authClient, clearAuthStore } from "@/services/authClient";
 
 import {
   Sidebar,
@@ -64,6 +71,13 @@ const items3 = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    clearAuthStore();
+    navigate("/sign-in");
+  };
 
   const normalize = (p: string) => (p === "/" ? "/" : p.replace(/\/$/, ""));
   const isItemActive = (url: string) => {
@@ -254,29 +268,31 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="mt-auto border-t">
-        <div className="flex items-center gap-3 px-3 py-3 rounded-md hover:bg-muted cursor-pointer">
-          <Link to="/profile" className="flex items-center gap-3 ...">
-            {/* Avatar */}
-            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-              U
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-3 px-3 py-3 rounded-md hover:bg-muted cursor-pointer">
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
+                U
+              </div>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm font-medium truncate">Username</span>
+                <span className="text-xs text-muted-foreground truncate">
+                  email@example.com
+                </span>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </div>
-            {/* <img
-            src="/avatar.png"
-            alt="Profile"
-            className="h-10 w-10 rounded-full object-cover"
-          /> */}
-            {/* User info */}
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm font-medium truncate">Username</span>
-              <span className="text-xs text-muted-foreground truncate">
-                email@example.com
-              </span>
-            </div>
-
-            {/* Action */}
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          </Link>
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="w-52">
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive cursor-pointer"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   );
