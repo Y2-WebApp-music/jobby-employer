@@ -32,6 +32,7 @@ export default function ApplymonitorPopupPage({
 
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsSkillPopupOpen(false);
       setIsRejectPopupOpen(false);
       setActiveSkillIndex(null);

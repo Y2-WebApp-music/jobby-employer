@@ -20,6 +20,7 @@ const ResumeLogo: React.FC<Props> = ({
   useEffect(() => {
     if (logo instanceof File) {
       const url = URL.createObjectURL(logo);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setObjectUrl(url);
       return () => URL.revokeObjectURL(url);
     }

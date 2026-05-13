@@ -24,7 +24,7 @@ import {
   jobMonitorNewAppliedCards,
 } from "@/mock/jobMonitorMock";
 import type { JobMonitorCard } from "@/types/domain/job-monitor";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import JobMonitorDetailPopup from "@/pages/jobmonitor/JobMonitorDetailPopup";
 
@@ -51,39 +51,45 @@ export default function JobMonitorPage() {
     backgroundClip: "padding-box, border-box",
   } as const;
 
-  const sortCards = (cards: JobMonitorCard[]) => {
-    const sortedCards = [...cards].sort(
-      (firstCard, secondCard) => firstCard.id - secondCard.id,
-    );
-    return sortBy === "oldest" ? sortedCards : sortedCards.reverse();
-  };
+  const sortCards = useCallback(
+    (cards: JobMonitorCard[]) => {
+      const sortedCards = [...cards].sort(
+        (firstCard, secondCard) => firstCard.id - secondCard.id,
+      );
+      return sortBy === "oldest" ? sortedCards : sortedCards.reverse();
+    },
+    [sortBy],
+  );
 
-  const filterCards = (cards: JobMonitorCard[]) => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filterCards = useCallback(
+    (cards: JobMonitorCard[]) => {
+      const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    const filteredCards = cards.filter((card) => {
-      const matchesSearch =
-        normalizedQuery.length === 0 ||
-        [card.title, card.status, card.period, card.applied].some((value) =>
-          value.toLowerCase().includes(normalizedQuery),
-        );
-      const matchesStatus =
-        statusValues.length === 0 || statusValues.includes(card.jobStatus);
+      const filteredCards = cards.filter((card) => {
+        const matchesSearch =
+          normalizedQuery.length === 0 ||
+          [card.title, card.status, card.period, card.applied].some((value) =>
+            value.toLowerCase().includes(normalizedQuery),
+          );
+        const matchesStatus =
+          statusValues.length === 0 || statusValues.includes(card.jobStatus);
 
-      return matchesSearch && matchesStatus;
-    });
+        return matchesSearch && matchesStatus;
+      });
 
-    return sortCards(filteredCards);
-  };
+      return sortCards(filteredCards);
+    },
+    [searchQuery, sortCards, statusValues],
+  );
 
   const newAppliedCards = useMemo(
     () => filterCards(jobMonitorNewAppliedCards),
-    [searchQuery, sortBy, statusValues],
+    [filterCards],
   );
 
   const latestCards = useMemo(
     () => filterCards(jobMonitorLatestCards),
-    [searchQuery, sortBy, statusValues],
+    [filterCards],
   );
 
   const handleOpenDetailPopup = (card: JobMonitorCard) => {

@@ -19,12 +19,6 @@ import {
 } from "@/services/socketService";
 import { useAuthStore } from "@/store/auth";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   ArrowUp,
   ChevronLeft,
   ChevronRight,
@@ -231,7 +225,9 @@ export default function MessagePage() {
     Record<string, ChatMessage[]>
   >({});
   const [likedMessageIds, setLikedMessageIds] = useState<string[]>([]);
-  const [likesCountByMessageId, setLikesCountByMessageId] = useState<Record<string, number>>({});
+  const [likesCountByMessageId, setLikesCountByMessageId] = useState<
+    Record<string, number>
+  >({});
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [lightboxState, setLightboxState] = useState<{
     imageUrls: string[];
@@ -240,9 +236,6 @@ export default function MessagePage() {
 
   const selectedThreadIdRef = useRef(selectedThreadId);
   const pendingImagesRef = useRef(pendingImages);
-  const [isEditingChatName, setIsEditingChatName] = useState(false);
-  const [editingChatNameValue, setEditingChatNameValue] = useState("");
-  const chatNameInputRef = useRef<HTMLInputElement | null>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   pendingImagesRef.current = pendingImages;
@@ -273,7 +266,8 @@ export default function MessagePage() {
           if (!previous) return previous;
           return {
             ...previous,
-            currentIndex: (previous.currentIndex + 1) % previous.imageUrls.length,
+            currentIndex:
+              (previous.currentIndex + 1) % previous.imageUrls.length,
           };
         });
         return;
@@ -295,8 +289,12 @@ export default function MessagePage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lightboxState]);
 
-  const selectedThread = threads.find((thread) => thread.id === selectedThreadId) ?? null;
-  const selectedMessages = selectedThread ? (messagesByThread[selectedThread.id] ?? []) : [];
+  const selectedThread =
+    threads.find((thread) => thread.id === selectedThreadId) ?? null;
+  const selectedMessages = useMemo(
+    () => (selectedThread ? (messagesByThread[selectedThread.id] ?? []) : []),
+    [messagesByThread, selectedThread],
+  );
 
   const visibleThreads = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -329,13 +327,13 @@ export default function MessagePage() {
         ),
       };
     });
-    const socket = getSocketClient() as any;
+    const socket = getSocketClient();
     if (socket?.connected)
       socket.emit("mark_read", { otherUserId: threadId, messageIds });
   };
 
   useEffect(() => {
-    const socket = getSocketClient() as any;
+    const socket = getSocketClient();
     if (!socket) return;
 
     const onConnect = () => {
@@ -480,7 +478,7 @@ export default function MessagePage() {
   }, [currentUserId, messagesByThread]);
 
   useEffect(() => {
-    const socket = getSocketClient() as any;
+    const socket = getSocketClient();
     if (!socket?.connected || !selectedThreadId) return;
     socket.emit("join_conversation", { otherUserId: selectedThreadId });
   }, [selectedThreadId]);
@@ -552,34 +550,6 @@ export default function MessagePage() {
     };
     void loadConversation();
   }, [chatServiceBaseUrl, currentUserId, selectedThreadId]);
-
-  const handleStartEditChatName = () => {
-    setEditingChatNameValue(selectedThread?.name ?? "");
-    setIsEditingChatName(true);
-    window.setTimeout(() => {
-      chatNameInputRef.current?.focus();
-      chatNameInputRef.current?.select();
-    }, 0);
-  };
-
-  const handleConfirmChatName = () => {
-    const trimmed = editingChatNameValue.trim();
-    if (trimmed) {
-      setThreads((previous) =>
-        previous.map((thread) =>
-          thread.id === selectedThreadId
-            ? { ...thread, name: trimmed }
-            : thread,
-        ),
-      );
-    }
-    setIsEditingChatName(false);
-  };
-
-  const handleCancelEditChatName = () => {
-    setIsEditingChatName(false);
-    setEditingChatNameValue("");
-  };
 
   useEffect(() => {
     if (!selectedThreadId) return;
@@ -659,7 +629,7 @@ export default function MessagePage() {
     onErrorMessage: string;
   }) => {
     if (!selectedThread || !currentUserId) return;
-    const socket = getSocketClient() as any;
+    const socket = getSocketClient();
     if (!socket?.connected) return;
     socket.emit(
       "message",
@@ -672,7 +642,6 @@ export default function MessagePage() {
       },
       (ack?: { error?: string }) => {
         if (ack?.error) {
-          // eslint-disable-next-line no-console
           console.error(payload.onErrorMessage, ack.error);
         }
       },
@@ -712,14 +681,19 @@ export default function MessagePage() {
     const currentlyLiked = likedMessageIds.includes(messageId);
 
     setLikedMessageIds((prev) =>
-      currentlyLiked ? prev.filter((id) => id !== messageId) : [...prev, messageId],
+      currentlyLiked
+        ? prev.filter((id) => id !== messageId)
+        : [...prev, messageId],
     );
     setLikesCountByMessageId((prev) => ({
       ...prev,
-      [messageId]: Math.max(0, (prev[messageId] ?? 0) + (currentlyLiked ? -1 : 1)),
+      [messageId]: Math.max(
+        0,
+        (prev[messageId] ?? 0) + (currentlyLiked ? -1 : 1),
+      ),
     }));
 
-    const socket = getSocketClient() as any;
+    const socket = getSocketClient();
     if (socket?.connected) {
       socket.emit(currentlyLiked ? "unlike_message" : "like_message", {
         message_id: messageId,
@@ -741,11 +715,16 @@ export default function MessagePage() {
       }));
     } catch {
       setLikedMessageIds((prev) =>
-        currentlyLiked ? [...prev, messageId] : prev.filter((id) => id !== messageId),
+        currentlyLiked
+          ? [...prev, messageId]
+          : prev.filter((id) => id !== messageId),
       );
       setLikesCountByMessageId((prev) => ({
         ...prev,
-        [messageId]: Math.max(0, (prev[messageId] ?? 0) + (currentlyLiked ? 1 : -1)),
+        [messageId]: Math.max(
+          0,
+          (prev[messageId] ?? 0) + (currentlyLiked ? 1 : -1),
+        ),
       }));
     }
   };
@@ -804,7 +783,8 @@ export default function MessagePage() {
 
   const handleSendComposer = async () => {
     if (attachmentUploading || !selectedThread || !currentUserId) return;
-    const hasAttachmentDraft = pendingImages.length > 0 || Boolean(pendingGenericFile);
+    const hasAttachmentDraft =
+      pendingImages.length > 0 || Boolean(pendingGenericFile);
     if (hasAttachmentDraft) {
       setAttachmentUploading(true);
     }
@@ -833,10 +813,17 @@ export default function MessagePage() {
           isImage ? "image" : "file",
         );
         sendSocketMessage({
-          messageType: isImage ? ChatMessageType.Image : inferMessageTypeFromFile(pendingGenericFile),
+          messageType: isImage
+            ? ChatMessageType.Image
+            : inferMessageTypeFromFile(pendingGenericFile),
           ...(isImage
             ? { imageUrls: [url] }
-            : { messageData: buildAttachmentMessageData(url, pendingGenericFile.name) }),
+            : {
+                messageData: buildAttachmentMessageData(
+                  url,
+                  pendingGenericFile.name,
+                ),
+              }),
           replyToId: replyingTo?.serverId,
           onErrorMessage: "File send failed:",
         });
@@ -1097,9 +1084,7 @@ export default function MessagePage() {
                             </button>
                             <button
                               type="button"
-                              onClick={() =>
-                                void handleToggleReaction(message)
-                              }
+                              onClick={() => void handleToggleReaction(message)}
                               className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
                               <Heart
@@ -1145,11 +1130,15 @@ export default function MessagePage() {
                                 {quotedMessage ? (
                                   quotedMessage.fileUrl ? (
                                     <p className="line-clamp-2 text-xs text-muted-foreground">
-                                      📎 {quotedMessage.fileName ?? "Attachment"}
+                                      📎{" "}
+                                      {quotedMessage.fileName ?? "Attachment"}
                                     </p>
                                   ) : quotedMessage.imageUrls?.length ? (
                                     <p className="line-clamp-2 text-xs text-muted-foreground">
-                                      📷 {quotedMessage.imageUrls.length > 1 ? `${quotedMessage.imageUrls.length} photos` : "Photo"}
+                                      📷{" "}
+                                      {quotedMessage.imageUrls.length > 1
+                                        ? `${quotedMessage.imageUrls.length} photos`
+                                        : "Photo"}
                                     </p>
                                   ) : (
                                     <p className="line-clamp-2 text-xs text-muted-foreground">
@@ -1252,7 +1241,9 @@ export default function MessagePage() {
                   )}
                   {pendingGenericFile && (
                     <div className="mb-3 flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
-                      <p className="truncate text-xs">📎 {pendingGenericFile.name}</p>
+                      <p className="truncate text-xs">
+                        📎 {pendingGenericFile.name}
+                      </p>
                       <button
                         type="button"
                         onClick={() => setPendingGenericFile(null)}
@@ -1267,7 +1258,10 @@ export default function MessagePage() {
                     <div className="mb-2 flex items-start gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2">
                       <div className="min-w-0 flex-1">
                         <p className="mb-0.5 text-xs font-medium text-primary">
-                          Replying to {replyingTo.from === "me" ? "yourself" : selectedThread?.name}
+                          Replying to{" "}
+                          {replyingTo.from === "me"
+                            ? "yourself"
+                            : selectedThread?.name}
                         </p>
                         {replyingTo.fileUrl ? (
                           <p className="truncate text-xs text-muted-foreground">
@@ -1275,7 +1269,10 @@ export default function MessagePage() {
                           </p>
                         ) : replyingTo.imageUrls?.length ? (
                           <p className="truncate text-xs text-muted-foreground">
-                            📷 {replyingTo.imageUrls.length > 1 ? `${replyingTo.imageUrls.length} photos` : "Photo"}
+                            📷{" "}
+                            {replyingTo.imageUrls.length > 1
+                              ? `${replyingTo.imageUrls.length} photos`
+                              : "Photo"}
                           </p>
                         ) : (
                           <p className="truncate text-sm text-muted-foreground">
@@ -1347,7 +1344,9 @@ export default function MessagePage() {
                           void handleSendComposer();
                         }}
                         disabled={
-                          !selectedThread || !currentUserId || attachmentUploading
+                          !selectedThread ||
+                          !currentUserId ||
+                          attachmentUploading
                         }
                         className="border-input focus-visible:border-ring focus-visible:ring-ring/50 mb-[-1.5%] min-h-10 max-h-44 w-full resize-none rounded-3xl border bg-transparent px-4 py-2 leading-6 outline-none transition-[color,box-shadow] focus-visible:ring-[3px]"
                       />
@@ -1355,12 +1354,16 @@ export default function MessagePage() {
                     <Button
                       type="button"
                       variant={
-                        draft.trim() || pendingImages.length || pendingGenericFile
+                        draft.trim() ||
+                        pendingImages.length ||
+                        pendingGenericFile
                           ? "default"
                           : "ghost"
                       }
                       className={
-                        draft.trim() || pendingImages.length || pendingGenericFile
+                        draft.trim() ||
+                        pendingImages.length ||
+                        pendingGenericFile
                           ? "gap-1 px-4"
                           : "gap-1 text-muted-foreground"
                       }

@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import type { DialogContentProps } from "@/types/ui";
 import {
@@ -73,7 +73,6 @@ function DialogOverlay({
 function DialogContent({
   className,
   children,
-  showCloseButton = true,
   variant,
   onPointerDownOutside,
   onInteractOutside,
