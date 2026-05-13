@@ -8,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient, clearAuthStore } from "@/services/authClient";
+import { clearAuthStore } from "@/services/authClient";
+import { apiSignOut } from "@/services/authService";
 
 import {
   Sidebar,
@@ -74,7 +75,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await authClient.signOut();
+    await apiSignOut();
     clearAuthStore();
     navigate("/sign-in");
   };
@@ -268,31 +269,41 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="mt-auto border-t">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 px-3 py-3 rounded-md hover:bg-muted cursor-pointer">
-              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                U
+        <div
+          className="flex items-center gap-3 px-3 py-3 rounded-md hover:bg-muted cursor-pointer"
+          onClick={() => navigate("/profile")}
+        >
+          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
+            U
+          </div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-sm font-medium truncate">Username</span>
+            <span className="text-xs text-muted-foreground truncate">
+              email@example.com
+            </span>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div
+                role="button"
+                aria-label="Account options"
+                className="p-1 rounded hover:bg-accent"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
-              <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-medium truncate">Username</span>
-                <span className="text-xs text-muted-foreground truncate">
-                  email@example.com
-                </span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="start" className="w-52">
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive cursor-pointer"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="end" className="w-52">
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive cursor-pointer"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

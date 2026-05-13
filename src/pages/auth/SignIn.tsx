@@ -5,6 +5,8 @@ import logo from "@/assets/icons/JobbyEmployer.png";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import type { SignInFormState } from "@/types/authSignUpTypes";
+import { apiSignInWithEmail } from "@/services/authService";
+import { useAuthStore } from "@/store/auth";
 
 const initialSignInFormState: SignInFormState = {
   email: "",
@@ -15,11 +17,40 @@ export default function SignInPage() {
   const [signInFormState, setSignInFormState] = useState<SignInFormState>(
     initialSignInFormState,
   );
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
 
-  const handleSignInSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSignInSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    navigate("/");
+    setErrorMsg("");
+    setIsLoading(true);
+    try {
+      const body = {
+        email: signInFormState.email,
+        password: signInFormState.password,
+      };
+      console.log("[sign-in] body:", body);
+      const result = await apiSignInWithEmail(body);
+      console.log("[sign-in] response:", result);
+      if (result.data) {
+        useAuthStore.getState().setToken(result.data.token);
+        useAuthStore.getState().setUser({
+          id: result.data.user.id,
+          name: result.data.user.name ?? result.data.user.email,
+          email: result.data.user.email,
+          role: (result.data.user.role as string) ?? "user",
+          permissions: [],
+        });
+        navigate("/");
+      } else {
+        setErrorMsg("Sign in failed. Please check your credentials.");
+      }
+    } catch {
+      setErrorMsg("Sign in failed. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -95,11 +126,18 @@ export default function SignInPage() {
                 <Button
                   type="submit"
                   size="lg"
+                  disabled={isLoading}
                   className="h-11 min-w-35 rounded-full px-8 text-base font-medium"
                 >
-                  Sign In
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
               </div>
+
+              {errorMsg && (
+                <p className="text-center text-sm text-destructive">
+                  {errorMsg}
+                </p>
+              )}
 
               <p className="pt-1 text-center text-xs text-foreground">
                 New Company?

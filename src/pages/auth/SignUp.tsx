@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import logo from "@/assets/icons/JobbyEmployer.png";
 import { useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import type { SignUpFormErrors, SignUpFormState } from "@/types/authSignUpTypes";
+import type {
+  SignUpFormErrors,
+  SignUpFormState,
+} from "@/types/authSignUpTypes";
 
 const initialFormState: SignUpFormState = {
   email: "",

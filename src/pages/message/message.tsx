@@ -92,9 +92,15 @@ const formatTime = (value?: string | null) => {
 const getDiscordTileClasses = (total: number, index: number): string => {
   if (total === 1) return "col-span-6 row-span-6 aspect-[4/3]";
   if (total === 2) return "col-span-3 row-span-3 aspect-square";
-  if (total === 3) return index === 0 ? "col-span-4 row-span-6 aspect-[4/5]" : "col-span-2 row-span-3 aspect-square";
+  if (total === 3)
+    return index === 0
+      ? "col-span-4 row-span-6 aspect-[4/5]"
+      : "col-span-2 row-span-3 aspect-square";
   if (total === 4) return "col-span-3 row-span-3 aspect-square";
-  if (total === 5) return index < 2 ? "col-span-3 row-span-3 aspect-square" : "col-span-2 row-span-3 aspect-square";
+  if (total === 5)
+    return index < 2
+      ? "col-span-3 row-span-3 aspect-square"
+      : "col-span-2 row-span-3 aspect-square";
   return "col-span-2 row-span-2 aspect-square";
 };
 
@@ -107,7 +113,11 @@ const MessageImageGrid = ({ imageUrls }: { imageUrls: string[] }) => {
           key={`${url}-${index}`}
           className={`${getDiscordTileClasses(imageUrls.length, index)} overflow-hidden rounded-md`}
         >
-          <img src={url} alt={`Attachment ${index + 1}`} className="h-full w-full object-cover" />
+          <img
+            src={url}
+            alt={`Attachment ${index + 1}`}
+            className="h-full w-full object-cover"
+          />
         </div>
       ))}
     </div>
@@ -117,10 +127,15 @@ const MessageImageGrid = ({ imageUrls }: { imageUrls: string[] }) => {
 const renderHighlightedText = (text: string, query: string) => {
   const normalizedQuery = query.trim();
   if (!normalizedQuery) return text;
-  const parts = text.split(new RegExp(`(${escapeRegExp(normalizedQuery)})`, "gi"));
+  const parts = text.split(
+    new RegExp(`(${escapeRegExp(normalizedQuery)})`, "gi"),
+  );
   return parts.map((part, index) =>
     part.toLowerCase() === normalizedQuery.toLowerCase() ? (
-      <mark key={`${part}-${index}`} className="rounded-sm bg-yellow-200/80 px-0.5 text-foreground">
+      <mark
+        key={`${part}-${index}`}
+        className="rounded-sm bg-yellow-200/80 px-0.5 text-foreground"
+      >
         {part}
       </mark>
     ) : (
@@ -135,8 +150,12 @@ const mapMessageFromApi = (
   index: number,
 ): ChatMessage => {
   const messageType = message.message_type ?? ChatMessageType.Text;
-  const parsedAttachment = parseAttachmentMessageData(message.message_data ?? "");
-  const attachmentUrls = (message.attachments ?? []).map((item) => item.url ?? "").filter(Boolean);
+  const parsedAttachment = parseAttachmentMessageData(
+    message.message_data ?? "",
+  );
+  const attachmentUrls = (message.attachments ?? [])
+    .map((item) => item.url ?? "")
+    .filter(Boolean);
   const imageUrls =
     messageType === ChatMessageType.Image
       ? attachmentUrls.length > 0
@@ -146,7 +165,8 @@ const mapMessageFromApi = (
           : undefined
       : undefined;
   const fileUrl =
-    messageType !== ChatMessageType.Text && messageType !== ChatMessageType.Image
+    messageType !== ChatMessageType.Text &&
+    messageType !== ChatMessageType.Image
       ? parsedAttachment?.url
       : undefined;
 
@@ -168,7 +188,8 @@ export default function MessagePage() {
   const authUser = useAuthStore((state) => state.user);
   const currentUserId = authUser?.id ?? "";
   const chatServiceBaseUrl = useMemo(() => {
-    const raw = import.meta.env.VITE_SOCKET_URL?.trim() || "http://localhost:3002";
+    const raw =
+      import.meta.env.VITE_SOCKET_URL?.trim() || "http://localhost:3002";
     return raw.replace(/\/$/, "");
   }, []);
 
@@ -177,10 +198,14 @@ export default function MessagePage() {
   const [selectedThreadId, setSelectedThreadId] = useState("");
   const [draft, setDraft] = useState("");
   const [pendingImages, setPendingImages] = useState<PendingImageDraft[]>([]);
-  const [pendingGenericFile, setPendingGenericFile] = useState<File | null>(null);
+  const [pendingGenericFile, setPendingGenericFile] = useState<File | null>(
+    null,
+  );
   const [attachmentUploading, setAttachmentUploading] = useState(false);
   const [socketConnected, setSocketConnected] = useState(false);
-  const [messagesByThread, setMessagesByThread] = useState<Record<string, ChatMessage[]>>({});
+  const [messagesByThread, setMessagesByThread] = useState<
+    Record<string, ChatMessage[]>
+  >({});
   const [likedMessageIds, setLikedMessageIds] = useState<string[]>([]);
 
   const selectedThreadIdRef = useRef(selectedThreadId);
@@ -197,12 +222,17 @@ export default function MessagePage() {
 
   useEffect(() => {
     return () => {
-      pendingImagesRef.current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      pendingImagesRef.current.forEach((item) =>
+        URL.revokeObjectURL(item.previewUrl),
+      );
     };
   }, []);
 
-  const selectedThread = threads.find((thread) => thread.id === selectedThreadId) ?? null;
-  const selectedMessages = selectedThread ? (messagesByThread[selectedThread.id] ?? []) : [];
+  const selectedThread =
+    threads.find((thread) => thread.id === selectedThreadId) ?? null;
+  const selectedMessages = selectedThread
+    ? (messagesByThread[selectedThread.id] ?? [])
+    : [];
 
   const visibleThreads = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -222,12 +252,15 @@ export default function MessagePage() {
       return {
         ...prev,
         [threadId]: (prev[threadId] ?? []).map((message) =>
-          message.serverId && ids.has(message.serverId) ? { ...message, read: true } : message,
+          message.serverId && ids.has(message.serverId)
+            ? { ...message, read: true }
+            : message,
         ),
       };
     });
     const socket = getSocketClient() as any;
-    if (socket?.connected) socket.emit("mark_read", { otherUserId: threadId, messageIds });
+    if (socket?.connected)
+      socket.emit("mark_read", { otherUserId: threadId, messageIds });
   };
 
   useEffect(() => {
@@ -237,7 +270,9 @@ export default function MessagePage() {
     const onConnect = () => {
       setSocketConnected(true);
       if (selectedThreadIdRef.current) {
-        socket.emit("join_conversation", { otherUserId: selectedThreadIdRef.current });
+        socket.emit("join_conversation", {
+          otherUserId: selectedThreadIdRef.current,
+        });
       }
     };
     const onDisconnect = () => setSocketConnected(false);
@@ -246,15 +281,30 @@ export default function MessagePage() {
       const receiverId = String(payload.receive_user_id ?? "").trim();
       if (!senderId || !receiverId) return;
 
-      const incomingThreadId = senderId === currentUserId ? receiverId : senderId;
+      const incomingThreadId =
+        senderId === currentUserId ? receiverId : senderId;
       const incomingList = messagesByThread[incomingThreadId] ?? [];
-      const mapped = mapMessageFromApi(payload, currentUserId, incomingList.length);
+      const mapped = mapMessageFromApi(
+        payload,
+        currentUserId,
+        incomingList.length,
+      );
       const isMine = senderId === currentUserId;
 
       setMessagesByThread((prev) => {
         const existing = prev[incomingThreadId] ?? [];
-        if (payload.id && existing.some((message) => message.serverId === payload.id)) return prev;
-        return { ...prev, [incomingThreadId]: [...existing, { ...mapped, id: existing.length + 1 }] };
+        if (
+          payload.id &&
+          existing.some((message) => message.serverId === payload.id)
+        )
+          return prev;
+        return {
+          ...prev,
+          [incomingThreadId]: [
+            ...existing,
+            { ...mapped, id: existing.length + 1 },
+          ],
+        };
       });
 
       setThreads((prev) =>
@@ -264,7 +314,10 @@ export default function MessagePage() {
                 ? thread
                 : {
                     ...thread,
-                    lastMessage: threadPreviewLabel(mapped.messageType, mapped.text),
+                    lastMessage: threadPreviewLabel(
+                      mapped.messageType,
+                      mapped.text,
+                    ),
                     lastAt: mapped.at,
                     unread:
                       selectedThreadIdRef.current === incomingThreadId || isMine
@@ -277,7 +330,10 @@ export default function MessagePage() {
                 id: incomingThreadId,
                 name: incomingThreadId,
                 role: "User",
-                lastMessage: threadPreviewLabel(mapped.messageType, mapped.text),
+                lastMessage: threadPreviewLabel(
+                  mapped.messageType,
+                  mapped.text,
+                ),
                 lastAt: mapped.at,
                 unread: isMine ? 0 : 1,
                 online: false,
@@ -286,7 +342,11 @@ export default function MessagePage() {
             ],
       );
 
-      if (!isMine && selectedThreadIdRef.current === incomingThreadId && payload.id) {
+      if (
+        !isMine &&
+        selectedThreadIdRef.current === incomingThreadId &&
+        payload.id
+      ) {
         markMessagesAsRead(incomingThreadId, [payload.id]);
       }
     };
@@ -298,7 +358,9 @@ export default function MessagePage() {
         const next: Record<string, ChatMessage[]> = {};
         for (const [threadId, messages] of Object.entries(prev)) {
           next[threadId] = messages.map((message) =>
-            message.serverId && ids.has(message.serverId) ? { ...message, read: true } : message,
+            message.serverId && ids.has(message.serverId)
+              ? { ...message, read: true }
+              : message,
           );
         }
         return next;
@@ -349,8 +411,13 @@ export default function MessagePage() {
         return;
       }
       try {
-        const params = new URLSearchParams({ userId: currentUserId, limit: "100" });
-        const response = await fetch(`${chatServiceBaseUrl}/chat/threads?${params.toString()}`);
+        const params = new URLSearchParams({
+          userId: currentUserId,
+          limit: "100",
+        });
+        const response = await fetch(
+          `${chatServiceBaseUrl}/chat/threads?${params.toString()}`,
+        );
         if (!response.ok) throw new Error();
         const data = (await response.json()) as ChatThreadApi[];
         const mapped = data.map((thread) => ({
@@ -381,15 +448,24 @@ export default function MessagePage() {
           otherUserId: selectedThreadId,
           limit: "100",
         });
-        const response = await fetch(`${chatServiceBaseUrl}/chat/conversation?${params.toString()}`);
+        const response = await fetch(
+          `${chatServiceBaseUrl}/chat/conversation?${params.toString()}`,
+        );
         if (!response.ok) throw new Error();
-        const payload = (await response.json()) as { messages?: ConversationMessageApi[] };
+        const payload = (await response.json()) as {
+          messages?: ConversationMessageApi[];
+        };
         const list = [...(payload.messages ?? [])]
           .reverse()
-          .map((message, index) => mapMessageFromApi(message, currentUserId, index));
+          .map((message, index) =>
+            mapMessageFromApi(message, currentUserId, index),
+          );
         setMessagesByThread((prev) => ({ ...prev, [selectedThreadId]: list }));
       } catch {
-        setMessagesByThread((prev) => ({ ...prev, [selectedThreadId]: prev[selectedThreadId] ?? [] }));
+        setMessagesByThread((prev) => ({
+          ...prev,
+          [selectedThreadId]: prev[selectedThreadId] ?? [],
+        }));
       }
     };
     void loadConversation();
@@ -426,9 +502,13 @@ export default function MessagePage() {
   useEffect(() => {
     if (!selectedThreadId) return;
     const unreadIncomingIds = selectedMessages
-      .filter((message) => message.from === "them" && !message.read && message.serverId)
+      .filter(
+        (message) =>
+          message.from === "them" && !message.read && message.serverId,
+      )
       .map((message) => message.serverId as string);
-    if (unreadIncomingIds.length) markMessagesAsRead(selectedThreadId, unreadIncomingIds);
+    if (unreadIncomingIds.length)
+      markMessagesAsRead(selectedThreadId, unreadIncomingIds);
   }, [selectedMessages, selectedThreadId]);
 
   const sendSocketMessage = (payload: {
@@ -464,7 +544,10 @@ export default function MessagePage() {
       body: formData,
     });
     if (!response.ok) throw new Error(await response.text());
-    const data = (await response.json()) as { publicUrl: string; signedUrl?: string };
+    const data = (await response.json()) as {
+      publicUrl: string;
+      signedUrl?: string;
+    };
     return data.signedUrl || data.publicUrl;
   };
 
@@ -489,7 +572,10 @@ export default function MessagePage() {
   const handleImageInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.currentTarget.files;
     if (!files?.length) return;
-    const allowed = Math.max(0, MAX_IMAGE_ATTACHMENTS - pendingImagesRef.current.length);
+    const allowed = Math.max(
+      0,
+      MAX_IMAGE_ATTACHMENTS - pendingImagesRef.current.length,
+    );
     if (allowed === 0) return;
     const additions: PendingImageDraft[] = [];
     for (let i = 0; i < files.length && additions.length < allowed; i += 1) {
@@ -501,12 +587,15 @@ export default function MessagePage() {
         previewUrl: URL.createObjectURL(file),
       });
     }
-    if (additions.length > 0) setPendingImages((prev) => [...prev, ...additions]);
+    if (additions.length > 0)
+      setPendingImages((prev) => [...prev, ...additions]);
     setPendingGenericFile(null);
     event.currentTarget.value = "";
   };
 
-  const handleGenericFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGenericFileInput = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (!file) return;
@@ -532,9 +621,14 @@ export default function MessagePage() {
       }
       if (pendingGenericFile) {
         const isImage = pendingGenericFile.type.startsWith("image/");
-        const url = await uploadChatAsset(pendingGenericFile, isImage ? "image" : "file");
+        const url = await uploadChatAsset(
+          pendingGenericFile,
+          isImage ? "image" : "file",
+        );
         sendSocketMessage({
-          messageType: isImage ? ChatMessageType.Image : inferMessageTypeFromFile(pendingGenericFile),
+          messageType: isImage
+            ? ChatMessageType.Image
+            : inferMessageTypeFromFile(pendingGenericFile),
           messageData: buildAttachmentMessageData(url, pendingGenericFile.name),
           onErrorMessage: "File send failed:",
         });
@@ -580,9 +674,15 @@ export default function MessagePage() {
           <div className="mb-4 mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
             <h1 className="text-2xl font-medium">Message</h1>
             <div className="w-full sm:max-w-72">
-              <Input placeholder="Search" value={query} onChange={(event) => setQuery(event.target.value)} />
+              <Input
+                placeholder="Search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
             </div>
-            <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${socketConnected ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+            <span
+              className={`rounded-full px-2 py-1 text-[10px] font-medium ${socketConnected ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}
+            >
               {socketConnected ? "Live" : "Offline"}
             </span>
           </div>
@@ -591,28 +691,49 @@ export default function MessagePage() {
             <div className="flex h-full min-h-0">
               <aside className="w-[35%] min-w-75 border-r border-border">
                 <div className="h-full overflow-y-auto">
-                  {visibleThreads.length === 0 && <div className="px-4 py-6 text-sm text-muted-foreground">No matching chats or messages.</div>}
+                  {visibleThreads.length === 0 && (
+                    <div className="px-4 py-6 text-sm text-muted-foreground">
+                      No matching chats or messages.
+                    </div>
+                  )}
                   {visibleThreads.map((thread) => (
-                    <div key={thread.id} className={`group/conv relative border-b border-border transition-colors ${thread.id === selectedThreadId ? "border-l-2 border-l-primary bg-muted/40" : "hover:bg-muted/20"}`}>
+                    <div
+                      key={thread.id}
+                      className={`group/conv relative border-b border-border transition-colors ${thread.id === selectedThreadId ? "border-l-2 border-l-primary bg-muted/40" : "hover:bg-muted/20"}`}
+                    >
                       <button
                         type="button"
                         onClick={() => {
                           setSelectedThreadId(thread.id);
-                          setThreads((prev) => prev.map((item) => (item.id === thread.id ? { ...item, unread: 0 } : item)));
+                          setThreads((prev) =>
+                            prev.map((item) =>
+                              item.id === thread.id
+                                ? { ...item, unread: 0 }
+                                : item,
+                            ),
+                          );
                         }}
                         className="w-full px-4 py-3 pr-10 text-left"
                       >
                         <div className="flex items-start gap-3">
                           <div className="relative shrink-0">
                             <div className="size-14 rounded-full bg-muted" />
-                            {thread.unread > 0 && <Pin className="absolute -right-1 -top-1 size-3.5 fill-primary text-primary" />}
+                            {thread.unread > 0 && (
+                              <Pin className="absolute -right-1 -top-1 size-3.5 fill-primary text-primary" />
+                            )}
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
-                              <p className="text-xl font-medium">{renderHighlightedText(thread.name, query)}</p>
-                              <span className="shrink-0 text-sm text-muted-foreground">{thread.lastAt}</span>
+                              <p className="text-xl font-medium">
+                                {renderHighlightedText(thread.name, query)}
+                              </p>
+                              <span className="shrink-0 text-sm text-muted-foreground">
+                                {thread.lastAt}
+                              </span>
                             </div>
-                            <p className="truncate text-base text-muted-foreground">{renderHighlightedText(thread.lastMessage, query)}</p>
+                            <p className="truncate text-base text-muted-foreground">
+                              {renderHighlightedText(thread.lastMessage, query)}
+                            </p>
                           </div>
                         </div>
                       </button>
@@ -644,8 +765,12 @@ export default function MessagePage() {
                         />
                       ) : (
                         <div>
-                          <h2 className="text-2xl font-medium">{selectedThread?.name ?? "Select conversation"}</h2>
-                          <p className="text-sm text-muted-foreground">{selectedThread?.role ?? "No active conversation"}</p>
+                          <h2 className="text-2xl font-medium">
+                            {selectedThread?.name ?? "Select conversation"}
+                          </h2>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedThread?.role ?? "No active conversation"}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -696,7 +821,11 @@ export default function MessagePage() {
                 </div>
 
                 <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-4">
-                  {!selectedThread && <p className="text-sm text-muted-foreground">Pick a conversation from the left.</p>}
+                  {!selectedThread && (
+                    <p className="text-sm text-muted-foreground">
+                      Pick a conversation from the left.
+                    </p>
+                  )}
                   {selectedMessages.map((message) => {
                     const mine = message.from === "me";
                     const likeKey = message.serverId ?? String(message.id);
@@ -707,13 +836,27 @@ export default function MessagePage() {
                           <div className="absolute right-2 top-0 z-10 flex -translate-y-1/2 items-center gap-1 rounded-xl border border-border bg-background p-1 opacity-0 shadow-sm transition-opacity duration-150 group-hover/message:opacity-100">
                             <button
                               type="button"
-                              onClick={() => setLikedMessageIds((prev) => (prev.includes(likeKey) ? prev.filter((id) => id !== likeKey) : [...prev, likeKey]))}
+                              onClick={() =>
+                                setLikedMessageIds((prev) =>
+                                  prev.includes(likeKey)
+                                    ? prev.filter((id) => id !== likeKey)
+                                    : [...prev, likeKey],
+                                )
+                              }
                               className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
-                              <Heart className={`size-4 ${isLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}`} />
+                              <Heart
+                                className={`size-4 ${isLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+                              />
                             </button>
                             {mine && (
-                              <button type="button" onClick={() => void handleDeleteMessage(message.serverId)} className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void handleDeleteMessage(message.serverId)
+                                }
+                                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                              >
                                 <Trash2 className="size-4" />
                               </button>
                             )}
@@ -721,12 +864,23 @@ export default function MessagePage() {
                           <div className="mt-1 size-10 shrink-0 rounded-full bg-muted" />
                           <div className="min-w-0 flex-1">
                             <div className="mb-1 flex items-center gap-2">
-                              <p className="text-xl font-medium">{mine ? "You" : selectedThread?.name}</p>
-                              <span className="text-xs text-muted-foreground">{message.at}</span>
+                              <p className="text-xl font-medium">
+                                {mine ? "You" : selectedThread?.name}
+                              </p>
+                              <span className="text-xs text-muted-foreground">
+                                {message.at}
+                              </span>
                             </div>
-                            <MessageImageGrid imageUrls={message.imageUrls ?? []} />
+                            <MessageImageGrid
+                              imageUrls={message.imageUrls ?? []}
+                            />
                             {message.fileUrl ? (
-                              <a href={message.fileUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                              <a
+                                href={message.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline"
+                              >
                                 📎 {message.fileName ?? "Download file"}
                               </a>
                             ) : (
@@ -742,18 +896,41 @@ export default function MessagePage() {
                 </div>
 
                 <div className="border-t border-border px-4 py-3">
-                  <input id="employer-chat-image-upload" type="file" multiple accept="image/*" className="hidden" onChange={handleImageInput} />
-                  <input id="employer-chat-file-upload" type="file" className="hidden" onChange={handleGenericFileInput} />
+                  <input
+                    id="employer-chat-image-upload"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageInput}
+                  />
+                  <input
+                    id="employer-chat-file-upload"
+                    type="file"
+                    className="hidden"
+                    onChange={handleGenericFileInput}
+                  />
                   {pendingImages.length > 0 && (
                     <div className="mb-3 rounded-xl bg-muted/40 p-2">
                       <div className="mb-2 flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">{pendingImages.length}/{MAX_IMAGE_ATTACHMENTS} photos selected</p>
+                        <p className="text-xs text-muted-foreground">
+                          {pendingImages.length}/{MAX_IMAGE_ATTACHMENTS} photos
+                          selected
+                        </p>
                       </div>
                       <div className="grid grid-cols-5 gap-2">
                         {pendingImages.map((item, index) => (
                           <div key={item.id} className="relative">
-                            <img src={item.previewUrl} alt={`Pending upload ${index + 1}`} className="h-20 w-full rounded-lg border border-border object-cover" />
-                            <button type="button" onClick={() => removePendingImage(item.id)} className="absolute -right-2 -top-2 rounded-full border border-border bg-background p-1 text-foreground">
+                            <img
+                              src={item.previewUrl}
+                              alt={`Pending upload ${index + 1}`}
+                              className="h-20 w-full rounded-lg border border-border object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removePendingImage(item.id)}
+                              className="absolute -right-2 -top-2 rounded-full border border-border bg-background p-1 text-foreground"
+                            >
                               <X className="size-3" />
                             </button>
                           </div>
@@ -762,10 +939,30 @@ export default function MessagePage() {
                     </div>
                   )}
                   <div className="flex items-end gap-2">
-                    <Button type="button" variant="ghost" size="icon" className="text-muted-foreground" onClick={() => document.getElementById("employer-chat-image-upload")?.click()}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground"
+                      onClick={() =>
+                        document
+                          .getElementById("employer-chat-image-upload")
+                          ?.click()
+                      }
+                    >
                       <Image className="size-5" />
                     </Button>
-                    <Button type="button" variant="ghost" size="icon" className="text-muted-foreground" onClick={() => document.getElementById("employer-chat-file-upload")?.click()}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground"
+                      onClick={() =>
+                        document
+                          .getElementById("employer-chat-file-upload")
+                          ?.click()
+                      }
+                    >
                       <FileText className="size-5" />
                     </Button>
                     <div className="flex-1">
@@ -774,16 +971,40 @@ export default function MessagePage() {
                         rows={1}
                         placeholder="Aa"
                         value={draft}
-                        onChange={(event) => handleDraftChange(event.target.value)}
+                        onChange={(event) =>
+                          handleDraftChange(event.target.value)
+                        }
                         onKeyDown={(event) => {
-                          if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+                          if (
+                            event.key !== "Enter" ||
+                            event.shiftKey ||
+                            event.nativeEvent.isComposing
+                          )
+                            return;
                           event.preventDefault();
                           void handleSendComposer();
                         }}
                         className="border-input focus-visible:border-ring focus-visible:ring-ring/50 mb-[-1.5%] min-h-10 max-h-44 w-full resize-none rounded-3xl border bg-transparent px-4 py-2 leading-6 outline-none transition-[color,box-shadow] focus-visible:ring-[3px]"
                       />
                     </div>
-                    <Button type="button" variant={draft.trim() || pendingImages.length || pendingGenericFile ? "default" : "ghost"} className={draft.trim() || pendingImages.length || pendingGenericFile ? "gap-1 px-4" : "gap-1 text-muted-foreground"} onClick={() => void handleSendComposer()}>
+                    <Button
+                      type="button"
+                      variant={
+                        draft.trim() ||
+                        pendingImages.length ||
+                        pendingGenericFile
+                          ? "default"
+                          : "ghost"
+                      }
+                      className={
+                        draft.trim() ||
+                        pendingImages.length ||
+                        pendingGenericFile
+                          ? "gap-1 px-4"
+                          : "gap-1 text-muted-foreground"
+                      }
+                      onClick={() => void handleSendComposer()}
+                    >
                       <ArrowUp className="size-4" />
                       send
                     </Button>

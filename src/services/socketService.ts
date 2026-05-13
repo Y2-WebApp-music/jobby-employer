@@ -10,7 +10,10 @@ export const ChatMessageType = {
   FileOther: 6,
 } as const;
 
-export function buildAttachmentMessageData(url: string, fileName: string): string {
+export function buildAttachmentMessageData(
+  url: string,
+  fileName: string,
+): string {
   return JSON.stringify({ url, name: fileName });
 }
 
@@ -42,7 +45,8 @@ export function inferMessageTypeFromFile(file: File): number {
   const mime = file.type.toLowerCase();
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   if (mime.startsWith("image/")) return ChatMessageType.Image;
-  if (ext === "pdf" || mime === "application/pdf") return ChatMessageType.FilePdf;
+  if (ext === "pdf" || mime === "application/pdf")
+    return ChatMessageType.FilePdf;
   if (
     ["doc", "docx"].includes(ext) ||
     mime.includes("wordprocessingml") ||
