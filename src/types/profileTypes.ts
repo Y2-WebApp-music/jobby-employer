@@ -90,11 +90,11 @@ export interface ProfileUpdateCompanyInfoRequest {
   moo: string;
   soi: string;
   street: string;
-  sub_district_id: number;
-  district_id: number;
-  province_id: number;
-  country_id: number;
-  postal_code: number;
+  sub_district_id?: number;
+  district_id?: number;
+  province_id?: number;
+  country_id?: number;
+  postal_code?: number;
   contacts: ProfileUpdateCompanyInfoContactItem[];
 }
 

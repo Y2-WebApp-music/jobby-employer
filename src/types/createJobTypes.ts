@@ -163,18 +163,42 @@ export type SortableAnswerItemProps = {
 
 export type Skill = {
   id: string;
+  skill_id: string;
   name: string;
   category: string;
   description: string;
   preSkills: string[];
 };
 
+export type SkillSearchResultItem = {
+  skill_id: string;
+  skill_name?: string;
+  name?: string;
+  category?: string;
+  description?: string;
+};
+
+export type UtilityWorkOption = {
+  id: number;
+  text_th: string;
+  text_eng: string;
+};
+
+export type UtilityWorkType = {
+  id: number;
+  text_th: string;
+  text_eng: string;
+};
+
+export type UtilityOptionTypeResponse = {
+  work_option: UtilityWorkOption[];
+  work_type: UtilityWorkType[];
+};
+
 export type CreateJobAddSkillPopupProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  searchValue: string;
-  onSearchChange: (value: string) => void;
-  onSubmit: (skillName: string) => void;
+  onSubmit: (skill: SkillRequest) => void;
 };
 
 export type SkillDetailPopupProps = {

@@ -38,6 +38,18 @@ export type {
   ProfileUpdateCompanyMediaResponse,
 } from "@/types/profileTypes";
 
+// get {{employer-bff}}/company/user/:user_id/company-id
+export const apiGetCompanyIdByUserId = (userId: string) => {
+  return apiService.fetchData<{
+    user_id: string;
+    company_id: string;
+    company_ids: string[];
+  }>({
+    url: `/company/user/${userId}/company-id`,
+    method: "get",
+  });
+};
+
 // get {{employer-bff}}/company/:company_id     company profile
 export const apiGetProfileCompanyProfile = (companyId: string) => {
   return apiService.fetchData<ProfileCompanyProfileResponse>({

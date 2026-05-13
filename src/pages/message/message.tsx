@@ -19,6 +19,12 @@ import {
 } from "@/services/socketService";
 import { useAuthStore } from "@/store/auth";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ArrowUp,
   ChevronLeft,
   ChevronRight,
@@ -101,9 +107,15 @@ const formatTime = (value?: string | null) => {
 const getDiscordTileClasses = (total: number, index: number): string => {
   if (total === 1) return "col-span-6 row-span-6 aspect-[4/3]";
   if (total === 2) return "col-span-3 row-span-3 aspect-square";
-  if (total === 3) return index === 0 ? "col-span-4 row-span-6 aspect-[4/5]" : "col-span-2 row-span-3 aspect-square";
+  if (total === 3)
+    return index === 0
+      ? "col-span-4 row-span-6 aspect-[4/5]"
+      : "col-span-2 row-span-3 aspect-square";
   if (total === 4) return "col-span-3 row-span-3 aspect-square";
-  if (total === 5) return index < 2 ? "col-span-3 row-span-3 aspect-square" : "col-span-2 row-span-3 aspect-square";
+  if (total === 5)
+    return index < 2
+      ? "col-span-3 row-span-3 aspect-square"
+      : "col-span-2 row-span-3 aspect-square";
   return "col-span-2 row-span-2 aspect-square";
 };
 
@@ -138,10 +150,15 @@ const MessageImageGrid = ({
 const renderHighlightedText = (text: string, query: string) => {
   const normalizedQuery = query.trim();
   if (!normalizedQuery) return text;
-  const parts = text.split(new RegExp(`(${escapeRegExp(normalizedQuery)})`, "gi"));
+  const parts = text.split(
+    new RegExp(`(${escapeRegExp(normalizedQuery)})`, "gi"),
+  );
   return parts.map((part, index) =>
     part.toLowerCase() === normalizedQuery.toLowerCase() ? (
-      <mark key={`${part}-${index}`} className="rounded-sm bg-yellow-200/80 px-0.5 text-foreground">
+      <mark
+        key={`${part}-${index}`}
+        className="rounded-sm bg-yellow-200/80 px-0.5 text-foreground"
+      >
         {part}
       </mark>
     ) : (
@@ -156,8 +173,12 @@ const mapMessageFromApi = (
   index: number,
 ): ChatMessage => {
   const messageType = message.message_type ?? ChatMessageType.Text;
-  const parsedAttachment = parseAttachmentMessageData(message.message_data ?? "");
-  const attachmentUrls = (message.attachments ?? []).map((item) => item.url ?? "").filter(Boolean);
+  const parsedAttachment = parseAttachmentMessageData(
+    message.message_data ?? "",
+  );
+  const attachmentUrls = (message.attachments ?? [])
+    .map((item) => item.url ?? "")
+    .filter(Boolean);
   const imageUrls =
     messageType === ChatMessageType.Image
       ? attachmentUrls.length > 0
@@ -167,7 +188,8 @@ const mapMessageFromApi = (
           : undefined
       : undefined;
   const fileUrl =
-    messageType !== ChatMessageType.Text && messageType !== ChatMessageType.Image
+    messageType !== ChatMessageType.Text &&
+    messageType !== ChatMessageType.Image
       ? parsedAttachment?.url
       : undefined;
 
@@ -190,7 +212,8 @@ export default function MessagePage() {
   const authUser = useAuthStore((state) => state.user);
   const currentUserId = authUser?.id ?? "";
   const chatServiceBaseUrl = useMemo(() => {
-    const raw = import.meta.env.VITE_SOCKET_URL?.trim() || "http://localhost:3002";
+    const raw =
+      import.meta.env.VITE_SOCKET_URL?.trim() || "http://localhost:3002";
     return raw.replace(/\/$/, "");
   }, []);
 
@@ -199,10 +222,14 @@ export default function MessagePage() {
   const [selectedThreadId, setSelectedThreadId] = useState("");
   const [draft, setDraft] = useState("");
   const [pendingImages, setPendingImages] = useState<PendingImageDraft[]>([]);
-  const [pendingGenericFile, setPendingGenericFile] = useState<File | null>(null);
+  const [pendingGenericFile, setPendingGenericFile] = useState<File | null>(
+    null,
+  );
   const [attachmentUploading, setAttachmentUploading] = useState(false);
   const [socketConnected, setSocketConnected] = useState(false);
-  const [messagesByThread, setMessagesByThread] = useState<Record<string, ChatMessage[]>>({});
+  const [messagesByThread, setMessagesByThread] = useState<
+    Record<string, ChatMessage[]>
+  >({});
   const [likedMessageIds, setLikedMessageIds] = useState<string[]>([]);
   const [likesCountByMessageId, setLikesCountByMessageId] = useState<Record<string, number>>({});
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
@@ -213,6 +240,9 @@ export default function MessagePage() {
 
   const selectedThreadIdRef = useRef(selectedThreadId);
   const pendingImagesRef = useRef(pendingImages);
+  const [isEditingChatName, setIsEditingChatName] = useState(false);
+  const [editingChatNameValue, setEditingChatNameValue] = useState("");
+  const chatNameInputRef = useRef<HTMLInputElement | null>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   pendingImagesRef.current = pendingImages;
@@ -224,7 +254,9 @@ export default function MessagePage() {
 
   useEffect(() => {
     return () => {
-      pendingImagesRef.current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      pendingImagesRef.current.forEach((item) =>
+        URL.revokeObjectURL(item.previewUrl),
+      );
     };
   }, []);
 
@@ -291,12 +323,15 @@ export default function MessagePage() {
       return {
         ...prev,
         [threadId]: (prev[threadId] ?? []).map((message) =>
-          message.serverId && ids.has(message.serverId) ? { ...message, read: true } : message,
+          message.serverId && ids.has(message.serverId)
+            ? { ...message, read: true }
+            : message,
         ),
       };
     });
     const socket = getSocketClient() as any;
-    if (socket?.connected) socket.emit("mark_read", { otherUserId: threadId, messageIds });
+    if (socket?.connected)
+      socket.emit("mark_read", { otherUserId: threadId, messageIds });
   };
 
   useEffect(() => {
@@ -306,7 +341,9 @@ export default function MessagePage() {
     const onConnect = () => {
       setSocketConnected(true);
       if (selectedThreadIdRef.current) {
-        socket.emit("join_conversation", { otherUserId: selectedThreadIdRef.current });
+        socket.emit("join_conversation", {
+          otherUserId: selectedThreadIdRef.current,
+        });
       }
     };
     const onDisconnect = () => setSocketConnected(false);
@@ -315,15 +352,30 @@ export default function MessagePage() {
       const receiverId = String(payload.receive_user_id ?? "").trim();
       if (!senderId || !receiverId) return;
 
-      const incomingThreadId = senderId === currentUserId ? receiverId : senderId;
+      const incomingThreadId =
+        senderId === currentUserId ? receiverId : senderId;
       const incomingList = messagesByThread[incomingThreadId] ?? [];
-      const mapped = mapMessageFromApi(payload, currentUserId, incomingList.length);
+      const mapped = mapMessageFromApi(
+        payload,
+        currentUserId,
+        incomingList.length,
+      );
       const isMine = senderId === currentUserId;
 
       setMessagesByThread((prev) => {
         const existing = prev[incomingThreadId] ?? [];
-        if (payload.id && existing.some((message) => message.serverId === payload.id)) return prev;
-        return { ...prev, [incomingThreadId]: [...existing, { ...mapped, id: existing.length + 1 }] };
+        if (
+          payload.id &&
+          existing.some((message) => message.serverId === payload.id)
+        )
+          return prev;
+        return {
+          ...prev,
+          [incomingThreadId]: [
+            ...existing,
+            { ...mapped, id: existing.length + 1 },
+          ],
+        };
       });
 
       setThreads((prev) =>
@@ -333,7 +385,10 @@ export default function MessagePage() {
                 ? thread
                 : {
                     ...thread,
-                    lastMessage: threadPreviewLabel(mapped.messageType, mapped.text),
+                    lastMessage: threadPreviewLabel(
+                      mapped.messageType,
+                      mapped.text,
+                    ),
                     lastAt: mapped.at,
                     unread:
                       selectedThreadIdRef.current === incomingThreadId || isMine
@@ -346,7 +401,10 @@ export default function MessagePage() {
                 id: incomingThreadId,
                 name: incomingThreadId,
                 role: "User",
-                lastMessage: threadPreviewLabel(mapped.messageType, mapped.text),
+                lastMessage: threadPreviewLabel(
+                  mapped.messageType,
+                  mapped.text,
+                ),
                 lastAt: mapped.at,
                 unread: isMine ? 0 : 1,
                 online: false,
@@ -355,7 +413,11 @@ export default function MessagePage() {
             ],
       );
 
-      if (!isMine && selectedThreadIdRef.current === incomingThreadId && payload.id) {
+      if (
+        !isMine &&
+        selectedThreadIdRef.current === incomingThreadId &&
+        payload.id
+      ) {
         markMessagesAsRead(incomingThreadId, [payload.id]);
       }
     };
@@ -367,7 +429,9 @@ export default function MessagePage() {
         const next: Record<string, ChatMessage[]> = {};
         for (const [threadId, messages] of Object.entries(prev)) {
           next[threadId] = messages.map((message) =>
-            message.serverId && ids.has(message.serverId) ? { ...message, read: true } : message,
+            message.serverId && ids.has(message.serverId)
+              ? { ...message, read: true }
+              : message,
           );
         }
         return next;
@@ -429,8 +493,13 @@ export default function MessagePage() {
         return;
       }
       try {
-        const params = new URLSearchParams({ userId: currentUserId, limit: "100" });
-        const response = await fetch(`${chatServiceBaseUrl}/chat/threads?${params.toString()}`);
+        const params = new URLSearchParams({
+          userId: currentUserId,
+          limit: "100",
+        });
+        const response = await fetch(
+          `${chatServiceBaseUrl}/chat/threads?${params.toString()}`,
+        );
         if (!response.ok) throw new Error();
         const data = (await response.json()) as ChatThreadApi[];
         const mapped = data.map((thread) => ({
@@ -461,26 +530,67 @@ export default function MessagePage() {
           otherUserId: selectedThreadId,
           limit: "100",
         });
-        const response = await fetch(`${chatServiceBaseUrl}/chat/conversation?${params.toString()}`);
+        const response = await fetch(
+          `${chatServiceBaseUrl}/chat/conversation?${params.toString()}`,
+        );
         if (!response.ok) throw new Error();
-        const payload = (await response.json()) as { messages?: ConversationMessageApi[] };
+        const payload = (await response.json()) as {
+          messages?: ConversationMessageApi[];
+        };
         const list = [...(payload.messages ?? [])]
           .reverse()
-          .map((message, index) => mapMessageFromApi(message, currentUserId, index));
+          .map((message, index) =>
+            mapMessageFromApi(message, currentUserId, index),
+          );
         setMessagesByThread((prev) => ({ ...prev, [selectedThreadId]: list }));
       } catch {
-        setMessagesByThread((prev) => ({ ...prev, [selectedThreadId]: prev[selectedThreadId] ?? [] }));
+        setMessagesByThread((prev) => ({
+          ...prev,
+          [selectedThreadId]: prev[selectedThreadId] ?? [],
+        }));
       }
     };
     void loadConversation();
   }, [chatServiceBaseUrl, currentUserId, selectedThreadId]);
 
+  const handleStartEditChatName = () => {
+    setEditingChatNameValue(selectedThread?.name ?? "");
+    setIsEditingChatName(true);
+    window.setTimeout(() => {
+      chatNameInputRef.current?.focus();
+      chatNameInputRef.current?.select();
+    }, 0);
+  };
+
+  const handleConfirmChatName = () => {
+    const trimmed = editingChatNameValue.trim();
+    if (trimmed) {
+      setThreads((previous) =>
+        previous.map((thread) =>
+          thread.id === selectedThreadId
+            ? { ...thread, name: trimmed }
+            : thread,
+        ),
+      );
+    }
+    setIsEditingChatName(false);
+  };
+
+  const handleCancelEditChatName = () => {
+    setIsEditingChatName(false);
+    setEditingChatNameValue("");
+  };
+
   useEffect(() => {
     if (!selectedThreadId) return;
     const unreadIncomingIds = selectedMessages
-      .filter((message) => message.from === "them" && !message.read && message.serverId)
+      .filter(
+        (message) =>
+          message.from === "them" && !message.read && message.serverId,
+      )
       .map((message) => message.serverId as string);
-    if (unreadIncomingIds.length) markMessagesAsRead(selectedThreadId, unreadIncomingIds);
+    if (unreadIncomingIds.length)
+      markMessagesAsRead(selectedThreadId, unreadIncomingIds);
   }, [selectedMessages, selectedThreadId]);
 
   useEffect(() => {
@@ -578,7 +688,10 @@ export default function MessagePage() {
       body: formData,
     });
     if (!response.ok) throw new Error(await response.text());
-    const data = (await response.json()) as { publicUrl: string; signedUrl?: string };
+    const data = (await response.json()) as {
+      publicUrl: string;
+      signedUrl?: string;
+    };
     return data.signedUrl || data.publicUrl;
   };
 
@@ -655,7 +768,10 @@ export default function MessagePage() {
   const handleImageInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.currentTarget.files;
     if (!files?.length) return;
-    const allowed = Math.max(0, MAX_IMAGE_ATTACHMENTS - pendingImagesRef.current.length);
+    const allowed = Math.max(
+      0,
+      MAX_IMAGE_ATTACHMENTS - pendingImagesRef.current.length,
+    );
     if (allowed === 0) return;
     const additions: PendingImageDraft[] = [];
     for (let i = 0; i < files.length && additions.length < allowed; i += 1) {
@@ -667,12 +783,15 @@ export default function MessagePage() {
         previewUrl: URL.createObjectURL(file),
       });
     }
-    if (additions.length > 0) setPendingImages((prev) => [...prev, ...additions]);
+    if (additions.length > 0)
+      setPendingImages((prev) => [...prev, ...additions]);
     setPendingGenericFile(null);
     event.currentTarget.value = "";
   };
 
-  const handleGenericFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGenericFileInput = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (!file) return;
@@ -709,7 +828,10 @@ export default function MessagePage() {
       }
       if (pendingGenericFile) {
         const isImage = pendingGenericFile.type.startsWith("image/");
-        const url = await uploadChatAsset(pendingGenericFile, isImage ? "image" : "file");
+        const url = await uploadChatAsset(
+          pendingGenericFile,
+          isImage ? "image" : "file",
+        );
         sendSocketMessage({
           messageType: isImage ? ChatMessageType.Image : inferMessageTypeFromFile(pendingGenericFile),
           ...(isImage

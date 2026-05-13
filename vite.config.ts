@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   const betterAuthProxyTarget = (
     env.VITE_BETTER_AUTH_PROXY_TARGET
   ).trim();
+  const appBaseURL = (env.VITE_APP_BASE_URL ?? "").trim();
 
   return {
     plugins: [react(), tailwindcss(), svgr()],
@@ -20,8 +21,30 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        "/api/auth-employer": {
+          target: betterAuthProxyTarget,
+          changeOrigin: true,
+          cookieDomainRewrite: "localhost",
+        },
         "/api/auth": {
           target: betterAuthProxyTarget,
+          changeOrigin: true,
+          cookieDomainRewrite: "localhost",
+        },
+        "/company": {
+          target: appBaseURL,
+          changeOrigin: true,
+        },
+        "/job": {
+          target: appBaseURL,
+          changeOrigin: true,
+        },
+        "/utility": {
+          target: appBaseURL,
+          changeOrigin: true,
+        },
+        "/api": {
+          target: appBaseURL,
           changeOrigin: true,
         },
       },

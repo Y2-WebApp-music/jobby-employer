@@ -37,7 +37,6 @@ const readPersistedAuthToken = (): string | null => {
 
 const httpClient: AxiosInstance = axios.create({
   timeout: 60000,
-  baseURL: (import.meta.env.VITE_APP_BASE_URL ?? "").trim(),
   headers: { "Content-Type": "application/json" },
 });
 
@@ -45,9 +44,15 @@ httpClient.interceptors.request.use(
   (config) => {
     config.withCredentials = true;
     const token =
-      readSessionTokenFromCookie() ??
       useAuthStore.getState().getToken() ??
+      readSessionTokenFromCookie() ??
       readPersistedAuthToken();
+    console.log(
+      "[httpClient] url:",
+      config.url,
+      "| token:",
+      token ? token.slice(0, 8) + "..." : null,
+    );
     if (token) {
       const headers = AxiosHeaders.from(config.headers);
       headers.set("Authorization", `Bearer ${token}`);
