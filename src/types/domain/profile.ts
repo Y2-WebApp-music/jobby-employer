@@ -24,6 +24,14 @@ export type CompanyProfileDetails = {
   phone: string;
   email: string;
   address: string;
+  addressNo: string;
+  addressMoo: string;
+  addressSoi: string;
+  addressStreet: string;
+  addressProvince: string;
+  addressDistrict: string;
+  addressSubDistrict: string;
+  addressPostalCode: string;
   mediaLinks: CompanyMediaLink[];
 };
 
@@ -39,5 +47,5 @@ export type ProfileCompanyProfilePicturePopupProps = {
   value: string;
   companyName: string;
   onOpenChange: (open: boolean) => void;
-  onSave: (value: string) => void;
+  onSave: (imageUrl: string, file?: File) => void;
 };
