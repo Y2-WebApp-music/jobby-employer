@@ -24,6 +24,7 @@ export default function ProfileCompanyProfilePicturePopup({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraftImageUrl(value);
       setDraftFile(null);
       setErrorMessage("");

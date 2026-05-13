@@ -1,5 +1,5 @@
 import PageLayout from "@/components/layout/PageLayout";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -89,47 +89,47 @@ export function ApplymonitorPage() {
     return ["react", "communication"];
   };
 
-  const matchesSelectedFilters = ({
-    id,
-    status,
-  }: {
-    id: number;
-    status: "Apply" | "Open";
-  }) => {
-    const normalizedStatus = status.toLowerCase();
-    const jobStatus = getJobStatus(id);
-    const workCategory = getWorkCategory(id);
-    const skills = getSkills(id);
+  const matchesSelectedFilters = useCallback(
+    ({ id, status }: { id: number; status: "Apply" | "Open" }) => {
+      const normalizedStatus = status.toLowerCase();
+      const jobStatus = getJobStatus(id);
+      const workCategory = getWorkCategory(id);
+      const skills = getSkills(id);
 
-    const matchesApplyStatus =
-      applyStatusValues.length === 0 ||
-      applyStatusValues.includes(normalizedStatus);
-    const matchesJobStatus =
-      jobStatusValues.length === 0 || jobStatusValues.includes(jobStatus);
-    const matchesWorkCategory =
-      workCategoryValues.length === 0 ||
-      workCategoryValues.includes(workCategory);
-    const matchesSkill =
-      skillValues.length === 0 ||
-      skillValues.some((skill) => skills.includes(skill));
+      const matchesApplyStatus =
+        applyStatusValues.length === 0 ||
+        applyStatusValues.includes(normalizedStatus);
+      const matchesJobStatus =
+        jobStatusValues.length === 0 || jobStatusValues.includes(jobStatus);
+      const matchesWorkCategory =
+        workCategoryValues.length === 0 ||
+        workCategoryValues.includes(workCategory);
+      const matchesSkill =
+        skillValues.length === 0 ||
+        skillValues.some((skill) => skills.includes(skill));
 
-    return (
-      matchesApplyStatus &&
-      matchesJobStatus &&
-      matchesWorkCategory &&
-      matchesSkill
-    );
-  };
+      return (
+        matchesApplyStatus &&
+        matchesJobStatus &&
+        matchesWorkCategory &&
+        matchesSkill
+      );
+    },
+    [applyStatusValues, jobStatusValues, skillValues, workCategoryValues],
+  );
 
-  const sortByCreateDate = <T extends { create_date: string }>(cards: T[]) => {
-    const sortedCards = [...cards].sort(
-      (firstCard, secondCard) =>
-        new Date(firstCard.create_date).getTime() -
-        new Date(secondCard.create_date).getTime(),
-    );
+  const sortByCreateDate = useCallback(
+    <T extends { create_date: string }>(cards: T[]) => {
+      const sortedCards = [...cards].sort(
+        (firstCard, secondCard) =>
+          new Date(firstCard.create_date).getTime() -
+          new Date(secondCard.create_date).getTime(),
+      );
 
-    return sortBy === "oldest" ? sortedCards : sortedCards.reverse();
-  };
+      return sortBy === "oldest" ? sortedCards : sortedCards.reverse();
+    },
+    [sortBy],
+  );
 
   const filteredNewAppliedCards = useMemo(() => {
     const normalizedApplyQuery = searchApplyQuery.trim().toLowerCase();
@@ -146,14 +146,7 @@ export function ApplymonitorPage() {
     });
 
     return sortByCreateDate(filteredCards);
-  }, [
-    searchApplyQuery,
-    applyStatusValues,
-    jobStatusValues,
-    workCategoryValues,
-    skillValues,
-    sortBy,
-  ]);
+  }, [matchesSelectedFilters, searchApplyQuery, sortByCreateDate]);
 
   const filteredActivityCards = useMemo(() => {
     const normalizedJobQuery = searchJobQuery.trim().toLowerCase();
@@ -173,14 +166,7 @@ export function ApplymonitorPage() {
     });
 
     return sortByCreateDate(filteredCards);
-  }, [
-    searchJobQuery,
-    applyStatusValues,
-    jobStatusValues,
-    workCategoryValues,
-    skillValues,
-    sortBy,
-  ]);
+  }, [matchesSelectedFilters, searchJobQuery, sortByCreateDate]);
 
   const cardsPerPage = 6;
   const totalCards = filteredNewAppliedCards.length;
@@ -191,25 +177,15 @@ export function ApplymonitorPage() {
     Math.ceil(totalActivityCards / cardsPerPage),
   );
 
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
-
-  useEffect(() => {
-    if (activityPage > totalActivityPages) {
-      setActivityPage(totalActivityPages);
-    }
-  }, [activityPage, totalActivityPages]);
-
-  const startIndex = (currentPage - 1) * cardsPerPage;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const safeActivityPage = Math.min(activityPage, totalActivityPages);
+  const startIndex = (safeCurrentPage - 1) * cardsPerPage;
   const endIndex = startIndex + cardsPerPage;
   const pagedNewAppliedCards = filteredNewAppliedCards.slice(
     startIndex,
     endIndex,
   );
-  const activityStartIndex = (activityPage - 1) * cardsPerPage;
+  const activityStartIndex = (safeActivityPage - 1) * cardsPerPage;
   const activityEndIndex = activityStartIndex + cardsPerPage;
   const pagedActivityCards = filteredActivityCards.slice(
     activityStartIndex,
@@ -471,7 +447,7 @@ export function ApplymonitorPage() {
           {!isLatestJobOnlyMode && (
             <SectionPagination
               total={totalCards}
-              currentPage={currentPage}
+              currentPage={safeCurrentPage}
               onPageChange={setCurrentPage}
               perPage={cardsPerPage}
             />
@@ -626,7 +602,7 @@ export function ApplymonitorPage() {
 
               <SectionPagination
                 total={totalActivityCards}
-                currentPage={activityPage}
+                currentPage={safeActivityPage}
                 onPageChange={setActivityPage}
                 perPage={cardsPerPage}
               />
