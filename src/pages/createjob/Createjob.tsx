@@ -44,10 +44,19 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/auth";
+import {
+  apiGetCompanyIdByUserId,
+  apiGetProfileCompanyProfile,
+} from "@/services/profileService";
 import CreateJobAddSkillPopup from "./CreateJobAddSkillPopup";
-import { apiCreateJob } from "@/services/createjobService";
+import {
+  apiCreateJob,
+  apiPatchJobById,
+  apiGetUtilityOptionType,
+} from "@/services/createjobService";
 import type {
   AddressAutoFillOption,
   AdditionQuestionType,
@@ -55,32 +64,9 @@ import type {
   SortableAnswerItemProps,
   CreateJobRequest,
   SkillRequest,
+  UtilityWorkOption,
+  UtilityWorkType,
 } from "@/types/createJobTypes";
-
-const mockAddressOptions: AddressAutoFillOption[] = [
-  {
-    postalCode: "10110",
-    addressLine: "Khlong Toei Area",
-    no: "20",
-    moo: "3",
-    soi: "Soi Sukhumvit 4",
-    street: "Sukhumvit Road",
-    province: "Bangkok",
-    district: "Khlong Toei",
-    subDistrict: "Khlong Toei",
-  },
-  {
-    postalCode: "10111",
-    addressLine: "Khlong Toei Area",
-    no: "20",
-    moo: "3",
-    soi: "Soi Sukhumvit 4",
-    street: "Sukhumvit Road",
-    province: "Bangkok",
-    district: "Khlong Toei",
-    subDistrict: "Khlong Toei Nuea",
-  },
-];
 
 const initialAdditionQuestions: AdditionQuestionSection[] = [
   {
@@ -200,32 +186,47 @@ function createAdditionQuestionSection(
 }
 
 export default function CreatejobPage() {
+  const navigate = useNavigate();
+  // Company state
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [companyAddress, setCompanyAddress] =
+    useState<AddressAutoFillOption | null>(null);
+  const [companyAddressCodes, setCompanyAddressCodes] = useState<{
+    subDistrictCode: number;
+    districtCode: number;
+    provinceCode: number;
+    countryCode: number;
+    postalCodeNum: number;
+  } | null>(null);
   // Form States
   const [jobName, setJobName] = useState<string>("");
   const [workOption, setWorkOption] = useState<string>("");
-  const [openTo, setOpenTo] = useState<string>("");
   const [workCategory, setWorkCategory] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [jobDescription, setJobDescription] = useState<string>("");
+  const [coverLetter, setCoverLetter] = useState(true);
+  const [workExperience, setWorkExperience] = useState(true);
+  const [education, setEducation] = useState(true);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [selectedFileType, setSelectedFileType] = useState<string>("");
   const [additionFileLabel, setAdditionFileLabel] = useState<string>("");
   const [additionFileDescription, setAdditionFileDescription] =
     useState<string>("");
-  const [selectedPostalCode, setSelectedPostalCode] = useState<string>("");
-  const [skills, setSkills] = useState<string[]>(["React", "React", "React"]);
+  const [skills, setSkills] = useState<SkillRequest[]>([]);
   const [isAddSkillPopupOpen, setIsAddSkillPopupOpen] = useState(false);
-  const [skillSearchValue, setSkillSearchValue] = useState("");
+  const [workOptions, setWorkOptions] = useState<UtilityWorkOption[]>([]);
+  const [workTypes, setWorkTypes] = useState<UtilityWorkType[]>([]);
+  const [workTypeId, setWorkTypeId] = useState<string>("");
   const [additionQuestions, setAdditionQuestions] = useState<
     AdditionQuestionSection[]
   >(initialAdditionQuestions);
   const [isLoading, setIsLoading] = useState(false);
+  const [createdJobId, setCreatedJobId] = useState<string | null>(null);
   const additionQuestionRefs = useRef<Record<string, HTMLDivElement | null>>(
     {},
   );
   const previousQuestionPositions = useRef<Record<string, number>>({});
-  const previousPayloadSnapshotRef = useRef<string>("");
   const additionQuestionIdCounter = useRef(initialAdditionQuestions.length);
   const additionQuestionAnswerIdCounter = useRef(
     initialAdditionQuestions.reduce(
@@ -255,11 +256,6 @@ export default function CreatejobPage() {
     color: "transparent",
   };
 
-  const selectedAddress =
-    mockAddressOptions.find(
-      (address) => address.postalCode === selectedPostalCode,
-    ) || null;
-
   const getAcceptedExtensions = (fileType: string): string => {
     const typeMap: Record<string, string> = {
       pdf: ".pdf",
@@ -277,19 +273,14 @@ export default function CreatejobPage() {
     }
   };
 
-  const handleJobDescriptionChange = (html: string) => {
-    setJobDescription(html);
-  };
-
   const mapAdditionQuestionTypeToApi = (type: AdditionQuestionType): number => {
-    // Backend enum: 1=select-one, 2=multi-select, 3=open-answer
-    if (type === "radio") {
-      return 1;
-    }
-    if (type === "checkbox") {
-      return 2;
-    }
-    return 3;
+    // Backend: 1=select-one, 2=multi-select, 3=open-answer
+    const typeMap: Record<AdditionQuestionType, number> = {
+      radio: 1,
+      checkbox: 2,
+      open: 3,
+    };
+    return typeMap[type];
   };
 
   const mapAdditionFileTypeToApi = (type: string): number => {
@@ -304,88 +295,7 @@ export default function CreatejobPage() {
     return map[type] || 0;
   };
 
-  const buildCreateJobPayloadPreview = () => {
-    const address = selectedAddress || mockAddressOptions[0];
-
-    const skillsData: SkillRequest[] = skills.map((skill, index) => ({
-      index,
-      skill_id: `skill-${index}`,
-      skill_name: skill,
-    }));
-
-    const additionQuestionsPayload = additionQuestions.map(
-      (section, questionIndex) => ({
-        id: questionIndex,
-        type: mapAdditionQuestionTypeToApi(section.type),
-        question: section.question,
-        options: section.answers.map((answer, answerIndex) => ({
-          id: answerIndex,
-          label: answer.text,
-        })),
-        max_select:
-          section.type === "checkbox" ? Number(section.maxSelect || 1) : 1,
-      }),
-    );
-
-    const additionFilePayload =
-      additionFileLabel.trim() ||
-      additionFileDescription.trim() ||
-      selectedFileType
-        ? [
-            {
-              id: 0,
-              type: mapAdditionFileTypeToApi(selectedFileType),
-              label: additionFileLabel,
-              description: additionFileDescription,
-            },
-          ]
-        : [];
-
-    return {
-      name: jobName,
-      description: jobDescription || "",
-      description_rtf: jobDescription,
-      start_apply: startDate ? startDate.toISOString() : null,
-      end_apply: endDate ? endDate.toISOString() : null,
-      cover_letter: true,
-      work_experience: true,
-      education: true,
-      company_id: "company001",
-      address: {
-        address_line: address?.addressLine || "",
-        no: address?.no || "",
-        moo: address?.moo || "",
-        soi: address?.soi || "",
-        street: address?.street || "",
-        sub_district_code: 103003,
-        district_code: 103000,
-        province_code: 100000,
-        country_code: 76400,
-        postal_code: parseInt(address?.postalCode || "", 10) || 0,
-      },
-      category_ids: [1],
-      work_option_ids: [1],
-      work_type_ids: [1],
-      skills: skillsData,
-      addition_questions: additionQuestionsPayload,
-      addition_file: additionFilePayload,
-      meta: {
-        work_option: workOption,
-        open_to: openTo,
-        work_category: workCategory,
-      },
-    };
-  };
-
   const buildCreateJobPayloadForSubmit = (): CreateJobRequest => {
-    const address = selectedAddress || mockAddressOptions[0];
-
-    const skillsData: SkillRequest[] = skills.map((skill, index) => ({
-      index,
-      skill_id: `skill-${index}`,
-      skill_name: skill,
-    }));
-
     const additionQuestionsPayload = additionQuestions.map(
       (section, questionIndex) => ({
         id: questionIndex,
@@ -420,29 +330,49 @@ export default function CreatejobPage() {
       description_rtf: jobDescription,
       start_apply: startDate!.toISOString(),
       end_apply: endDate!.toISOString(),
-      cover_letter: true,
-      work_experience: true,
-      education: true,
-      company_id: "company001",
+      cover_letter: coverLetter,
+      work_experience: workExperience,
+      education: education,
+      company_id: companyId ?? "",
       address: {
-        address_line: address.addressLine,
-        no: address.no,
-        moo: address.moo,
-        soi: address.soi,
-        street: address.street,
-        sub_district_code: 103003,
-        district_code: 103000,
-        province_code: 100000,
-        country_code: 76400,
-        postal_code: parseInt(address.postalCode, 10) || 10900,
+        address_line: companyAddress?.addressLine ?? "",
+        no: companyAddress?.no ?? "",
+        moo: companyAddress?.moo ?? "",
+        soi: companyAddress?.soi ?? "",
+        street: companyAddress?.street ?? "",
+        sub_district_code: companyAddressCodes?.subDistrictCode ?? 0,
+        district_code: companyAddressCodes?.districtCode ?? 0,
+        province_code: companyAddressCodes?.provinceCode ?? 0,
+        country_code: companyAddressCodes?.countryCode ?? 0,
+        postal_code: companyAddressCodes?.postalCodeNum ?? 0,
       },
       category_ids: [1],
-      work_option_ids: [1],
-      work_type_ids: [1],
-      skills: skillsData,
+      work_option_ids: workOption ? [parseInt(workOption)] : [],
+      work_type_ids: workTypeId ? [parseInt(workTypeId)] : [],
+      skills,
       addition_questions: additionQuestionsPayload,
       addition_file: additionFilePayload,
     };
+  };
+
+  const validateJobForm = (): boolean => {
+    if (!jobName.trim()) {
+      toast.error("Job name is required");
+      return false;
+    }
+    if (!startDate || !endDate) {
+      toast.error("Start and end apply dates are required");
+      return false;
+    }
+    if (!companyAddress) {
+      toast.error("Address is required");
+      return false;
+    }
+    if (skills.length === 0) {
+      toast.error("At least one skill is required");
+      return false;
+    }
+    return true;
   };
 
   const removeFile = (index: number) => {
@@ -581,99 +511,101 @@ export default function CreatejobPage() {
     );
   };
 
-  const addSkill = (skillName: string) => {
-    const nextSkill = skillName.trim();
-    if (!nextSkill) {
-      return;
-    }
-
-    setSkills((previous) => [...previous, nextSkill]);
+  const addSkill = (skill: SkillRequest) => {
+    setSkills((previous) => [
+      ...previous,
+      { ...skill, index: previous.length },
+    ]);
   };
 
   const removeSkill = (index: number) => {
     setSkills((previous) =>
-      previous.filter((_, currentIndex) => currentIndex !== index),
+      previous
+        .filter((_, currentIndex) => currentIndex !== index)
+        .map((s, i) => ({ ...s, index: i })),
     );
   };
 
   const handleCreateJob = async () => {
-    // Validation
-    if (!jobName.trim()) {
-      toast.error("Job name is required");
-      return;
-    }
-    if (!startDate || !endDate) {
-      toast.error("Start and end apply dates are required");
-      return;
-    }
-    if (!selectedPostalCode) {
-      toast.error("Address is required");
-      return;
-    }
-    if (skills.length === 0) {
-      toast.error("At least one skill is required");
-      return;
-    }
-
+    if (!validateJobForm()) return;
     try {
       setIsLoading(true);
-
-      const createJobPayload: CreateJobRequest =
-        buildCreateJobPayloadForSubmit();
-      console.log("[CreateJob][Submit Payload]", createJobPayload);
-      console.log(
-        "[CreateJob][Submit Payload JSON]",
-        JSON.stringify(createJobPayload, null, 2),
-      );
-
-      // Call the API
-      const response = await apiCreateJob(createJobPayload);
-
+      const response = await apiCreateJob(buildCreateJobPayloadForSubmit());
+      const jobId = response.data?.jobId;
+      if (jobId) setCreatedJobId(jobId);
       toast.success("Job created successfully!");
-      console.log("Create Job Response:", response);
-
-      // Reset form on success (optional)
-      // setJobName("")
-      // setSkills([])
-      // setStartDate(undefined)
-      // setEndDate(undefined)
-    } catch (error) {
-      console.error("Error creating job:", error);
+    } catch {
       toast.error("Failed to create job. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleSaveJob = async () => {
+    if (!createdJobId || !validateJobForm()) return;
+    try {
+      setIsLoading(true);
+      await apiPatchJobById(createdJobId, buildCreateJobPayloadForSubmit());
+      toast.success("Job saved successfully!");
+    } catch {
+      toast.error("Failed to save job. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      const previewPayload = buildCreateJobPayloadPreview();
-      const currentSnapshot = JSON.stringify(previewPayload);
-
-      if (currentSnapshot !== previousPayloadSnapshotRef.current) {
-        previousPayloadSnapshotRef.current = currentSnapshot;
-        console.log("[CreateJob][Preview Payload]", previewPayload);
+    const fetchInitialData = async () => {
+      const authUser = useAuthStore.getState().user;
+      const userId = authUser?.id;
+      if (!userId) {
+        navigate("/sign-in");
+        return;
       }
-    }, 1000);
-
-    return () => {
-      window.clearInterval(intervalId);
+      try {
+        // Fetch work options/types and company data in parallel
+        const [optionTypeResult, companyIdResult] = await Promise.all([
+          apiGetUtilityOptionType(),
+          apiGetCompanyIdByUserId(userId),
+        ]);
+        if (optionTypeResult.data) {
+          setWorkOptions(optionTypeResult.data.work_option ?? []);
+          setWorkTypes(optionTypeResult.data.work_type ?? []);
+        }
+        const cId = companyIdResult.data?.company_id;
+        if (!cId) return;
+        setCompanyId(cId);
+        const profileResult = await apiGetProfileCompanyProfile(cId);
+        const data = profileResult.data;
+        if (!data) return;
+        setCompanyAddress({
+          addressLine: data.address_line ?? "",
+          no: data.no ?? "",
+          moo: data.moo ?? "",
+          soi: data.soi ?? "",
+          street: data.street ?? "",
+          province: data.province?.province_name_en ?? "",
+          district: data.district?.district_name_en ?? "",
+          subDistrict: data.sub_district?.sub_district_name_en ?? "",
+          postalCode: String(data.postal_code?.postal_code ?? ""),
+        });
+        setCompanyAddressCodes({
+          subDistrictCode: data.sub_district?.sub_district_code ?? 0,
+          districtCode: data.district?.district_code ?? 0,
+          provinceCode: data.province?.province_code ?? 0,
+          countryCode: data.country?.country_code ?? 0,
+          postalCodeNum: parseInt(
+            String(data.postal_code?.postal_code ?? "0"),
+            10,
+          ),
+        });
+      } catch {
+        // initial data fetch failure is non-blocking
+      }
     };
-  }, [
-    jobName,
-    workOption,
-    openTo,
-    workCategory,
-    startDate,
-    endDate,
-    jobDescription,
-    selectedPostalCode,
-    skills,
-    additionQuestions,
-    additionFileLabel,
-    additionFileDescription,
-    selectedAddress,
-  ]);
+    void fetchInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useLayoutEffect(() => {
     const nextPositions: Record<string, number> = {};
@@ -761,27 +693,43 @@ export default function CreatejobPage() {
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="online">Online</SelectItem>
-                    <SelectItem value="onsite">Onsite</SelectItem>
-                    <SelectItem value="hybrid">Hybrid</SelectItem>
+                    {workOptions.map((opt) => (
+                      <SelectItem key={opt.id} value={String(opt.id)}>
+                        {opt.text_eng}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-sm dark:text-accent">Work Type</label>
+                <Select value={workTypeId} onValueChange={setWorkTypeId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {workTypes.map((wt) => (
+                      <SelectItem key={wt.id} value={String(wt.id)}>
+                        {wt.text_eng}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="md:col-span-2">
                 <label className="text-sm dark:text-accent">Open To</label>
-                <Select value={openTo} onValueChange={setOpenTo}>
+                <Select value={workTypeId} onValueChange={setWorkTypeId}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="experienced">
-                      Experienced Only
-                    </SelectItem>
-                    <SelectItem value="fresh-graduate">
-                      Fresh Graduates
-                    </SelectItem>
+                    {workTypes.map((wt) => (
+                      <SelectItem key={wt.id} value={String(wt.id)}>
+                        {wt.text_eng}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -875,8 +823,8 @@ export default function CreatejobPage() {
               <div className="md:col-span-3">
                 <label className="text-sm dark:text-accent">Address line</label>
                 <Input
-                  value={selectedAddress?.addressLine || ""}
-                  placeholder="Auto fill from backend"
+                  value={companyAddress?.addressLine ?? ""}
+                  placeholder="Auto fill from company profile"
                   readOnly
                 />
               </div>
@@ -886,8 +834,8 @@ export default function CreatejobPage() {
                   No.
                 </label>
                 <Input
-                  value={selectedAddress?.no || ""}
-                  placeholder="Auto fill from backend"
+                  value={companyAddress?.no ?? ""}
+                  placeholder="Auto fill"
                   readOnly
                 />
               </div>
@@ -897,8 +845,8 @@ export default function CreatejobPage() {
                   Moo
                 </label>
                 <Input
-                  value={selectedAddress?.moo || ""}
-                  placeholder="Auto fill from backend"
+                  value={companyAddress?.moo ?? ""}
+                  placeholder="Auto fill"
                   readOnly
                 />
               </div>
@@ -908,8 +856,8 @@ export default function CreatejobPage() {
                   Soi
                 </label>
                 <Input
-                  value={selectedAddress?.soi || ""}
-                  placeholder="Auto fill from backend"
+                  value={companyAddress?.soi ?? ""}
+                  placeholder="Auto fill"
                   readOnly
                 />
               </div>
@@ -919,8 +867,8 @@ export default function CreatejobPage() {
                   Street
                 </label>
                 <Input
-                  value={selectedAddress?.street || ""}
-                  placeholder="Auto fill from backend"
+                  value={companyAddress?.street ?? ""}
+                  placeholder="Auto fill"
                   readOnly
                 />
               </div>
@@ -930,8 +878,8 @@ export default function CreatejobPage() {
                   Province
                 </label>
                 <Input
-                  value={selectedAddress?.province || ""}
-                  placeholder="Auto fill from backend"
+                  value={companyAddress?.province ?? ""}
+                  placeholder="Auto fill"
                   readOnly
                 />
               </div>
@@ -941,8 +889,8 @@ export default function CreatejobPage() {
                   District
                 </label>
                 <Input
-                  value={selectedAddress?.district || ""}
-                  placeholder="Auto fill from backend"
+                  value={companyAddress?.district ?? ""}
+                  placeholder="Auto fill"
                   readOnly
                 />
               </div>
@@ -952,8 +900,8 @@ export default function CreatejobPage() {
                   Sub-district
                 </label>
                 <Input
-                  value={selectedAddress?.subDistrict || ""}
-                  placeholder="Auto fill from backend"
+                  value={companyAddress?.subDistrict ?? ""}
+                  placeholder="Auto fill"
                   readOnly
                 />
               </div>
@@ -962,32 +910,17 @@ export default function CreatejobPage() {
                 <label className="text-sm text-foreground dark:text-accent">
                   Postal code
                 </label>
-                <Select
-                  value={selectedPostalCode}
-                  onValueChange={setSelectedPostalCode}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select postal code" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mockAddressOptions.map((address) => (
-                      <SelectItem
-                        key={address.postalCode}
-                        value={address.postalCode}
-                      >
-                        {address.postalCode}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={companyAddress?.postalCode ?? ""}
+                  placeholder="Auto fill"
+                  readOnly
+                />
               </div>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Address fields are prepared for backend auto-fill. Postal code can
-              have multiple options per area.
+              Address is auto-filled from your company profile.
             </p>
           </section>
-
           {/* ===== Skills ===== */}
           <section className="mt-10">
             <h2 className="mb-3 text-lg font-semibold">Skill Use</h2>
@@ -995,15 +928,15 @@ export default function CreatejobPage() {
             <div className="flex flex-wrap gap-1">
               {skills.map((skill, index) => (
                 <div
-                  key={`${skill}-${index}`}
+                  key={`${skill.skill_id}-${index}`}
                   className="inline-flex items-center gap-2 rounded-full border px-4 py-1 text-sm"
                   style={gradientBorderStyle}
                 >
-                  <span style={gradientTextStyle}>{skill}</span>
+                  <span style={gradientTextStyle}>{skill.skill_name}</span>
                   <button
                     type="button"
                     onClick={() => removeSkill(index)}
-                    aria-label={`Remove ${skill}`}
+                    aria-label={`Remove ${skill.skill_name}`}
                     className="rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -1027,8 +960,6 @@ export default function CreatejobPage() {
             <CreateJobAddSkillPopup
               open={isAddSkillPopupOpen}
               onOpenChange={setIsAddSkillPopupOpen}
-              searchValue={skillSearchValue}
-              onSearchChange={setSkillSearchValue}
               onSubmit={addSkill}
             />
           </section>
@@ -1039,7 +970,7 @@ export default function CreatejobPage() {
 
             <RtfQuill
               value={jobDescription}
-              onChange={handleJobDescriptionChange}
+              onChange={setJobDescription}
               className="min-h-56 w-full rounded-md border bg-background"
             />
           </section>
@@ -1051,15 +982,15 @@ export default function CreatejobPage() {
             </h2>
             <div className="space-y-3">
               <label className="flex items-center gap-3 text-sm">
-                <Toggle />
+                <Toggle checked={coverLetter} onChange={setCoverLetter} />
                 Cover letter
               </label>
               <label className="flex items-center gap-3 text-sm">
-                <Toggle />
+                <Toggle checked={workExperience} onChange={setWorkExperience} />
                 Work Experience
               </label>
               <label className="flex items-center gap-3 text-sm">
-                <Toggle />
+                <Toggle checked={education} onChange={setEducation} />
                 Education
               </label>
             </div>
@@ -1341,16 +1272,22 @@ export default function CreatejobPage() {
             </div>
           </section>
 
-          {/* Create Job Button */}
+          {/* Create/Save Job Button */}
           <div className="flex justify-end mt-10 mb-10">
             <Button
-              onClick={handleCreateJob}
+              onClick={createdJobId ? handleSaveJob : handleCreateJob}
               disabled={isLoading}
               style={{ backgroundImage: "var(--gradient-primary)" }}
               className="px-8 py-2 text-white rounded-2xl font-normal hover:opacity-90 transition-opacity"
             >
               {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isLoading ? "Creating..." : "Create Job"}
+              {isLoading
+                ? createdJobId
+                  ? "Saving..."
+                  : "Creating..."
+                : createdJobId
+                  ? "Save Changes"
+                  : "Create Job"}
             </Button>
           </div>
         </div>

@@ -34,46 +34,20 @@ type AddressFormValue = {
   postalCode: string;
 };
 
-const EMPTY_ADDRESS_FORM: AddressFormValue = {
-  addressLine: "",
-  no: "",
-  moo: "",
-  soi: "",
-  street: "",
-  province: "",
-  district: "",
-  subDistrict: "",
-  postalCode: "",
-};
-
-function mapAddressToForm(address: string): AddressFormValue {
-  const trimmedAddress = address.trim();
-
-  if (!trimmedAddress) {
-    return { ...EMPTY_ADDRESS_FORM };
-  }
-
+function mapAddressToForm(
+  value: ProfileCompanyNamePopupProps["value"],
+): AddressFormValue {
   return {
-    ...EMPTY_ADDRESS_FORM,
-    addressLine: trimmedAddress,
+    addressLine: value.address,
+    no: value.addressNo,
+    moo: value.addressMoo,
+    soi: value.addressSoi,
+    street: value.addressStreet,
+    province: value.addressProvince,
+    district: value.addressDistrict,
+    subDistrict: value.addressSubDistrict,
+    postalCode: value.addressPostalCode,
   };
-}
-
-function buildAddressString(addressForm: AddressFormValue) {
-  return [
-    addressForm.addressLine,
-    addressForm.no ? `No. ${addressForm.no}` : "",
-    addressForm.moo ? `Moo ${addressForm.moo}` : "",
-    addressForm.soi ? `Soi ${addressForm.soi}` : "",
-    addressForm.street ? `Street ${addressForm.street}` : "",
-    addressForm.subDistrict ? `Sub-district ${addressForm.subDistrict}` : "",
-    addressForm.district ? `District ${addressForm.district}` : "",
-    addressForm.province ? `Province ${addressForm.province}` : "",
-    addressForm.postalCode ? `Postal code ${addressForm.postalCode}` : "",
-  ]
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-    .join(", ");
 }
 
 function cloneDraftValue(value: ProfileCompanyNamePopupProps["value"]) {
@@ -91,13 +65,13 @@ export default function ProfileCompanyNamePopup({
 }: ProfileCompanyNamePopupProps) {
   const [draftValue, setDraftValue] = useState(() => cloneDraftValue(value));
   const [addressForm, setAddressForm] = useState<AddressFormValue>(() =>
-    mapAddressToForm(value.address),
+    mapAddressToForm(value),
   );
 
   useEffect(() => {
     if (open) {
       setDraftValue(cloneDraftValue(value));
-      setAddressForm(mapAddressToForm(value.address));
+      setAddressForm(mapAddressToForm(value));
     }
   }, [open, value]);
 
@@ -154,7 +128,15 @@ export default function ProfileCompanyNamePopup({
       region: draftValue.region.trim(),
       phone: draftValue.phone.trim(),
       email: draftValue.email.trim(),
-      address: buildAddressString(addressForm),
+      address: addressForm.addressLine.trim(),
+      addressNo: addressForm.no.trim(),
+      addressMoo: addressForm.moo.trim(),
+      addressSoi: addressForm.soi.trim(),
+      addressStreet: addressForm.street.trim(),
+      addressProvince: addressForm.province.trim(),
+      addressDistrict: addressForm.district.trim(),
+      addressSubDistrict: addressForm.subDistrict.trim(),
+      addressPostalCode: addressForm.postalCode.trim(),
       mediaLinks: draftValue.mediaLinks
         .map((link) => ({
           label: link.label.trim(),

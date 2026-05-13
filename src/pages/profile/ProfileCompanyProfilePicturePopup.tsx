@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { ProfileCompanyProfilePicturePopupProps } from "@/types/domain/profile";
-import { ImagePlus, Trash2, X } from "lucide-react";
+import { ImagePlus, X } from "lucide-react";
 
 export default function ProfileCompanyProfilePicturePopup({
   open,
@@ -18,12 +18,14 @@ export default function ProfileCompanyProfilePicturePopup({
   onSave,
 }: ProfileCompanyProfilePicturePopupProps) {
   const [draftImageUrl, setDraftImageUrl] = useState(value);
+  const [draftFile, setDraftFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
       setDraftImageUrl(value);
+      setDraftFile(null);
       setErrorMessage("");
     }
   }, [open, value]);
@@ -41,6 +43,7 @@ export default function ProfileCompanyProfilePicturePopup({
       return;
     }
 
+    setDraftFile(selectedFile);
     const reader = new FileReader();
     reader.onloadend = () => {
       const result = reader.result;
@@ -102,16 +105,6 @@ export default function ProfileCompanyProfilePicturePopup({
                 <ImagePlus className="size-4" />
                 Upload Image
               </Button>
-              {draftImageUrl ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setDraftImageUrl("")}
-                >
-                  <Trash2 className="size-4" />
-                  Remove
-                </Button>
-              ) : null}
             </div>
 
             <p className="mt-3 text-center text-xs text-muted-foreground">
@@ -135,7 +128,7 @@ export default function ProfileCompanyProfilePicturePopup({
             </Button>
             <Button
               type="button"
-              onClick={() => onSave(draftImageUrl)}
+              onClick={() => onSave(draftImageUrl, draftFile ?? undefined)}
               className="min-w-28"
             >
               Save Change

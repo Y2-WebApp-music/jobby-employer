@@ -7,39 +7,24 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import type { CompanyProfileDetails } from "@/types/domain/profile";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pencil } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import ProfileAboutPopup from "./ProfileAboutPopup";
 import ProfileCompanyInformationPopup from "./ProfileCompanyInformationPopup";
 import ProfileCompanyNamePopup from "./ProfileCompanyNamePopup";
 import ProfileCompanyProfilePicturePopup from "./ProfileCompanyProfilePicturePopup";
 import OpenJobCard from "./OpenJobCard";
-
-const initialCompanyProfile: CompanyProfileDetails = {
-  companyName: "Company name",
-  place: "Bangkok",
-  region: "Thailand",
-  phone: "+66624311671",
-  email: "kungyu.159@gmail.com",
-  address: "Lat Krabang, Bangkok, Thailand",
-  mediaLinks: [
-    { label: "linkedin", url: "https://www.linkedin.com" },
-    { label: "github", url: "https://www.github.com" },
-    { label: "facebook", url: "https://www.facebook.com" },
-    { label: "Instagram", url: "https://www.instagram.com" },
-  ],
-};
-
-const initialAboutText =
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam neque nunc, vestibulum rutrum ornare vitae, sollicitudin non lacus. Donec eget ultrices ante. Aenean in sem nulla. Proin sit amet libero sit amet libero hendrerit ornare. Suspendisse sed eros at justo bibendum euismod sit amet nec tellus. Maecenas tincidunt nisi pharetra eros semper finibus. Aliquam mattis ipsum sem, elementum venenatis leo faucibus a.";
-
-const initialCompanyInformationHtml = `
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque id lorem sit amet purus convallis accumsan nec porttitor libero. Integer id neque nibh. Ut cursus nunc vitae erat vulputate venenatis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nullam dictum nibh vitae ipsum convallis dapibus.</p>
-  <p><strong>Headline</strong></p>
-  <p>Suspendisse potenti. Quisque at neque ut eros elementum suscipit. Vivamus et elit a tortor lobortis pretium sit amet vitae eros. Donec sit amet tortor blandit, aliquam nisi ac, aliquet arcu. Sed eget diam scelerisque augue.</p>
-  <p><strong>&quot;Headline&quot;</strong></p>
-  <p>Suspendisse potenti. Quisque at neque ut eros elementum suscipit. Vivamus et elit a tortor lobortis pretium sit amet vitae eros. Donec sit amet tortor blandit, aliquam nisi ac, aliquet arcu.</p>
-`;
+import { useAuthStore } from "@/store/auth";
+import {
+  apiGetProfileCompanyProfile,
+  apiGetCompanyIdByUserId,
+  apiPatchProfileCompanyInfo,
+  apiPatchProfileCompanyAbout,
+  apiPatchProfileCompanyAdditionInformation,
+  apiPatchProfileCompanyMedia,
+} from "@/services/profileService";
+import type { ProfileUpdateCompanyInfoRequest } from "@/types/profileTypes";
 
 const jobCards = Array.from({ length: 6 }).map((_, index) => ({
   id: index + 1,
@@ -51,20 +36,103 @@ const jobCards = Array.from({ length: 6 }).map((_, index) => ({
 }));
 
 export default function ProfilePage() {
-  const [companyProfile, setCompanyProfile] = useState(initialCompanyProfile);
+  const authUser = useAuthStore((state) => state.user);
+  const authToken = useAuthStore((state) => state.token);
+  const navigate = useNavigate();
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfileDetails>({
+    companyName: "",
+    place: "",
+    region: "",
+    phone: "",
+    email: "",
+    address: "",
+    addressNo: "",
+    addressMoo: "",
+    addressSoi: "",
+    addressStreet: "",
+    addressProvince: "",
+    addressDistrict: "",
+    addressSubDistrict: "",
+    addressPostalCode: "",
+    mediaLinks: [],
+  });
   const [companyProfileImageUrl, setCompanyProfileImageUrl] = useState("");
   const [isCompanyNamePopupOpen, setIsCompanyNamePopupOpen] = useState(false);
   const [
     isCompanyProfilePicturePopupOpen,
     setIsCompanyProfilePicturePopupOpen,
   ] = useState(false);
-  const [aboutText, setAboutText] = useState(initialAboutText);
+  const [aboutText, setAboutText] = useState("");
   const [isAboutPopupOpen, setIsAboutPopupOpen] = useState(false);
-  const [companyInformationHtml, setCompanyInformationHtml] = useState(
-    initialCompanyInformationHtml,
-  );
+  const [companyInformationHtml, setCompanyInformationHtml] = useState("");
   const [isCompanyInformationPopupOpen, setIsCompanyInformationPopupOpen] =
     useState(false);
+  const [companyId, setCompanyId] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const ensureAuthorizedAndFetch = async () => {
+      setIsLoading(true);
+      try {
+        const userId = authUser?.id;
+
+        if (!userId || !authToken) {
+          navigate("/sign-in");
+          return;
+        }
+
+        // แปลง user_id → company_id
+        console.log("[GET company-id] userId:", userId);
+        const companyIdResult = await apiGetCompanyIdByUserId(userId);
+        console.log("[GET company-id] response:", companyIdResult);
+        const companyId = companyIdResult.data?.company_id;
+        if (!companyId) {
+          console.error("No company_id found for user", userId);
+          return;
+        }
+
+        setCompanyId(companyId);
+
+        console.log("[GET profile] companyId:", companyId);
+        const result = await apiGetProfileCompanyProfile(companyId);
+        const data = result.data;
+        if (!data) return;
+
+        setCompanyProfile({
+          companyName: data.name ?? "",
+          place: data.province?.province_name_en ?? "",
+          region: data.country?.country_name_en ?? "",
+          phone: data.phone ?? "",
+          email: data.email ?? "",
+          address: data.address_line ?? "",
+          addressNo: data.no ?? "",
+          addressMoo: data.moo ?? "",
+          addressSoi: data.soi ?? "",
+          addressStreet: data.street ?? "",
+          addressProvince: data.province?.province_name_en ?? "",
+          addressDistrict: data.district?.district_name_en ?? "",
+          addressSubDistrict: data.sub_district?.sub_district_name_en ?? "",
+          addressPostalCode: data.postal_code?.postal_code ?? "",
+          mediaLinks: (data.contacts ?? []).map((c) => ({
+            label: c.label,
+            url: c.link,
+          })),
+        });
+        setAboutText(data.about ?? "");
+        setCompanyInformationHtml(
+          data.addition_information_rtf ?? data.addition_information ?? "",
+        );
+        if (data.logo) setCompanyProfileImageUrl(data.logo);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void ensureAuthorizedAndFetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const profileTags = [
     companyProfile.email,
@@ -80,6 +148,11 @@ export default function ProfilePage() {
     <PageLayout>
       <div className="w-full overflow-y-auto bg-background px-6 py-6">
         <div className="mx-auto ml-4 max-w-6xl">
+          {isLoading && (
+            <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
+              Loading...
+            </div>
+          )}
           <div className="mb-3 mx-[1%]">
             <Breadcrumb>
               <BreadcrumbList>
@@ -217,9 +290,18 @@ export default function ProfilePage() {
         open={isAboutPopupOpen}
         value={aboutText}
         onOpenChange={setIsAboutPopupOpen}
-        onSave={(nextValue) => {
-          setAboutText(nextValue);
+        onSave={async (nextValue) => {
           setIsAboutPopupOpen(false);
+          if (!companyId) return;
+          try {
+            const body = { about: nextValue };
+            console.log("[PATCH about] body:", body);
+            setAboutText(nextValue);
+            const result = await apiPatchProfileCompanyAbout(companyId, body);
+            console.log("[PATCH about] response:", result);
+          } catch (err) {
+            console.error("[PATCH about] error:", err);
+          }
         }}
       />
 
@@ -227,9 +309,24 @@ export default function ProfilePage() {
         open={isCompanyInformationPopupOpen}
         value={companyInformationHtml}
         onOpenChange={setIsCompanyInformationPopupOpen}
-        onSave={(nextValue) => {
-          setCompanyInformationHtml(nextValue);
+        onSave={async (nextValue) => {
           setIsCompanyInformationPopupOpen(false);
+          if (!companyId) return;
+          try {
+            const body = {
+              addition_information: nextValue,
+              addition_information_rtf: nextValue,
+            };
+            console.log("[PATCH addition-information] body:", body);
+            setCompanyInformationHtml(nextValue);
+            const result = await apiPatchProfileCompanyAdditionInformation(
+              companyId,
+              body,
+            );
+            console.log("[PATCH addition-information] response:", result);
+          } catch (err) {
+            console.error("[PATCH addition-information] error:", err);
+          }
         }}
       />
 
@@ -237,9 +334,33 @@ export default function ProfilePage() {
         open={isCompanyNamePopupOpen}
         value={companyProfile}
         onOpenChange={setIsCompanyNamePopupOpen}
-        onSave={(nextValue) => {
-          setCompanyProfile(nextValue);
+        onSave={async (nextValue) => {
           setIsCompanyNamePopupOpen(false);
+          if (!companyId) return;
+          try {
+            const body: ProfileUpdateCompanyInfoRequest = {
+              name: nextValue.companyName,
+              email: nextValue.email,
+              phone: nextValue.phone,
+              phone_region: "+66",
+              address_line: nextValue.address,
+              no: nextValue.addressNo,
+              moo: nextValue.addressMoo,
+              soi: nextValue.addressSoi,
+              street: nextValue.addressStreet,
+              contacts: nextValue.mediaLinks.map((link, index) => ({
+                index,
+                label: link.label,
+                link: link.url,
+              })),
+            };
+            console.log("[PATCH info] body:", body);
+            setCompanyProfile(nextValue);
+            const result = await apiPatchProfileCompanyInfo(companyId, body);
+            console.log("[PATCH info] response:", result);
+          } catch (err) {
+            console.error("[PATCH info] error:", err);
+          }
         }}
       />
 
@@ -248,9 +369,19 @@ export default function ProfilePage() {
         value={companyProfileImageUrl}
         companyName={companyProfile.companyName}
         onOpenChange={setIsCompanyProfilePicturePopupOpen}
-        onSave={(nextValue) => {
-          setCompanyProfileImageUrl(nextValue);
+        onSave={async (nextValue, file) => {
           setIsCompanyProfilePicturePopupOpen(false);
+          if (!companyId || !file) return;
+          setCompanyProfileImageUrl(nextValue);
+          try {
+            const body = { logo: file };
+            console.log("[PATCH media] logo file:", file.name);
+            const result = await apiPatchProfileCompanyMedia(companyId, body);
+            console.log("[PATCH media] response:", result);
+            if (result.data?.logo) setCompanyProfileImageUrl(result.data.logo);
+          } catch (err) {
+            console.error("[PATCH media] error:", err);
+          }
         }}
       />
     </PageLayout>

@@ -3,22 +3,8 @@ import type {
   CreateJobRequest,
   CreateJobResponse,
   GetJobDetailResponse,
-} from "@/types/createJobTypes";
-
-export type {
-  AddressRequest,
-  SkillRequest,
-  AdditionQuestionOptionRequest,
-  AdditionQuestionRequest,
-  AdditionFileRequest,
-  CreateJobRequest,
-  CreateJobResponse,
-  MasterTextRef,
-  JobCategoryItem,
-  JobSkillItem,
-  JobWorkOptionItem,
-  JobWorkTypeItem,
-  GetJobDetailResponse,
+  UtilityOptionTypeResponse,
+  SkillSearchResultItem,
 } from "@/types/createJobTypes";
 
 // post {{employer-bff}}/job     create job
@@ -44,5 +30,21 @@ export const apiPatchJobById = (jobId: string, data: CreateJobRequest) => {
     url: `/job/${jobId}`,
     method: "patch",
     data,
+  });
+};
+
+// get {{employer-bff}}/utility/option-type     work option & work type master data
+export const apiGetUtilityOptionType = () => {
+  return apiService.fetchData<UtilityOptionTypeResponse>({
+    url: `/utility/option-type`,
+    method: "get",
+  });
+};
+
+// get {{employer-bff}}/utility/skills/search/:searchName     search skills
+export const apiSearchSkills = (searchName: string) => {
+  return apiService.fetchData<SkillSearchResultItem[]>({
+    url: `/utility/skills/search/${encodeURIComponent(searchName)}`,
+    method: "get",
   });
 };
