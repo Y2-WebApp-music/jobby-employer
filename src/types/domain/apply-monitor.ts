@@ -27,6 +27,7 @@ export type ApplymonitorPopupPageProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   card: ApplicationCard | null;
+  onRefetch?: () => void;
 };
 
 export type ApplymonitorRejectPopupProps = {

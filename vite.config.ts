@@ -45,6 +45,16 @@ export default defineConfig(({ mode }) => {
           target: appBaseURL,
           changeOrigin: true,
         },
+        "/scout": {
+          target: appBaseURL,
+          changeOrigin: true,
+          bypass(req) {
+            const accept = req.headers["accept"] ?? "";
+            if (typeof accept === "string" && accept.includes("text/html")) {
+              return "/index.html";
+            }
+          },
+        },
         "/utility": {
           target: appBaseURL,
           changeOrigin: true,

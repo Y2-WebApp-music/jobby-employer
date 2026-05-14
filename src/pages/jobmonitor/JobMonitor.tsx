@@ -20,10 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiApplyMonitorSearchJob } from "@/services/applymonitorService";
+import { apiApplyMonitorSearchJob, apiGetApplyMonitorJobDetail } from "@/services/applymonitorService";
 import { apiGetUtilityOptionType } from "@/services/utilityService";
 import { formatDate } from "@/utils/formatDate";
 import type { JobMonitorCard } from "@/types/domain/job-monitor";
+import type { ApplyMonitorJobDetailResponse } from "@/types/applymonitorTypes";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import JobMonitorDetailPopup from "@/pages/jobmonitor/JobMonitorDetailPopup";
@@ -40,8 +41,7 @@ export default function JobMonitorPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [jobStatusOptions, setJobStatusOptions] = useState<MultiselectOption[]>([]);
-  const [sortByOptions, setSortByOptions] = useState<Array<{ id: string; label: string }>>([]);
-  const cardsPerPage = 10;
+  const [sortByOptions, setSortByOptions] = useState<Array<{ id: string; label: string }>>([]);  const [jobDetailsMap, setJobDetailsMap] = useState<Record<string, ApplyMonitorJobDetailResponse>>({});  const cardsPerPage = 10;
 
   const gradientBorderStyle = {
     border: "1px solid transparent",
@@ -93,7 +93,7 @@ export default function JobMonitorPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusValues, sortById]);
+  }, [searchQuery, sortById]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -106,8 +106,6 @@ export default function JobMonitorPage() {
         const response = await apiApplyMonitorSearchJob({
           search: searchQuery.trim() || undefined,
           sortById: apiSortById,
-          jobStatusIds:
-            statusValues.length > 0 ? statusValues.map((v) => Number(v)) : undefined,
           page: currentPage - 1,
           limit: cardsPerPage,
         });
@@ -160,6 +158,23 @@ export default function JobMonitorPage() {
     };
   }, [searchQuery, apiSortById, currentPage]);
 
+  // Fetch job details for client-side status filtering
+  useEffect(() => {
+    if (latestCards.length === 0) return;
+    const ids = latestCards.map((c) => c.jobId).filter((id): id is string => Boolean(id));
+    void Promise.allSettled(ids.map((id) => apiGetApplyMonitorJobDetail(id))).then(
+      (results) => {
+        const map: Record<string, ApplyMonitorJobDetailResponse> = {};
+        results.forEach((r, i) => {
+          if (r.status === "fulfilled" && r.value.data) {
+            map[ids[i]!] = r.value.data;
+          }
+        });
+        setJobDetailsMap(map);
+      },
+    );
+  }, [latestCards]);
+
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
@@ -168,6 +183,14 @@ export default function JobMonitorPage() {
 
   const paginationTotal =
     latestCards.length === 0 && currentPage === 1 ? 0 : totalPages * cardsPerPage;
+
+  // Client-side filter by job status using fetched details
+  const displayCards = latestCards.filter((card) => {
+    if (statusValues.length === 0) return true;
+    const detail = card.jobId ? jobDetailsMap[card.jobId] : undefined;
+    if (!detail) return true; // still loading detail, keep visible
+    return statusValues.map(Number).includes(detail.status);
+  });
 
   const handleOpenDetailPopup = (card: JobMonitorCard) => {
     setSelectedCard(card);
@@ -276,11 +299,11 @@ export default function JobMonitorPage() {
               <p className="text-sm text-muted-foreground">Loading...</p>
             ) : errorMessage ? (
               <p className="text-sm text-destructive">{errorMessage}</p>
-            ) : latestCards.length === 0 ? (
+            ) : displayCards.length === 0 ? (
               <p className="text-sm text-muted-foreground">No job activities found</p>
             ) : (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                {latestCards.map(renderCard)}
+                {displayCards.map(renderCard)}
               </div>
             )}
 

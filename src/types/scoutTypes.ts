@@ -13,6 +13,7 @@ export interface ScoutListItem {
   logo: string | null;
   user_name: string;
   match_skill: number;
+  is_star: boolean;
 }
 
 export interface GetScoutListResponse {

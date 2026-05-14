@@ -62,6 +62,7 @@ export function ApplymonitorJobPage() {
   // ── New Applied (not viewed) ───────────────────────────────────────────
   const [newApplySource, setNewApplySource] = useState<ApplicationCard[]>([]);
   const [newApplyPage, setNewApplyPage] = useState(1);
+  const [newApplyRefreshTick, setNewApplyRefreshTick] = useState(0);
 
   // ── Applied (viewed) ──────────────────────────────────────────────────
   const [applySource, setApplySource] = useState<ApplicationCard[]>([]);
@@ -196,7 +197,7 @@ export function ApplymonitorJobPage() {
     };
     void load();
     return () => { cancelled = true; };
-  }, [jobId, searchQuery, applyStatusValues, sortById]);
+  }, [jobId, searchQuery, applyStatusValues, sortById, newApplyRefreshTick]);
 
   const newApplyTotal = newApplySource.length;
   const applyTotal = applySource.length;
@@ -449,6 +450,7 @@ export function ApplymonitorJobPage() {
             open={isDetailOpen}
             onOpenChange={setIsDetailOpen}
             card={selectedCard}
+            onRefetch={() => setNewApplyRefreshTick((prev) => prev + 1)}
           />
 
           <ApplymonitorJobDetailPopup

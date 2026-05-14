@@ -13,6 +13,7 @@ export default function ApplymonitorPopupPage({
   open,
   onOpenChange,
   card,
+  onRefetch,
 }: ApplymonitorPopupPageProps) {
   const [isSkillPopupOpen, setIsSkillPopupOpen] = useState(false);
   const [isRejectPopupOpen, setIsRejectPopupOpen] = useState(false);
@@ -38,6 +39,7 @@ export default function ApplymonitorPopupPage({
     setActionLoading(true);
     try {
       await apiPatchApplyMonitorApplyStatus(detail.id, { status: 2 });
+      onRefetch?.();
       onOpenChange(false);
     } catch {
       // error handling can be added here
@@ -51,6 +53,7 @@ export default function ApplymonitorPopupPage({
     setActionLoading(true);
     try {
       await apiPatchApplyMonitorApplyStatus(detail.id, { status: 3 });
+      onRefetch?.();
       onOpenChange(false);
     } catch {
       // error handling can be added here

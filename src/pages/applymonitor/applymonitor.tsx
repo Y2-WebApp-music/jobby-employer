@@ -20,11 +20,17 @@ import {
   apiApplyMonitorSearchApply,
   apiPatchApplyMonitorApplyViewed,
   apiApplyMonitorSearchJob,
+  apiGetApplyMonitorApplyDetail,
+  apiGetApplyMonitorJobDetail,
 } from "@/services/applymonitorService";
 import { apiGetUtilityOptionType } from "@/services/utilityService";
 import { apiSearchSkills } from "@/services/createjobService";
 import type { ActivityCard, ApplicationCard } from "@/types/domain/apply-monitor";
 import type { UtilityOptionTypeItem } from "@/types/utilityTypes";
+import type {
+  ApplyMonitorApplyDetailResponse,
+  ApplyMonitorJobDetailResponse,
+} from "@/types/applymonitorTypes";
 import { Star } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -41,6 +47,7 @@ export function ApplymonitorPage() {
   const [applyLoading, setApplyLoading] = useState(false);
   const [applyError, setApplyError] = useState("");
   const [applyPage, setApplyPage] = useState(1);
+  const [applyRefreshTick, setApplyRefreshTick] = useState(0);
 
   // ── Job (Latest Job activities) ──────────────────────────────────────────
   const [jobCards, setJobCards] = useState<ActivityCard[]>([]);
@@ -57,6 +64,10 @@ export function ApplymonitorPage() {
   const [searchJobQuery, setSearchJobQuery] = useState("");
   const [skillValues, setSkillValues] = useState<string[]>([]);
   const [applySortById, setApplySortById] = useState("");
+
+  // ── Detail maps for client-side filtering ─────────────────────────────────────
+  const [applyDetailsMap, setApplyDetailsMap] = useState<Record<string, ApplyMonitorApplyDetailResponse>>({});
+  const [jobDetailsMap, setJobDetailsMap] = useState<Record<string, ApplyMonitorJobDetailResponse>>({});
 
   // ── Skill search suggest ───────────────────────────────────────────────────
   const [skillSearchQuery, setSkillSearchQuery] = useState("");
@@ -137,7 +148,7 @@ export function ApplymonitorPage() {
   }, [skillSearchQuery]);
 
   // ── Reset pages when filters change ──────────────────────────────────────
-  useEffect(() => { setApplyPage(1); }, [searchApplyQuery, applyStatusValues, jobStatusValues, workCategoryValues, skillValues, applySortById]);
+  useEffect(() => { setApplyPage(1); }, [searchApplyQuery, applySortById]);
   useEffect(() => { setJobPage(1); }, [searchJobQuery]);
 
   // ── Fetch New Applied ─────────────────────────────────────────────────────
@@ -149,10 +160,6 @@ export function ApplymonitorPage() {
       try {
         const res = await apiApplyMonitorSearchApply({
           search: searchApplyQuery.trim() || undefined,
-          applyStatusId: applyStatusValues.length > 0 ? applyStatusValues.map(Number) : undefined,
-          jobStatus: jobStatusValues.length > 0 ? jobStatusValues.map(Number) : undefined,
-          workType: workCategoryValues.length > 0 ? workCategoryValues.map(Number) : undefined,
-          skillIds: skillValues.length > 0 ? skillValues : undefined,
           sortById: applySortById ? Number(applySortById) : undefined,
           page: applyPage - 1,
           limit: CARDS_PER_PAGE,
@@ -183,7 +190,7 @@ export function ApplymonitorPage() {
     };
     void fetch();
     return () => { cancelled = true; };
-  }, [searchApplyQuery, applyStatusValues, jobStatusValues, workCategoryValues, skillValues, applySortById, applyPage]);
+  }, [searchApplyQuery, applySortById, applyPage, applyRefreshTick]);
 
   // ── Fetch Latest Job activities ───────────────────────────────────────────
   useEffect(() => {
@@ -239,6 +246,40 @@ export function ApplymonitorPage() {
     void fetch();
     return () => { cancelled = true; };
   }, [searchJobQuery, applySortById, jobPage]);
+
+  // ── Fetch apply details for client-side filtering ─────────────────────────
+  useEffect(() => {
+    if (applyCards.length === 0) return;
+    const ids = applyCards.map((c) => c.applyId).filter((id): id is string => Boolean(id));
+    void Promise.allSettled(ids.map((id) => apiGetApplyMonitorApplyDetail(id))).then(
+      (results) => {
+        const map: Record<string, ApplyMonitorApplyDetailResponse> = {};
+        results.forEach((r, i) => {
+          if (r.status === "fulfilled" && r.value.data) {
+            map[ids[i]!] = r.value.data;
+          }
+        });
+        setApplyDetailsMap(map);
+      },
+    );
+  }, [applyCards]);
+
+  // ── Fetch job details for client-side filtering ───────────────────────────
+  useEffect(() => {
+    if (jobCards.length === 0) return;
+    const ids = jobCards.map((c) => c.jobId).filter((id): id is string => Boolean(id));
+    void Promise.allSettled(ids.map((id) => apiGetApplyMonitorJobDetail(id))).then(
+      (results) => {
+        const map: Record<string, ApplyMonitorJobDetailResponse> = {};
+        results.forEach((r, i) => {
+          if (r.status === "fulfilled" && r.value.data) {
+            map[ids[i]!] = r.value.data;
+          }
+        });
+        setJobDetailsMap(map);
+      },
+    );
+  }, [jobCards]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const toggleStar = (starKey: string) => {
@@ -304,7 +345,7 @@ export function ApplymonitorPage() {
     ? selectedSortOption.label.toLowerCase().includes("most") || selectedSortOption.label.toLowerCase().includes("applied")
     : false;
 
-  const isApplyFilterActive = Boolean(searchApplyQuery.trim()) || applyStatusValues.length > 0 || Boolean(applySortById);
+  const isApplyFilterActive = Boolean(searchApplyQuery.trim()) || Boolean(applySortById);
   const isJobSearchActive = Boolean(searchJobQuery.trim());
 
   // When Search Apply is active OR most-applied sort → hide Job Activities
@@ -312,21 +353,56 @@ export function ApplymonitorPage() {
   const shouldHideJobSection = isApplyFilterActive && !isMostAppliedSort;
   const shouldHideApplySection = isMostAppliedSort;
 
+  // Client-side filter New Applied cards using fetched apply details
+  const clientFilteredApplyCards = applyCards.filter((card) => {
+    const detail = card.applyId ? applyDetailsMap[card.applyId] : undefined;
+    if (applyStatusValues.length > 0) {
+      if (!detail) return true; // still loading detail, keep card visible
+      if (!applyStatusValues.map(Number).includes(detail.status)) return false;
+    }
+    if (skillValues.length > 0) {
+      if (!detail) return true;
+      const resumeSkillIds = detail.resume_detail?.skills?.map((s) => s.skill_id) ?? [];
+      if (!skillValues.some((sv) => resumeSkillIds.includes(sv))) return false;
+    }
+    return true;
+  });
+
   // Filter New Applied cards by job name when Search Job is active
   const filteredApplyCards = isJobSearchActive
-    ? applyCards.filter((card) =>
+    ? clientFilteredApplyCards.filter((card) =>
         card.detail.toLowerCase().includes(searchJobQuery.trim().toLowerCase()),
       )
-    : applyCards;
+    : clientFilteredApplyCards;
 
   const displayApplyCards = filteredApplyCards;
+
+  // Client-side filter Latest Job activities using fetched job details
+  const displayJobCards = jobCards.filter((card) => {
+    const detail = card.jobId ? jobDetailsMap[card.jobId] : undefined;
+    if (jobStatusValues.length > 0) {
+      if (!detail) return true;
+      if (!jobStatusValues.map(Number).includes(detail.status)) return false;
+    }
+    if (workCategoryValues.length > 0) {
+      if (!detail) return true;
+      const catIds = detail.categories?.map((c) => String(c.category_id)) ?? [];
+      if (!workCategoryValues.some((wc) => catIds.includes(wc))) return false;
+    }
+    if (skillValues.length > 0) {
+      if (!detail) return true;
+      const jobSkillIds = detail.skills?.map((s) => s.skill_id) ?? [];
+      if (!skillValues.some((sv) => jobSkillIds.includes(sv))) return false;
+    }
+    return true;
+  });
 
   const shouldShowNoMatchMessage =
     !applyLoading &&
     !jobLoading &&
     displayApplyCards.length === 0 &&
-    (shouldHideJobSection || jobCards.length === 0) &&
-    (isApplyFilterActive || isJobSearchActive);
+    (shouldHideJobSection || displayJobCards.length === 0) &&
+    (isApplyFilterActive || isJobSearchActive || applyStatusValues.length > 0 || jobStatusValues.length > 0 || workCategoryValues.length > 0 || skillValues.length > 0);
 
   return (
     <PageLayout>
@@ -553,11 +629,11 @@ export function ApplymonitorPage() {
               <p className="text-sm text-muted-foreground">Loading...</p>
             ) : jobError ? (
               <p className="text-sm text-destructive">{jobError}</p>
-            ) : jobCards.length === 0 ? (
+            ) : displayJobCards.length === 0 ? (
               <p className="text-sm text-muted-foreground">No job data found</p>
             ) : (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                {jobCards.map((activity) => {
+                {displayJobCards.map((activity) => {
                   const isInactive = !activity.highlighted;
                   const starKey = `activity-${activity.id}`;
                   const isStarSelected = Boolean(selectedStars[starKey]);
@@ -669,6 +745,7 @@ export function ApplymonitorPage() {
             open={isDetailOpen}
             onOpenChange={setIsDetailOpen}
             card={selectedCard}
+            onRefetch={() => setApplyRefreshTick((prev) => prev + 1)}
           />
         </div>
       </div>
