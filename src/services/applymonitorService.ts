@@ -76,13 +76,7 @@ export const apiGetJobMonitorJobs = (params: GetJobMonitorJobsParams = {}) => {
 export const apiApplyMonitorSearchJob = (
   params: ApplyMonitorSearchJobParams = {},
 ) => {
-  const {
-    search,
-    sortById,
-    jobStatusIds,
-    page = 0,
-    limit = 10,
-  } = params;
+  const { search, sortById, jobStatusIds, page = 0, limit = 10 } = params;
 
   return apiService.fetchData<ApplyMonitorSearchJobResponse>({
     url: "/apply-monitor/search/job",
@@ -90,7 +84,9 @@ export const apiApplyMonitorSearchJob = (
     params: {
       ...(search !== undefined ? { search } : {}),
       ...(sortById !== undefined ? { sortById } : {}),
-      ...(jobStatusIds && jobStatusIds.length > 0 ? { jobStatusIds: jobStatusIds.join(",") } : {}),
+      ...(jobStatusIds && jobStatusIds.length > 0
+        ? { jobStatusIds: jobStatusIds.join(",") }
+        : {}),
       page,
       limit,
     },
@@ -101,7 +97,17 @@ export const apiApplyMonitorSearchJob = (
 export const apiApplyMonitorSearchApply = (
   params: ApplyMonitorSearchApplyParams = {},
 ) => {
-  const { search, applyStatusId, jobStatus, workType, jobName, skillIds, sortById, page = 0, limit = 10 } = params;
+  const {
+    search,
+    applyStatusId,
+    jobStatus,
+    workType,
+    jobName,
+    skillIds,
+    sortById,
+    page = 0,
+    limit = 10,
+  } = params;
 
   return apiService.fetchData<ApplyMonitorSearchApplyResponse>({
     url: "/apply-monitor/search/apply",

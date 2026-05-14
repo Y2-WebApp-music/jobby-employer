@@ -23,7 +23,9 @@ export default function ApplymonitorJobDetailPopup({
   jobTitle,
 }: ApplymonitorJobDetailPopupProps) {
   const navigate = useNavigate();
-  const [detail, setDetail] = useState<ApplyMonitorJobDetailResponse | null>(null);
+  const [detail, setDetail] = useState<ApplyMonitorJobDetailResponse | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -55,7 +57,9 @@ export default function ApplymonitorJobDetailPopup({
       }
     };
     void fetch();
-    return () => { isCancelled = true; };
+    return () => {
+      isCancelled = true;
+    };
   }, [open, jobId]);
 
   const workOptionLabels =
@@ -77,7 +81,9 @@ export default function ApplymonitorJobDetailPopup({
       detail.district?.district_name_en,
       detail.province?.province_name_en,
       detail.postal_code_ref?.postal_code,
-    ].filter((item): item is string | number => item !== null && item !== undefined);
+    ].filter(
+      (item): item is string | number => item !== null && item !== undefined,
+    );
     return parts.length > 0 ? parts.join(", ") : "-";
   }, [detail]);
 
@@ -88,7 +94,8 @@ export default function ApplymonitorJobDetailPopup({
 
   const detailTitle = detail?.name ?? jobTitle ?? "-";
   const detailStatus = detail?.status_name ?? "";
-  const aboutDescription = detail?.description_rtf || detail?.description || "-";
+  const aboutDescription =
+    detail?.description_rtf || detail?.description || "-";
 
   const handleEdit = () => {
     if (!detail) return;
@@ -183,7 +190,9 @@ export default function ApplymonitorJobDetailPopup({
             )}
 
             <section className="mt-4">
-              <h3 className="text-lg font-semibold text-foreground">Skill Use</h3>
+              <h3 className="text-lg font-semibold text-foreground">
+                Skill Use
+              </h3>
               <div className="mt-2 flex flex-wrap gap-2">
                 {skillLabels.length > 0 ? (
                   skillLabels.map((skill) => (
@@ -203,22 +212,34 @@ export default function ApplymonitorJobDetailPopup({
             </section>
 
             <section className="mt-4">
-              <h3 className="text-lg font-semibold text-foreground">About this job</h3>
-              <h4 className="mt-1 text-base font-semibold text-foreground">Company Description</h4>
+              <h3 className="text-lg font-semibold text-foreground">
+                About this job
+              </h3>
+              <h4 className="mt-1 text-base font-semibold text-foreground">
+                Company Description
+              </h4>
               {isLoading ? (
-                <p className="mt-2 text-base text-muted-foreground">Loading...</p>
+                <p className="mt-2 text-base text-muted-foreground">
+                  Loading...
+                </p>
               ) : errorMessage ? (
-                <p className="mt-2 text-base text-destructive">{errorMessage}</p>
+                <p className="mt-2 text-base text-destructive">
+                  {errorMessage}
+                </p>
               ) : detail?.description_rtf ? (
                 <div
                   className="mt-2 prose prose-sm max-w-none text-foreground"
                   dangerouslySetInnerHTML={{ __html: aboutDescription }}
                 />
               ) : (
-                <p className="mt-2 text-base text-foreground">{aboutDescription}</p>
+                <p className="mt-2 text-base text-foreground">
+                  {aboutDescription}
+                </p>
               )}
 
-              <p className="mt-3 text-base font-medium text-foreground">Location:</p>
+              <p className="mt-3 text-base font-medium text-foreground">
+                Location:
+              </p>
               <p className="mt-1 text-base text-foreground">{locationLabel}</p>
             </section>
           </div>

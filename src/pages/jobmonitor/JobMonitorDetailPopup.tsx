@@ -77,7 +77,9 @@ export default function JobMonitorDetailPopup({
       detail.district?.district_name_en,
       detail.province?.province_name_en,
       detail.postal_code_ref?.postal_code,
-    ].filter((item): item is string | number => item !== null && item !== undefined);
+    ].filter(
+      (item): item is string | number => item !== null && item !== undefined,
+    );
 
     return parts.length > 0 ? parts.join(", ") : (card?.locationPosted ?? "-");
   }, [detail, card?.locationPosted]);
@@ -89,7 +91,8 @@ export default function JobMonitorDetailPopup({
 
   const detailTitle = detail?.name ?? card?.title ?? "-";
   const detailStatus = detail?.status_name ?? card?.status ?? "-";
-  const aboutDescription = detail?.description_rtf || detail?.description || "-";
+  const aboutDescription =
+    detail?.description_rtf || detail?.description || "-";
 
   if (!card) {
     return null;
@@ -114,9 +117,7 @@ export default function JobMonitorDetailPopup({
                 {detailTitle}
               </h2>
               <p className="text-muted-foreground">{card.companyName}</p>
-              <p className="text-sm text-muted-foreground">
-                {locationLabel}
-              </p>
+              <p className="text-sm text-muted-foreground">{locationLabel}</p>
               <p className="text-sm text-muted-foreground">{applyPeriod}</p>
               <p className="text-sm text-muted-foreground">
                 Status: <span className="text-primary">{detailStatus}</span>
@@ -149,16 +150,18 @@ export default function JobMonitorDetailPopup({
                 Skill Use
               </h3>
               <div className="mt-2 flex flex-wrap gap-2">
-                {skillLabels.length > 0 ? skillLabels.map((skill) => (
-                  <Badge
-                    key={skill}
-                    variant="outline"
-                    className="rounded-full bg-transparent px-3 py-1 text-xs"
-                    style={gradientBorderStyle}
-                  >
-                    <span className="gradient-text">{skill}</span>
-                  </Badge>
-                )) : (
+                {skillLabels.length > 0 ? (
+                  skillLabels.map((skill) => (
+                    <Badge
+                      key={skill}
+                      variant="outline"
+                      className="rounded-full bg-transparent px-3 py-1 text-xs"
+                      style={gradientBorderStyle}
+                    >
+                      <span className="gradient-text">{skill}</span>
+                    </Badge>
+                  ))
+                ) : (
                   <p className="text-sm text-muted-foreground">-</p>
                 )}
               </div>
@@ -173,19 +176,27 @@ export default function JobMonitorDetailPopup({
               </h4>
 
               {isLoading ? (
-                <p className="mt-2 text-base text-muted-foreground">Loading...</p>
+                <p className="mt-2 text-base text-muted-foreground">
+                  Loading...
+                </p>
               ) : errorMessage ? (
-                <p className="mt-2 text-base text-destructive">{errorMessage}</p>
+                <p className="mt-2 text-base text-destructive">
+                  {errorMessage}
+                </p>
               ) : detail?.description_rtf ? (
                 <div
                   className="mt-2 prose prose-sm max-w-none text-foreground"
                   dangerouslySetInnerHTML={{ __html: aboutDescription }}
                 />
               ) : (
-                <p className="mt-2 text-base text-foreground">{aboutDescription}</p>
+                <p className="mt-2 text-base text-foreground">
+                  {aboutDescription}
+                </p>
               )}
 
-              <p className="mt-3 text-base font-medium text-foreground">Location:</p>
+              <p className="mt-3 text-base font-medium text-foreground">
+                Location:
+              </p>
               <p className="mt-1 text-base text-foreground">{locationLabel}</p>
             </section>
           </div>

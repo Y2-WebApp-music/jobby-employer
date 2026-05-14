@@ -40,14 +40,19 @@ export default function ScoutPage() {
         });
         if (cancelled) return;
 
-        const mapped: ScoutCandidate[] = (response.data.data ?? []).map((item) => ({
-          id: item.id,
-          name: item.user_name || `${item.first_name ?? ""} ${item.last_name ?? ""}`.trim() || item.email,
-          matchJob: "-",
-          description: item.email,
-          skillMatch: `${item.match_skill} Skill Match`,
-          isStar: item.is_star,
-        }));
+        const mapped: ScoutCandidate[] = (response.data.data ?? []).map(
+          (item) => ({
+            id: item.id,
+            name:
+              item.user_name ||
+              `${item.first_name ?? ""} ${item.last_name ?? ""}`.trim() ||
+              item.email,
+            matchJob: "-",
+            description: item.email,
+            skillMatch: `${item.match_skill} Skill Match`,
+            isStar: item.is_star,
+          }),
+        );
 
         setCandidates(mapped);
         setTotal(response.data.total ?? 0);
@@ -119,7 +124,9 @@ export default function ScoutPage() {
           ) : errorMessage ? (
             <p className="text-sm text-destructive">{errorMessage}</p>
           ) : pagedCandidates.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No scout candidates found</p>
+            <p className="text-sm text-muted-foreground">
+              No scout candidates found
+            </p>
           ) : (
             <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
               {pagedCandidates.map((candidate) => (

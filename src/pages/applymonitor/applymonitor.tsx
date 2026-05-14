@@ -25,7 +25,10 @@ import {
 } from "@/services/applymonitorService";
 import { apiGetUtilityOptionType } from "@/services/utilityService";
 import { apiSearchSkills } from "@/services/createjobService";
-import type { ActivityCard, ApplicationCard } from "@/types/domain/apply-monitor";
+import type {
+  ActivityCard,
+  ApplicationCard,
+} from "@/types/domain/apply-monitor";
 import type { UtilityOptionTypeItem } from "@/types/utilityTypes";
 import type {
   ApplyMonitorApplyDetailResponse,
@@ -66,12 +69,18 @@ export function ApplymonitorPage() {
   const [applySortById, setApplySortById] = useState("");
 
   // ── Detail maps for client-side filtering ─────────────────────────────────────
-  const [applyDetailsMap, setApplyDetailsMap] = useState<Record<string, ApplyMonitorApplyDetailResponse>>({});
-  const [jobDetailsMap, setJobDetailsMap] = useState<Record<string, ApplyMonitorJobDetailResponse>>({});
+  const [applyDetailsMap, setApplyDetailsMap] = useState<
+    Record<string, ApplyMonitorApplyDetailResponse>
+  >({});
+  const [jobDetailsMap, setJobDetailsMap] = useState<
+    Record<string, ApplyMonitorJobDetailResponse>
+  >({});
 
   // ── Skill search suggest ───────────────────────────────────────────────────
   const [skillSearchQuery, setSkillSearchQuery] = useState("");
-  const [skillSearchOptions, setSkillSearchOptions] = useState<{ label: string; value: string }[]>([]);
+  const [skillSearchOptions, setSkillSearchOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
   const skillDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Options ───────────────────────────────────────────────────────────────
@@ -90,8 +99,12 @@ export function ApplymonitorPage() {
 
   // ── UI ────────────────────────────────────────────────────────────────────
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<ApplicationCard | null>(null);
-  const [selectedStars, setSelectedStars] = useState<Record<string, boolean>>({});
+  const [selectedCard, setSelectedCard] = useState<ApplicationCard | null>(
+    null,
+  );
+  const [selectedStars, setSelectedStars] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const navigate = useNavigate();
   const gradientBorderStyle = {
@@ -133,10 +146,17 @@ export function ApplymonitorPage() {
         const res = await apiSearchSkills(skillSearchQuery.trim());
         const items = Array.isArray(res.data) ? res.data : [];
         setSkillSearchOptions(
-          items.map((item) => ({
-            label: item.skill_name ?? item.name ?? "",
-            value: item.skill_id ?? item.eid ?? item.skillElementId ?? item.id ?? "",
-          })).filter((opt) => opt.value !== ""),
+          items
+            .map((item) => ({
+              label: item.skill_name ?? item.name ?? "",
+              value:
+                item.skill_id ??
+                item.eid ??
+                item.skillElementId ??
+                item.id ??
+                "",
+            }))
+            .filter((opt) => opt.value !== ""),
         );
       } catch {
         setSkillSearchOptions([]);
@@ -148,8 +168,12 @@ export function ApplymonitorPage() {
   }, [skillSearchQuery]);
 
   // ── Reset pages when filters change ──────────────────────────────────────
-  useEffect(() => { setApplyPage(1); }, [searchApplyQuery, applySortById]);
-  useEffect(() => { setJobPage(1); }, [searchJobQuery]);
+  useEffect(() => {
+    setApplyPage(1);
+  }, [searchApplyQuery, applySortById]);
+  useEffect(() => {
+    setJobPage(1);
+  }, [searchJobQuery]);
 
   // ── Fetch New Applied ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -189,7 +213,9 @@ export function ApplymonitorPage() {
       }
     };
     void fetch();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [searchApplyQuery, applySortById, applyPage, applyRefreshTick]);
 
   // ── Fetch Latest Job activities ───────────────────────────────────────────
@@ -209,7 +235,11 @@ export function ApplymonitorPage() {
         const formatPeriodDate = (iso: string) => {
           const d = new Date(iso);
           if (isNaN(d.getTime())) return iso;
-          return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+          return d.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          });
         };
         const formatDateRange = (range: string) => {
           const parts = range.split(" - ");
@@ -244,41 +274,47 @@ export function ApplymonitorPage() {
       }
     };
     void fetch();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [searchJobQuery, applySortById, jobPage]);
 
   // ── Fetch apply details for client-side filtering ─────────────────────────
   useEffect(() => {
     if (applyCards.length === 0) return;
-    const ids = applyCards.map((c) => c.applyId).filter((id): id is string => Boolean(id));
-    void Promise.allSettled(ids.map((id) => apiGetApplyMonitorApplyDetail(id))).then(
-      (results) => {
-        const map: Record<string, ApplyMonitorApplyDetailResponse> = {};
-        results.forEach((r, i) => {
-          if (r.status === "fulfilled" && r.value.data) {
-            map[ids[i]!] = r.value.data;
-          }
-        });
-        setApplyDetailsMap(map);
-      },
-    );
+    const ids = applyCards
+      .map((c) => c.applyId)
+      .filter((id): id is string => Boolean(id));
+    void Promise.allSettled(
+      ids.map((id) => apiGetApplyMonitorApplyDetail(id)),
+    ).then((results) => {
+      const map: Record<string, ApplyMonitorApplyDetailResponse> = {};
+      results.forEach((r, i) => {
+        if (r.status === "fulfilled" && r.value.data) {
+          map[ids[i]!] = r.value.data;
+        }
+      });
+      setApplyDetailsMap(map);
+    });
   }, [applyCards]);
 
   // ── Fetch job details for client-side filtering ───────────────────────────
   useEffect(() => {
     if (jobCards.length === 0) return;
-    const ids = jobCards.map((c) => c.jobId).filter((id): id is string => Boolean(id));
-    void Promise.allSettled(ids.map((id) => apiGetApplyMonitorJobDetail(id))).then(
-      (results) => {
-        const map: Record<string, ApplyMonitorJobDetailResponse> = {};
-        results.forEach((r, i) => {
-          if (r.status === "fulfilled" && r.value.data) {
-            map[ids[i]!] = r.value.data;
-          }
-        });
-        setJobDetailsMap(map);
-      },
-    );
+    const ids = jobCards
+      .map((c) => c.jobId)
+      .filter((id): id is string => Boolean(id));
+    void Promise.allSettled(
+      ids.map((id) => apiGetApplyMonitorJobDetail(id)),
+    ).then((results) => {
+      const map: Record<string, ApplyMonitorJobDetailResponse> = {};
+      results.forEach((r, i) => {
+        if (r.status === "fulfilled" && r.value.data) {
+          map[ids[i]!] = r.value.data;
+        }
+      });
+      setJobDetailsMap(map);
+    });
   }, [jobCards]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -291,7 +327,9 @@ export function ApplymonitorPage() {
       void apiPatchApplyMonitorApplyViewed(card.applyId, { is_viewed: true });
       setApplyCards((prev) =>
         prev.map((item) =>
-          item.applyId === card.applyId ? { ...item, highlighted: false } : item,
+          item.applyId === card.applyId
+            ? { ...item, highlighted: false }
+            : item,
         ),
       );
     }
@@ -309,7 +347,10 @@ export function ApplymonitorPage() {
           let hasMore = true;
 
           while (hasMore) {
-            const res = await apiGetApplyMonitorJobApplies(jobId, { page, limit });
+            const res = await apiGetApplyMonitorJobApplies(jobId, {
+              page,
+              limit,
+            });
             const applies = res.data.data ?? [];
             const unviewedIds = applies
               .filter((item) => !item.is_viewed)
@@ -340,12 +381,16 @@ export function ApplymonitorPage() {
   // "most applied" sort → only show Latest Job activities
 
   // Detect if selected sort option is "most applied"
-  const selectedSortOption = sortByOptions.find((opt) => opt.value === applySortById);
+  const selectedSortOption = sortByOptions.find(
+    (opt) => opt.value === applySortById,
+  );
   const isMostAppliedSort = selectedSortOption
-    ? selectedSortOption.label.toLowerCase().includes("most") || selectedSortOption.label.toLowerCase().includes("applied")
+    ? selectedSortOption.label.toLowerCase().includes("most") ||
+      selectedSortOption.label.toLowerCase().includes("applied")
     : false;
 
-  const isApplyFilterActive = Boolean(searchApplyQuery.trim()) || Boolean(applySortById);
+  const isApplyFilterActive =
+    Boolean(searchApplyQuery.trim()) || Boolean(applySortById);
   const isJobSearchActive = Boolean(searchJobQuery.trim());
 
   // When Search Apply is active OR most-applied sort → hide Job Activities
@@ -362,7 +407,8 @@ export function ApplymonitorPage() {
     }
     if (skillValues.length > 0) {
       if (!detail) return true;
-      const resumeSkillIds = detail.resume_detail?.skills?.map((s) => s.skill_id) ?? [];
+      const resumeSkillIds =
+        detail.resume_detail?.skills?.map((s) => s.skill_id) ?? [];
       if (!skillValues.some((sv) => resumeSkillIds.includes(sv))) return false;
     }
     return true;
@@ -402,7 +448,12 @@ export function ApplymonitorPage() {
     !jobLoading &&
     displayApplyCards.length === 0 &&
     (shouldHideJobSection || displayJobCards.length === 0) &&
-    (isApplyFilterActive || isJobSearchActive || applyStatusValues.length > 0 || jobStatusValues.length > 0 || workCategoryValues.length > 0 || skillValues.length > 0);
+    (isApplyFilterActive ||
+      isJobSearchActive ||
+      applyStatusValues.length > 0 ||
+      jobStatusValues.length > 0 ||
+      workCategoryValues.length > 0 ||
+      skillValues.length > 0);
 
   return (
     <PageLayout>
@@ -506,239 +557,297 @@ export function ApplymonitorPage() {
 
           {/* ── New Applied ──────────────────────────────────────────────── */}
           {!shouldHideApplySection && (
-          <section className="mb-3">
-            <h2 className="text-foreground mb-2 text-lg font-semibold">
-              New Applied
-            </h2>
-            {applyLoading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : applyError ? (
-              <p className="text-sm text-destructive">{applyError}</p>
-            ) : applyCards.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No apply data found</p>
-            ) : (
-              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                {displayApplyCards.map((card) => {
-                  const isInactive = !card.highlighted;
-                  const starKey = `new-${card.id}`;
-                  const isStarSelected = Boolean(selectedStars[starKey]);
-                  return (
-                    <article
-                      key={card.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => handleOpenDetail(card)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handleOpenDetail(card);
+            <section className="mb-3">
+              <h2 className="text-foreground mb-2 text-lg font-semibold">
+                New Applied
+              </h2>
+              {applyLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : applyError ? (
+                <p className="text-sm text-destructive">{applyError}</p>
+              ) : applyCards.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No apply data found
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
+                  {displayApplyCards.map((card) => {
+                    const isInactive = !card.highlighted;
+                    const starKey = `new-${card.id}`;
+                    const isStarSelected = Boolean(selectedStars[starKey]);
+                    return (
+                      <article
+                        key={card.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleOpenDetail(card)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleOpenDetail(card);
+                          }
+                        }}
+                        className={
+                          card.highlighted
+                            ? "rounded-xl bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
+                            : "rounded-xl border border-border bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
                         }
-                      }}
-                      className={
-                        card.highlighted
-                          ? "rounded-xl bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
-                          : "rounded-xl border border-border bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
-                      }
-                      style={card.highlighted ? gradientBorderStyle : undefined}
-                    >
-                      <div
-                        className={[
-                          "mb-1 flex items-center gap-1.5 text-sm font-normal",
-                          isInactive ? "text-muted-foreground" : "text-foreground",
-                        ].join(" ")}
+                        style={
+                          card.highlighted ? gradientBorderStyle : undefined
+                        }
                       >
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); toggleStar(starKey); }}
-                          aria-label={isStarSelected ? "Unselect" : "Select"}
-                          className="rounded-sm bg-transparent p-0 hover:bg-transparent"
+                        <div
+                          className={[
+                            "mb-1 flex items-center gap-1.5 text-sm font-normal",
+                            isInactive
+                              ? "text-muted-foreground"
+                              : "text-foreground",
+                          ].join(" ")}
                         >
-                          <Star
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleStar(starKey);
+                            }}
+                            aria-label={isStarSelected ? "Unselect" : "Select"}
+                            className="rounded-sm bg-transparent p-0 hover:bg-transparent"
+                          >
+                            <Star
+                              className={
+                                isStarSelected
+                                  ? "size-3.5 fill-yellow-400 text-yellow-400"
+                                  : isInactive
+                                    ? "text-muted-foreground size-3.5"
+                                    : "text-foreground size-3.5"
+                              }
+                            />
+                          </button>
+                          <span>{card.title}</span>
+                        </div>
+                        <p
+                          className={
+                            isInactive
+                              ? "text-xs text-muted-foreground"
+                              : "text-xs"
+                          }
+                        >
+                          Status: <StatusText status={card.status} />
+                        </p>
+                        <p className="text-muted-foreground mb-2 text-[11px]">
+                          {card.detail}
+                        </p>
+                        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                          {isInactive ? (
+                            <>
+                              <Badge
+                                variant="ghost"
+                                className="rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
+                              >
+                                {card.skillMatch}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="xs"
+                                className="hover:bg-transparent rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenDetail(card);
+                                }}
+                              >
+                                See Detail
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Badge
+                                variant="gradient"
+                                className="rounded-full"
+                              >
+                                <span className="gradient-text">
+                                  {card.skillMatch}
+                                </span>
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="xs"
+                                className="hover:bg-transparent rounded-full border bg-transparent"
+                                style={gradientBorderStyle}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenDetail(card);
+                                }}
+                              >
+                                <span className="gradient-text">
+                                  See Detail
+                                </span>
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+
+              <SectionPagination
+                total={applyTotal}
+                currentPage={applyPage}
+                onPageChange={setApplyPage}
+                perPage={CARDS_PER_PAGE}
+              />
+            </section>
+          )}
+
+          {/* ── Latest Job activities ────────────────────────────────────── */}
+          {!shouldHideJobSection && (
+            <section>
+              <h2 className="text-foreground mb-2 text-lg font-semibold">
+                Latest Job activities
+              </h2>
+              {jobLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : jobError ? (
+                <p className="text-sm text-destructive">{jobError}</p>
+              ) : displayJobCards.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No job data found
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
+                  {displayJobCards.map((activity) => {
+                    const isInactive = !activity.highlighted;
+                    const starKey = `activity-${activity.id}`;
+                    const isStarSelected = Boolean(selectedStars[starKey]);
+                    return (
+                      <article
+                        key={activity.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleSeeApplied(activity.jobId)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSeeApplied(activity.jobId);
+                          }
+                        }}
+                        className={
+                          activity.highlighted
+                            ? "rounded-xl bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
+                            : "rounded-xl border border-border bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
+                        }
+                        style={
+                          activity.highlighted ? gradientBorderStyle : undefined
+                        }
+                      >
+                        <div className="mb-1 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleStar(starKey);
+                            }}
+                            aria-label={isStarSelected ? "Unselect" : "Select"}
+                            className="rounded-sm"
+                          >
+                            <Star
+                              className={
+                                isStarSelected
+                                  ? "size-3.5 fill-yellow-400 text-yellow-400"
+                                  : isInactive
+                                    ? "text-muted-foreground size-3.5"
+                                    : "text-foreground size-3.5"
+                              }
+                            />
+                          </button>
+                          <h3
                             className={
-                              isStarSelected
-                                ? "size-3.5 fill-yellow-400 text-yellow-400"
-                                : isInactive
-                                  ? "text-muted-foreground size-3.5"
-                                  : "text-foreground size-3.5"
+                              isInactive
+                                ? "text-sm font-medium text-muted-foreground"
+                                : "text-sm font-medium"
                             }
-                          />
-                        </button>
-                        <span>{card.title}</span>
-                      </div>
-                      <p className={isInactive ? "text-xs text-muted-foreground" : "text-xs"}>
-                        Status: <StatusText status={card.status} />
-                      </p>
-                      <p className="text-muted-foreground mb-2 text-[11px]">{card.detail}</p>
-                      <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-                        {isInactive ? (
-                          <>
-                            <Badge
-                              variant="ghost"
-                              className="rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
-                            >
-                              {card.skillMatch}
-                            </Badge>
+                          >
+                            {activity.title}
+                          </h3>
+                        </div>
+                        <p
+                          className={
+                            isInactive
+                              ? "text-xs text-muted-foreground"
+                              : "text-xs"
+                          }
+                        >
+                          Status: <StatusText status={activity.status} />
+                        </p>
+                        <p className="text-muted-foreground text-[11px]">
+                          {activity.period}
+                        </p>
+                        <p className="text-muted-foreground mb-2 text-[11px]">
+                          {activity.applied}
+                        </p>
+                        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                          {activity.badgeText ? (
+                            isInactive ? (
+                              <Badge
+                                variant="ghost"
+                                className="rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
+                              >
+                                {activity.badgeText}
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="gradient"
+                                className="rounded-full"
+                              >
+                                <span className="gradient-text">
+                                  {activity.badgeText}
+                                </span>
+                              </Badge>
+                            )
+                          ) : (
+                            <span />
+                          )}
+                          {isInactive ? (
                             <Button
                               variant="ghost"
                               size="xs"
                               className="hover:bg-transparent rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
-                              onClick={(e) => { e.stopPropagation(); handleOpenDetail(card); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSeeApplied(activity.jobId);
+                              }}
                             >
-                              See Detail
+                              See Applied
                             </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Badge variant="gradient" className="rounded-full">
-                              <span className="gradient-text">{card.skillMatch}</span>
-                            </Badge>
+                          ) : (
                             <Button
                               variant="ghost"
                               size="xs"
                               className="hover:bg-transparent rounded-full border bg-transparent"
                               style={gradientBorderStyle}
-                              onClick={(e) => { e.stopPropagation(); handleOpenDetail(card); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSeeApplied(activity.jobId);
+                              }}
                             >
-                              <span className="gradient-text">See Detail</span>
+                              <span className="gradient-text">See Applied</span>
                             </Button>
-                          </>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
 
-            <SectionPagination
-              total={applyTotal}
-              currentPage={applyPage}
-              onPageChange={setApplyPage}
-              perPage={CARDS_PER_PAGE}
-            />
-          </section>
-          )}
-
-          {/* ── Latest Job activities ────────────────────────────────────── */}
-          {!shouldHideJobSection && (
-          <section>
-            <h2 className="text-foreground mb-2 text-lg font-semibold">
-              Latest Job activities
-            </h2>
-            {jobLoading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : jobError ? (
-              <p className="text-sm text-destructive">{jobError}</p>
-            ) : displayJobCards.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No job data found</p>
-            ) : (
-              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                {displayJobCards.map((activity) => {
-                  const isInactive = !activity.highlighted;
-                  const starKey = `activity-${activity.id}`;
-                  const isStarSelected = Boolean(selectedStars[starKey]);
-                  return (
-                    <article
-                      key={activity.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => handleSeeApplied(activity.jobId)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handleSeeApplied(activity.jobId);
-                        }
-                      }}
-                      className={
-                        activity.highlighted
-                          ? "rounded-xl bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
-                          : "rounded-xl border border-border bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
-                      }
-                      style={activity.highlighted ? gradientBorderStyle : undefined}
-                    >
-                      <div className="mb-1 flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); toggleStar(starKey); }}
-                          aria-label={isStarSelected ? "Unselect" : "Select"}
-                          className="rounded-sm"
-                        >
-                          <Star
-                            className={
-                              isStarSelected
-                                ? "size-3.5 fill-yellow-400 text-yellow-400"
-                                : isInactive
-                                  ? "text-muted-foreground size-3.5"
-                                  : "text-foreground size-3.5"
-                            }
-                          />
-                        </button>
-                        <h3
-                          className={
-                            isInactive
-                              ? "text-sm font-medium text-muted-foreground"
-                              : "text-sm font-medium"
-                          }
-                        >
-                          {activity.title}
-                        </h3>
-                      </div>
-                      <p className={isInactive ? "text-xs text-muted-foreground" : "text-xs"}>
-                        Status: <StatusText status={activity.status} />
-                      </p>
-                      <p className="text-muted-foreground text-[11px]">{activity.period}</p>
-                      <p className="text-muted-foreground mb-2 text-[11px]">{activity.applied}</p>
-                      <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-                        {activity.badgeText ? (
-                          isInactive ? (
-                            <Badge
-                              variant="ghost"
-                              className="rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
-                            >
-                              {activity.badgeText}
-                            </Badge>
-                          ) : (
-                            <Badge variant="gradient" className="rounded-full">
-                              <span className="gradient-text">{activity.badgeText}</span>
-                            </Badge>
-                          )
-                        ) : (
-                          <span />
-                        )}
-                        {isInactive ? (
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            className="hover:bg-transparent rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
-                            onClick={(e) => { e.stopPropagation(); handleSeeApplied(activity.jobId); }}
-                          >
-                            See Applied
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            className="hover:bg-transparent rounded-full border bg-transparent"
-                            style={gradientBorderStyle}
-                            onClick={(e) => { e.stopPropagation(); handleSeeApplied(activity.jobId); }}
-                          >
-                            <span className="gradient-text">See Applied</span>
-                          </Button>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-
-            <SectionPagination
-              total={jobTotal}
-              currentPage={jobPage}
-              onPageChange={setJobPage}
-              perPage={CARDS_PER_PAGE}
-            />
-          </section>
+              <SectionPagination
+                total={jobTotal}
+                currentPage={jobPage}
+                onPageChange={setJobPage}
+                perPage={CARDS_PER_PAGE}
+              />
+            </section>
           )}
 
           <ApplymonitorPopupPage

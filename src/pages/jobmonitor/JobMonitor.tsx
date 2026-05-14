@@ -20,7 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiApplyMonitorSearchJob, apiGetApplyMonitorJobDetail } from "@/services/applymonitorService";
+import {
+  apiApplyMonitorSearchJob,
+  apiGetApplyMonitorJobDetail,
+} from "@/services/applymonitorService";
 import { apiGetUtilityOptionType } from "@/services/utilityService";
 import { formatDate } from "@/utils/formatDate";
 import type { JobMonitorCard } from "@/types/domain/job-monitor";
@@ -40,8 +43,16 @@ export default function JobMonitorPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [jobStatusOptions, setJobStatusOptions] = useState<MultiselectOption[]>([]);
-  const [sortByOptions, setSortByOptions] = useState<Array<{ id: string; label: string }>>([]);  const [jobDetailsMap, setJobDetailsMap] = useState<Record<string, ApplyMonitorJobDetailResponse>>({});  const cardsPerPage = 10;
+  const [jobStatusOptions, setJobStatusOptions] = useState<MultiselectOption[]>(
+    [],
+  );
+  const [sortByOptions, setSortByOptions] = useState<
+    Array<{ id: string; label: string }>
+  >([]);
+  const [jobDetailsMap, setJobDetailsMap] = useState<
+    Record<string, ApplyMonitorJobDetailResponse>
+  >({});
+  const cardsPerPage = 10;
 
   const gradientBorderStyle = {
     border: "1px solid transparent",
@@ -128,7 +139,8 @@ export default function JobMonitorPage() {
               jobId: item.job_id,
               title: item.job_name,
               status: item.status,
-              jobStatus: item.status?.toLowerCase() === "open" ? "open" : "closed",
+              jobStatus:
+                item.status?.toLowerCase() === "open" ? "open" : "closed",
               period,
               applied: `${item.applied_count} Applied`,
               companyName: "-",
@@ -161,18 +173,20 @@ export default function JobMonitorPage() {
   // Fetch job details for client-side status filtering
   useEffect(() => {
     if (latestCards.length === 0) return;
-    const ids = latestCards.map((c) => c.jobId).filter((id): id is string => Boolean(id));
-    void Promise.allSettled(ids.map((id) => apiGetApplyMonitorJobDetail(id))).then(
-      (results) => {
-        const map: Record<string, ApplyMonitorJobDetailResponse> = {};
-        results.forEach((r, i) => {
-          if (r.status === "fulfilled" && r.value.data) {
-            map[ids[i]!] = r.value.data;
-          }
-        });
-        setJobDetailsMap(map);
-      },
-    );
+    const ids = latestCards
+      .map((c) => c.jobId)
+      .filter((id): id is string => Boolean(id));
+    void Promise.allSettled(
+      ids.map((id) => apiGetApplyMonitorJobDetail(id)),
+    ).then((results) => {
+      const map: Record<string, ApplyMonitorJobDetailResponse> = {};
+      results.forEach((r, i) => {
+        if (r.status === "fulfilled" && r.value.data) {
+          map[ids[i]!] = r.value.data;
+        }
+      });
+      setJobDetailsMap(map);
+    });
   }, [latestCards]);
 
   useEffect(() => {
@@ -182,7 +196,9 @@ export default function JobMonitorPage() {
   }, [currentPage, totalPages]);
 
   const paginationTotal =
-    latestCards.length === 0 && currentPage === 1 ? 0 : totalPages * cardsPerPage;
+    latestCards.length === 0 && currentPage === 1
+      ? 0
+      : totalPages * cardsPerPage;
 
   // Client-side filter by job status using fetched details
   const displayCards = latestCards.filter((card) => {
@@ -269,14 +285,11 @@ export default function JobMonitorPage() {
                 placeholder="Select"
               />
             </div>
-              <div className="md:col-span-3">
+            <div className="md:col-span-3">
               <p className="text-foreground mb-1 text-base font-medium">
                 Sort By
               </p>
-              <Select
-                value={sortById}
-                onValueChange={setSortById}
-              >
+              <Select value={sortById} onValueChange={setSortById}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
@@ -300,7 +313,9 @@ export default function JobMonitorPage() {
             ) : errorMessage ? (
               <p className="text-sm text-destructive">{errorMessage}</p>
             ) : displayCards.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No job activities found</p>
+              <p className="text-sm text-muted-foreground">
+                No job activities found
+              </p>
             ) : (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                 {displayCards.map(renderCard)}

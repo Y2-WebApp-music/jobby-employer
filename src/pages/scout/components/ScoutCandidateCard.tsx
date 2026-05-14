@@ -46,7 +46,13 @@ export default function ScoutCandidateCard({
           variant="outline"
           size="xs"
           className="rounded-full border-muted-foreground/30 bg-transparent text-muted-foreground hover:bg-transparent"
-          onClick={() => window.open("https://jobby-nine.vercel.app/", "_blank", "noopener,noreferrer")}
+          onClick={() =>
+            window.open(
+              "https://jobby-nine.vercel.app/",
+              "_blank",
+              "noopener,noreferrer",
+            )
+          }
         >
           See Detail
         </Button>

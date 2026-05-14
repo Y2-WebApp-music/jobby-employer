@@ -188,7 +188,9 @@ function createAdditionQuestionSection(
 export default function CreatejobPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const prefill = (location.state as { prefill?: Record<string, unknown> } | null)?.prefill ?? null;
+  const prefill =
+    (location.state as { prefill?: Record<string, unknown> } | null)?.prefill ??
+    null;
   // Company state
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [companyAddress, setCompanyAddress] =
@@ -229,7 +231,9 @@ export default function CreatejobPage() {
     typeof prefill?.cover_letter === "boolean" ? prefill.cover_letter : true,
   );
   const [workExperience, setWorkExperience] = useState(
-    typeof prefill?.work_experience === "boolean" ? prefill.work_experience : true,
+    typeof prefill?.work_experience === "boolean"
+      ? prefill.work_experience
+      : true,
   );
   const [education, setEducation] = useState(
     typeof prefill?.education === "boolean" ? prefill.education : true,
@@ -240,9 +244,7 @@ export default function CreatejobPage() {
   const [additionFileDescription, setAdditionFileDescription] =
     useState<string>("");
   const [skills, setSkills] = useState<SkillRequest[]>(
-    Array.isArray(prefill?.skills)
-      ? (prefill.skills as SkillRequest[])
-      : [],
+    Array.isArray(prefill?.skills) ? (prefill.skills as SkillRequest[]) : [],
   );
   const [isAddSkillPopupOpen, setIsAddSkillPopupOpen] = useState(false);
   const [workOptions, setWorkOptions] = useState<UtilityWorkOption[]>([]);
