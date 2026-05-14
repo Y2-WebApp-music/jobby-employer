@@ -303,6 +303,8 @@ export interface ApplyMonitorApplyDetailResume {
   create_date: string;
   theme: number;
   color: number;
+  resume_file?: string | null;
+  resume_file_metadata?: Record<string, unknown> | null;
   user_id: string;
   first_name: string;
   last_name: string;

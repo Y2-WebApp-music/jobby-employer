@@ -65,3 +65,9 @@ export type UtilityOptionTypeResponse = {
   job_status?: UtilityOptionTypeItem[];
   sort_by?: UtilityOptionTypeItem[];
 };
+
+export type ExportResumeResponse = {
+  blob: Blob;
+  contentType: string;
+  filename: string;
+};
