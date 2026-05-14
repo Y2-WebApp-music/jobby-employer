@@ -280,7 +280,7 @@ export default function CompanySetupPage() {
 
   const handleVerifySubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    navigate("/");
+    navigate("/profile");
   };
 
   const handleVerificationFileChange = (
@@ -746,9 +746,9 @@ export default function CompanySetupPage() {
                       </button>
 
                       <p className="text-[11px] leading-4 text-muted-foreground">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Nam blandit ligula eu lectus mollis, non convallis
-                        turpis elementum. Sed interdum neque.
+                        Please upload your official company registration form
+                        (P.C. Form 0401) in PDF format. Your account will be
+                        reviewed after submission.
                       </p>
                     </div>
 

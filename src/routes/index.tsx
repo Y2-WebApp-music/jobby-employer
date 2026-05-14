@@ -1,4 +1,3 @@
-import LandingPage from "@/pages/LandingPage";
 import ProfilePage from "@/pages/profile/Profile";
 import ApplymonitorPage from "@/pages/applymonitor/applymonitor";
 import ApplymonitorJobPage from "@/pages/applymonitor/ApplymonitorJobPage";
@@ -11,13 +10,18 @@ import ScoutPage from "@/pages/scout/Scout";
 import SignUpPage from "@/pages/auth/SignUp";
 import CompanySetupPage from "@/pages/auth/CompanySetup";
 import SignInPage from "@/pages/auth/SignIn";
-import { createBrowserRouter } from "react-router-dom";
+import NotFoundPage from "@/pages/NotFound";
+import { useAuthStore } from "@/store/auth";
+import { createBrowserRouter, redirect } from "react-router-dom";
 
 export const router = createBrowserRouter(
   [
     {
       path: "/",
-      element: <LandingPage />,
+      loader: () => {
+        const { user, token } = useAuthStore.getState();
+        return user || token ? redirect("/profile") : redirect("/signin");
+      },
     },
     {
       path: "/signup",
@@ -79,7 +83,7 @@ export const router = createBrowserRouter(
       path: "/test",
       element: <div>Test</div>,
     },
-    { path: "*", element: <div>Not Found</div> },
+    { path: "*", element: <NotFoundPage /> },
   ],
   {
     basename: import.meta.env.VITE_BASE_URL,
