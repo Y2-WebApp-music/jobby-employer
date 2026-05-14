@@ -36,7 +36,10 @@ export default function SignInPage() {
       });
 
       if (result.error) {
-        setErrorMsg(result.error.message || "Sign in failed. Please check your credentials.");
+        setErrorMsg(
+          result.error.message ||
+            "Sign in failed. Please check your credentials.",
+        );
         return;
       }
 

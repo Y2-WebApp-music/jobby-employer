@@ -77,7 +77,9 @@ export default function SignUpPage() {
       });
 
       if (result.error) {
-        setErrorMsg(result.error.message || "Sign up failed. Please try again.");
+        setErrorMsg(
+          result.error.message || "Sign up failed. Please try again.",
+        );
         return;
       }
 
@@ -219,7 +221,9 @@ export default function SignUpPage() {
               </div>
 
               {errorMsg ? (
-                <p className="text-center text-sm text-destructive">{errorMsg}</p>
+                <p className="text-center text-sm text-destructive">
+                  {errorMsg}
+                </p>
               ) : null}
 
               <p className="pt-1 text-center text-xs text-muted-foreground">
