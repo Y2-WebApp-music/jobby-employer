@@ -44,7 +44,7 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth";
 import {
@@ -187,6 +187,8 @@ function createAdditionQuestionSection(
 
 export default function CreatejobPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefill = (location.state as { prefill?: Record<string, unknown> } | null)?.prefill ?? null;
   // Company state
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [companyAddress, setCompanyAddress] =
@@ -199,25 +201,55 @@ export default function CreatejobPage() {
     postalCodeNum: number;
   } | null>(null);
   // Form States
-  const [jobName, setJobName] = useState<string>("");
-  const [workOption, setWorkOption] = useState<string>("");
+  const [jobName, setJobName] = useState<string>(
+    typeof prefill?.name === "string" ? prefill.name : "",
+  );
+  const [workOption, setWorkOption] = useState<string>(
+    prefill?.work_option_id != null ? String(prefill.work_option_id) : "",
+  );
   const [workCategory, setWorkCategory] = useState<string>("");
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
-  const [jobDescription, setJobDescription] = useState<string>("");
-  const [coverLetter, setCoverLetter] = useState(true);
-  const [workExperience, setWorkExperience] = useState(true);
-  const [education, setEducation] = useState(true);
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    typeof prefill?.start_apply === "string" && prefill.start_apply
+      ? new Date(prefill.start_apply)
+      : undefined,
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    typeof prefill?.end_apply === "string" && prefill.end_apply
+      ? new Date(prefill.end_apply)
+      : undefined,
+  );
+  const [jobDescription, setJobDescription] = useState<string>(
+    typeof prefill?.description_rtf === "string"
+      ? prefill.description_rtf
+      : typeof prefill?.description === "string"
+        ? prefill.description
+        : "",
+  );
+  const [coverLetter, setCoverLetter] = useState(
+    typeof prefill?.cover_letter === "boolean" ? prefill.cover_letter : true,
+  );
+  const [workExperience, setWorkExperience] = useState(
+    typeof prefill?.work_experience === "boolean" ? prefill.work_experience : true,
+  );
+  const [education, setEducation] = useState(
+    typeof prefill?.education === "boolean" ? prefill.education : true,
+  );
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [selectedFileType, setSelectedFileType] = useState<string>("");
   const [additionFileLabel, setAdditionFileLabel] = useState<string>("");
   const [additionFileDescription, setAdditionFileDescription] =
     useState<string>("");
-  const [skills, setSkills] = useState<SkillRequest[]>([]);
+  const [skills, setSkills] = useState<SkillRequest[]>(
+    Array.isArray(prefill?.skills)
+      ? (prefill.skills as SkillRequest[])
+      : [],
+  );
   const [isAddSkillPopupOpen, setIsAddSkillPopupOpen] = useState(false);
   const [workOptions, setWorkOptions] = useState<UtilityWorkOption[]>([]);
   const [workTypes, setWorkTypes] = useState<UtilityWorkType[]>([]);
-  const [workTypeId, setWorkTypeId] = useState<string>("");
+  const [workTypeId, setWorkTypeId] = useState<string>(
+    prefill?.work_type_id != null ? String(prefill.work_type_id) : "",
+  );
   const [additionQuestions, setAdditionQuestions] = useState<
     AdditionQuestionSection[]
   >(initialAdditionQuestions);
@@ -569,12 +601,38 @@ export default function CreatejobPage() {
           apiGetCompanyIdByUserId(userId),
         ]);
         if (optionTypeResult.data) {
-          setWorkOptions(optionTypeResult.data.work_option ?? []);
-          setWorkTypes(optionTypeResult.data.work_type ?? []);
+          const d = optionTypeResult.data;
+          setWorkOptions(d.work_options ?? d.work_option ?? []);
+          setWorkTypes(d.work_types ?? d.work_type ?? []);
         }
         const cId = companyIdResult.data?.company_id;
         if (!cId) return;
         setCompanyId(cId);
+
+        // Pre-fill edit mode: if prefill.jobId present, use job address instead of company profile
+        if (prefill?.jobId != null) {
+          setCreatedJobId(String(prefill.jobId));
+          setCompanyAddress({
+            addressLine: String(prefill.address_line ?? ""),
+            no: String(prefill.no ?? ""),
+            moo: String(prefill.moo ?? ""),
+            soi: String(prefill.soi ?? ""),
+            street: String(prefill.street ?? ""),
+            province: String(prefill.province_name ?? ""),
+            district: String(prefill.district_name ?? ""),
+            subDistrict: String(prefill.sub_district_name ?? ""),
+            postalCode: String(prefill.postal_code ?? ""),
+          });
+          setCompanyAddressCodes({
+            subDistrictCode: Number(prefill.sub_district_code ?? 0),
+            districtCode: Number(prefill.district_code ?? 0),
+            provinceCode: Number(prefill.province_code ?? 0),
+            countryCode: Number(prefill.country_code ?? 0),
+            postalCodeNum: Number(prefill.postal_code ?? 0),
+          });
+          return;
+        }
+
         const profileResult = await apiGetProfileCompanyProfile(cId);
         const data = profileResult.data;
         if (!data) return;

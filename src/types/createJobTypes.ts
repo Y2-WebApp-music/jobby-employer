@@ -171,11 +171,24 @@ export type Skill = {
 };
 
 export type SkillSearchResultItem = {
-  skill_id: string;
+  skill_id?: string;
+  eid?: string;
+  skillElementId?: string;
+  id?: string;
   skill_name?: string;
   name?: string;
   category?: string;
   description?: string;
+};
+
+export type SkillDetailResponse = {
+  skillElementId?: string;
+  skill_id?: string;
+  id?: string;
+  name?: string;
+  description?: string;
+  pre_skills?: string[];
+  preSkills?: string[];
 };
 
 export type UtilityWorkOption = {
@@ -190,9 +203,18 @@ export type UtilityWorkType = {
   text_eng: string;
 };
 
+export type UtilityOptionItem = {
+  id: number;
+  label: string;
+};
+
 export type UtilityOptionTypeResponse = {
-  work_option: UtilityWorkOption[];
-  work_type: UtilityWorkType[];
+  work_option?: UtilityWorkOption[];
+  work_options?: UtilityWorkOption[];
+  work_type?: UtilityWorkType[];
+  work_types?: UtilityWorkType[];
+  job_status?: UtilityOptionItem[];
+  sort_by?: UtilityOptionItem[];
 };
 
 export type CreateJobAddSkillPopupProps = {

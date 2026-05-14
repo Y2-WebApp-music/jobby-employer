@@ -1,14 +1,14 @@
 export type ScoutCandidate = {
-  id: number;
+  id: string;
   name: string;
   matchJob: string;
   description: string;
   skillMatch: string;
-  createdAt: number;
+  isStar: boolean;
 };
 
 export type ScoutCandidateCardProps = {
   candidate: ScoutCandidate;
   isStarSelected: boolean;
-  onToggleStar: (candidateId: number) => void;
+  onToggleStar: (candidateId: string) => void;
 };
