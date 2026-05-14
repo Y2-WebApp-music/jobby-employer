@@ -29,6 +29,17 @@ import { formatDate } from "@/utils/formatDate";
 import type { ProfileUpdateCompanyInfoRequest } from "@/types/profileTypes";
 import type { ProfileCompanyJobListItem } from "@/services/profileService";
 
+function toExternalUrl(link: string): string {
+  const trimmed = link.trim();
+  if (!trimmed) return "";
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
+}
+
 export default function ProfilePage() {
   const authUser = useAuthStore((state) => state.user);
   const authToken = useAuthStore((state) => state.token);
@@ -134,11 +145,15 @@ export default function ProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const profileTags = [
-    companyProfile.email,
-    companyProfile.phone,
-    ...companyProfile.mediaLinks.map((link) => link.label || link.url),
-  ].filter((tag) => tag.trim().length > 0);
+  const contactBadges = [
+    { key: "email", text: companyProfile.email, href: "" },
+    { key: "phone", text: companyProfile.phone, href: "" },
+    ...companyProfile.mediaLinks.map((link, index) => ({
+      key: `media-${index}`,
+      text: link.label || link.url,
+      href: link.label && link.url ? toExternalUrl(link.url) : "",
+    })),
+  ].filter((item) => item.text.trim().length > 0);
 
   const locationText = [companyProfile.place, companyProfile.region]
     .filter((item) => item.trim().length > 0)
@@ -218,14 +233,30 @@ export default function ProfilePage() {
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
-                {profileTags.map((tag, index) => (
-                  <span
-                    key={`${tag}-${index}`}
-                    className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                {contactBadges.map((badge) => {
+                  const className =
+                    "rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground";
+
+                  if (badge.href) {
+                    return (
+                      <a
+                        key={badge.key}
+                        href={badge.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${className} transition-colors hover:border-primary/50 hover:text-primary`}
+                      >
+                        {badge.text}
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <span key={badge.key} className={className}>
+                      {badge.text}
+                    </span>
+                  );
+                })}
               </div>
 
               <div className="mt-5 space-y-4">

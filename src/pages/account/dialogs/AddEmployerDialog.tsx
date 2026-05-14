@@ -67,8 +67,8 @@ export default function AddEmployerDialog({
       handleClose(false);
       onSuccess?.();
     } catch (error: unknown) {
-      const status =
-        (error as { response?: { status?: number } })?.response?.status;
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
       if (status && status >= 400 && status < 500) {
         toast.error("Failed to add employer. Please check the details.");
       } else {

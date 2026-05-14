@@ -635,7 +635,9 @@ export default function CreatejobPage() {
                 : "",
             );
             setStartDate(
-              jobDetail.start_apply ? new Date(jobDetail.start_apply) : undefined,
+              jobDetail.start_apply
+                ? new Date(jobDetail.start_apply)
+                : undefined,
             );
             setEndDate(
               jobDetail.end_apply ? new Date(jobDetail.end_apply) : undefined,

@@ -10,9 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Multiselect from "@/components/ui/multiselect";
 import SectionPagination from "@/components/ui/pagination";
-import {
-  apiGetEmployeeList,
-} from "@/services/accountManagementService";
+import { apiGetEmployeeList } from "@/services/accountManagementService";
 import type { EmployeeListItem } from "@/services/accountManagementService";
 import { apiGetCompanyIdByUserId } from "@/services/profileService";
 import { useAuthStore } from "@/store/auth";
@@ -28,7 +26,10 @@ const ROLE_MAP: Record<number, string> = {
   5: "staff",
 };
 
-const ROLE_OPTIONS = Object.values(ROLE_MAP).map((r) => ({ label: r, value: r }));
+const ROLE_OPTIONS = Object.values(ROLE_MAP).map((r) => ({
+  label: r,
+  value: r,
+}));
 
 const perPage = 10;
 
