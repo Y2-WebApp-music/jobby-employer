@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { applybytitleMock } from "@/mock/applybytitleMock";
 import ApplyByTitleFilterPopup from "@/pages/applybytitle/ApplyByTitleFilterPopup";
 import ApplyByTitleJobDetailPopup from "@/pages/applybytitle/ApplyByTitleJobDetailPopup";
 import ApplyByTitleNewAppliedPopup from "@/pages/applybytitle/ApplyByTitleNewAppliedPopup";
@@ -38,6 +37,53 @@ const perPageBySection = {
   accept: 6,
   reject: 9,
 } as const;
+
+const applybytitleMock: CandidateCard[] = [
+  {
+    id: 1,
+    name: "Chotanansub Sophaken",
+    status: "Apply",
+    section: "newApplied",
+    appliedAt: "2h ago",
+    badgeText: "New",
+    skillMatch: "3 Skill Match",
+    highlightVariant: "gradient",
+  },
+  {
+    id: 2,
+    name: "Nattapong K.",
+    status: "Apply",
+    section: "applied",
+    appliedAt: "1d ago",
+    skillMatch: "2 Skill Match",
+  },
+  {
+    id: 3,
+    name: "Sudarat P.",
+    status: "Interview",
+    section: "interview",
+    appliedAt: "3d ago",
+    skillMatch: "4 Skill Match",
+    highlightVariant: "pink",
+  },
+  {
+    id: 4,
+    name: "Kanin T.",
+    status: "Accept",
+    section: "accept",
+    appliedAt: "5d ago",
+    skillMatch: "3 Skill Match",
+    highlightVariant: "green",
+  },
+  {
+    id: 5,
+    name: "Ploy N.",
+    status: "Reject",
+    section: "reject",
+    appliedAt: "7d ago",
+    skillMatch: "2 Skill Match",
+  },
+];
 
 export default function ApplyByTitlePage() {
   const { title } = useParams();

@@ -88,7 +88,7 @@ export default function SignUpPage() {
         await hydrateAuthStoreFromSession();
       }
 
-      navigate("/profile");
+      navigate("/company-setup");
     } catch {
       setErrorMsg("Sign up failed. Please try again.");
     } finally {
