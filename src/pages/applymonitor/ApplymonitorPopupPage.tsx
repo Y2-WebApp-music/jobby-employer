@@ -1,16 +1,124 @@
 ﻿import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import type { ApplymonitorPopupPageProps } from "@/types/domain/apply-monitor";
-import { Star, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import ApplymonitorSkillPopup from "@/pages/applymonitor/ApplymonitorSkillPopup";
+import RenderResume from "@/features/resume/RenderResume";
 import ApplymonitorRejectPopup from "@/pages/applymonitor/ApplymonitorRejectPopup";
+import ApplymonitorSkillPopup from "@/pages/applymonitor/ApplymonitorSkillPopup";
+import type { ApplyMonitorApplyDetailResponse } from "@/services/applymonitorService";
 import {
   apiGetApplyMonitorApplyDetail,
   apiPatchApplyMonitorApplyStatus,
 } from "@/services/applymonitorService";
-import type { ApplyMonitorApplyDetailResponse } from "@/services/applymonitorService";
+import { apiResumeExport } from "@/services/utilityService";
+import type { ApplyMonitorApplyDetailResume } from "@/types/applymonitorTypes";
+import type { ApplymonitorPopupPageProps } from "@/types/domain/apply-monitor";
+import type { ResumeCreateProps } from "@/types/resumeType";
 import { formatDate } from "@/utils/formatDate";
+import { Star, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
+const downloadBlob = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+};
+
+const mapApplyDetailResumeToResumeCreate = (
+  resume: ApplyMonitorApplyDetailResume,
+): ResumeCreateProps => ({
+  id: resume.id,
+  name: resume.name,
+  create_date: resume.create_date,
+  theme: resume.theme,
+  color: resume.color,
+  resume_file: resume.resume_file ?? "",
+  resume_file_metadata: resume.resume_file_metadata ?? null,
+  data: {
+    first_name: resume.first_name,
+    last_name: resume.last_name,
+    logo: resume.logo ?? "",
+    phone: resume.phone ?? "",
+    phone_region: resume.phone_region ?? "",
+    email: resume.email ?? "",
+    contact: (resume.contacts ?? []).map((contact) => ({
+      label: contact.label,
+      link: contact.link,
+    })),
+    skills: (resume.skills ?? []).map((skill) => ({
+      id: skill.id,
+      name: skill.skill_name,
+    })),
+    address: {
+      address_line: resume.address_line ?? "",
+      no: resume.no ?? "",
+      moo: resume.moo ?? "",
+      soi: resume.soi ?? "",
+      street: resume.street ?? "",
+      sub_district: resume.sub_district?.sub_district_name_en ?? "",
+      district: resume.district?.district_name_en ?? "",
+      province: resume.province?.province_name_en ?? "",
+      country: resume.country?.country_name_en ?? "",
+      sub_district_id: resume.sub_district_id,
+      sub_district_th: resume.sub_district?.sub_district_name_th ?? "",
+      sub_district_eng: resume.sub_district?.sub_district_name_en ?? "",
+      district_id: resume.district_id,
+      district_th: resume.district?.district_name_th ?? "",
+      district_eng: resume.district?.district_name_en ?? "",
+      province_id: resume.province_id,
+      province_th: resume.province?.province_name_th ?? "",
+      province_eng: resume.province?.province_name_en ?? "",
+      country_id: resume.country_id,
+      country_th: resume.country?.country_name_th ?? "",
+      country_eng: resume.country?.country_name_en ?? "",
+      postal_code: resume.postal_code ?? undefined,
+    },
+    education: (resume.educations ?? []).map((education) => ({
+      school_name: education.school_name,
+      logo: education.logo,
+      degree: education.degree,
+      field_of_study: education.field_of_study,
+      start_date: education.start_date,
+      end_date: education.end_date ?? "",
+      gpax: Number(education.gpax) || 0,
+    })),
+    work_experience: (resume.work_experiences ?? []).map((experience) => ({
+      id: experience.id,
+      position: experience.position,
+      logo: experience.logo,
+      company_name: experience.company_name,
+      start_date: experience.start_date,
+      end_Date: experience.end_date ?? "",
+      skills: [],
+      work_type: experience.work_type,
+      work_type_id: experience.work_type_id,
+    })),
+    projects: (resume.projects ?? []).map((project) => ({
+      id: project.id,
+      name: project.name,
+      description: project.description,
+      start_date: project.start_date,
+      end_date: project.end_date ?? "",
+      skills: [],
+      images: [],
+    })),
+    achievement: (resume.achievements ?? []).map((achievement) => ({
+      id: achievement.id,
+      name: achievement.name,
+      project_name: achievement.project_name,
+      description: achievement.description,
+      date: achievement.date,
+      skills: [],
+      images: [],
+    })),
+    miscellaneous: [],
+  },
+});
 
 export default function ApplymonitorPopupPage({
   open,
@@ -18,6 +126,7 @@ export default function ApplymonitorPopupPage({
   card,
   onRefetch,
 }: ApplymonitorPopupPageProps) {
+  const navigate = useNavigate();
   const [isSkillPopupOpen, setIsSkillPopupOpen] = useState(false);
   const [isRejectPopupOpen, setIsRejectPopupOpen] = useState(false);
   const [selectedSkillName, setSelectedSkillName] = useState("React");
@@ -66,6 +175,17 @@ export default function ApplymonitorPopupPage({
       setActionLoading(false);
     }
   };
+
+  const handleDownloadResume = useCallback(async (resumeId: string) => {
+    const toastId = toast.loading("Downloading resume...");
+    try {
+      const result = await apiResumeExport(resumeId);
+      downloadBlob(result.blob, result.filename);
+      toast.success("Resume downloaded", { id: toastId });
+    } catch {
+      toast.error("Failed to export resume", { id: toastId });
+    }
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -122,6 +242,9 @@ export default function ApplymonitorPopupPage({
   const appliedDate = detail?.created_at
     ? formatDate({ date: detail.created_at, format: "DD/MM/YYYY HH:mm" })
     : "";
+  const mappedResume = detail?.resume_detail
+    ? mapApplyDetailResumeToResumeCreate(detail.resume_detail)
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -257,13 +380,22 @@ export default function ApplymonitorPopupPage({
                 variant="ghost"
                 size="sm"
                 className="rounded-full border border-muted-foreground/30 bg-transparent"
+                onClick={() => handleDownloadResume(resume?.id ?? "")}
+                disabled={!resume?.id}
               >
                 download
               </Button>
             </div>
 
-            <div className="no-scrollbar min-h-0 flex-1 overflow-y-scroll overscroll-contain pb-4 pr-1">
-              <div className="w-full aspect-210/297 rounded-2xl bg-destructive/80" />
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50">
+              <div className="min-h-0 flex-1 overflow-auto">
+                {mappedResume && (
+                  <RenderResume
+                    resume={mappedResume}
+                    templateId={mappedResume.theme}
+                  />
+                )}
+              </div>
             </div>
 
             <div className="mt-2 flex shrink-0 flex-wrap justify-end gap-2 bg-background pt-1">
@@ -284,6 +416,16 @@ export default function ApplymonitorPopupPage({
                 disabled={actionLoading || isAlreadyInterview}
               >
                 Move To Interview
+              </Button>
+              <Button
+                onClick={() => {
+                  const otherId = user?.id ?? detail?.user?.id ?? "";
+                  if (!otherId) return;
+                  onOpenChange(false);
+                  navigate(`/message?otherUserId=${encodeURIComponent(otherId)}`);
+                }}
+              >
+                Message
               </Button>
             </div>
           </div>
