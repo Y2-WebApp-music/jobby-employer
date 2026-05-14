@@ -3,9 +3,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X, Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { apiSearchSkills } from "@/services/createjobService";
+import {
+  apiGetSkillDetailById,
+  apiSearchSkills,
+} from "@/services/createjobService";
 import type {
   CreateJobAddSkillPopupProps,
+  SkillDetailResponse,
   SkillSearchResultItem,
   SkillRequest,
 } from "@/types/createJobTypes";
@@ -20,6 +24,10 @@ export default function CreateJobAddSkillPopup({
   const [isSearching, setIsSearching] = useState(false);
   const [selectedSkill, setSelectedSkill] =
     useState<SkillSearchResultItem | null>(null);
+  const [detailSkill, setDetailSkill] = useState<SkillDetailResponse | null>(
+    null,
+  );
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounced search
@@ -51,17 +59,50 @@ export default function CreateJobAddSkillPopup({
     setSearchValue("");
     setResults([]);
     setSelectedSkill(null);
+    setDetailSkill(null);
+    setIsLoadingDetail(false);
     onOpenChange(false);
   };
 
   const getSkillDisplayName = (skill: SkillSearchResultItem) =>
     skill.skill_name ?? skill.name ?? "";
 
-  const handleAddSkill = () => {
+  const getSearchSkillId = (skill: SkillSearchResultItem) =>
+    skill.skill_id ?? skill.eid ?? skill.skillElementId ?? skill.id ?? "";
+
+  const getDetailSkillName = () =>
+    detailSkill?.name ??
+    (selectedSkill ? getSkillDisplayName(selectedSkill) : "");
+
+  const getSelectedSkillId = (skill: SkillSearchResultItem | null) => {
+    if (!skill) return "";
+    return getSearchSkillId(skill);
+  };
+
+  const handleShowSkillDetail = async () => {
+    const skillId = getSelectedSkillId(selectedSkill);
+    if (!skillId) return;
+    try {
+      setIsLoadingDetail(true);
+      const response = await apiGetSkillDetailById(skillId);
+      setDetailSkill(response.data ?? null);
+    } catch {
+      setDetailSkill({
+        skillElementId: skillId,
+        name: selectedSkill ? getSkillDisplayName(selectedSkill) : "",
+        description: "",
+        pre_skills: [],
+      });
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
+  const handleAddSkillToForm = () => {
     if (!selectedSkill) return;
     const skillReq: SkillRequest = {
       index: 0,
-      skill_id: selectedSkill.skill_id,
+      skill_id: getSearchSkillId(selectedSkill),
       skill_name: getSkillDisplayName(selectedSkill),
     };
     onSubmit(skillReq);
@@ -74,6 +115,8 @@ export default function CreateJobAddSkillPopup({
       setSearchValue("");
       setResults([]);
       setSelectedSkill(null);
+      setDetailSkill(null);
+      setIsLoadingDetail(false);
     }
   }, [open]);
 
@@ -125,14 +168,16 @@ export default function CreateJobAddSkillPopup({
             {!isSearching && searchValue.trim() && results.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Suggestions:</p>
-                <div className="flex flex-wrap gap-2 max-h-[160px] overflow-y-auto pr-1">
-                  {results.map((skill) => (
+                <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto pr-1">
+                  {results.map((skill, index) => (
                     <button
-                      key={skill.skill_id}
+                      key={`${getSearchSkillId(skill)}-${index}`}
                       type="button"
                       onClick={() => setSelectedSkill(skill)}
                       className={`rounded-full border px-4 py-2 text-sm transition-colors ${
-                        selectedSkill?.skill_id === skill.skill_id
+                        selectedSkill &&
+                        getSearchSkillId(selectedSkill) ===
+                          getSearchSkillId(skill)
                           ? "bg-primary/10 border-primary text-primary"
                           : "border-primary/40 text-primary hover:bg-primary/5"
                       }`}
@@ -148,16 +193,77 @@ export default function CreateJobAddSkillPopup({
               <p className="text-sm text-muted-foreground">No skills found</p>
             )}
 
-            {selectedSkill && (
+            {selectedSkill && !detailSkill && (
               <div className="flex gap-2 pt-2">
                 <Button
                   type="button"
-                  onClick={handleAddSkill}
+                  onClick={handleShowSkillDetail}
+                  disabled={isLoadingDetail}
                   className="w-full text-white"
                   style={{ background: "var(--gradient-primary)" }}
                 >
-                  + Add "{getSkillDisplayName(selectedSkill)}"
+                  {isLoadingDetail ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>+ Add "{getSkillDisplayName(selectedSkill)}"</>
+                  )}
                 </Button>
+              </div>
+            )}
+
+            {detailSkill && (
+              <div className="space-y-3 rounded-md border border-border p-3">
+                <div>
+                  <p className="mb-1 text-base font-medium">
+                    Skill Description
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {detailSkill.description?.trim() || "-"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-base font-medium">Pre-Skill</p>
+                  {((detailSkill.pre_skills ?? detailSkill.preSkills ?? [])
+                    .length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {(
+                        detailSkill.pre_skills ??
+                        detailSkill.preSkills ??
+                        []
+                      ).map((preSkill, index) => (
+                        <span
+                          key={`${preSkill}-${index}`}
+                          className="rounded-full border border-muted-foreground/30 bg-muted px-3 py-1 text-sm text-muted-foreground"
+                        >
+                          {preSkill}
+                        </span>
+                      ))}
+                    </div>
+                  )) || <p className="text-sm text-muted-foreground">-</p>}
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setDetailSkill(null)}
+                    className="flex-1"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleAddSkillToForm}
+                    className="flex-1 text-white"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    + Add "{getDetailSkillName()}"
+                  </Button>
+                </div>
               </div>
             )}
           </div>

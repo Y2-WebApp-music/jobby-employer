@@ -50,3 +50,24 @@ export type UtilitySubDistrictsByDistrictResponse = UtilityDistrictItem & {
 
 export type UtilityProvincesResponse = UtilityProvinceItem[];
 export type UtilityPostalCodesBySubDistrictResponse = UtilityPostalCodeItem[];
+
+export type UtilityOptionTypeItem = {
+  id: number;
+  text_th: string;
+  text_eng: string;
+};
+
+export type UtilityOptionTypeResponse = {
+  work_types?: UtilityOptionTypeItem[];
+  work_options?: UtilityOptionTypeItem[];
+  work_category?: UtilityOptionTypeItem[];
+  apply_status?: UtilityOptionTypeItem[];
+  job_status?: UtilityOptionTypeItem[];
+  sort_by?: UtilityOptionTypeItem[];
+};
+
+export type ExportResumeResponse = {
+  blob: Blob;
+  contentType: string;
+  filename: string;
+};

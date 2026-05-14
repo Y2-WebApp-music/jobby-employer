@@ -7,80 +7,83 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Input } from "@/components/ui/input";
 import SectionPagination from "@/components/ui/pagination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { ScoutCandidate } from "@/types/domain/scout";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { apiGetScoutList } from "@/services/scoutService";
 import ScoutCandidateCard from "./components/ScoutCandidateCard";
 
-const scoutMock: ScoutCandidate[] = Array.from({ length: 15 }, (_, index) => ({
-  id: index + 1,
-  name: "Chotanansub Sophaken",
-  matchJob: "Personal Assistant 25 - 35 K (WFH 80%)",
-  description: "ยินพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
-  skillMatch: "3 Skill Match",
-  createdAt: 1000 - index,
-}));
-
-const perPage = 15;
+const perPage = 10;
 
 export default function ScoutPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedJob, setSelectedJob] = useState("all");
-  const [selectedFilter, setSelectedFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
+  const [candidates, setCandidates] = useState<ScoutCandidate[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedStars, setSelectedStars] = useState<Record<number, boolean>>(
+  const [selectedStars, setSelectedStars] = useState<Record<string, boolean>>(
     {},
   );
 
-  const filteredCandidates = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
+  useEffect(() => {
+    let cancelled = false;
+    const fetchScoutCandidates = async () => {
+      setIsLoading(true);
+      setErrorMessage("");
+      try {
+        const response = await apiGetScoutList({
+          search: "",
+          job_name: 1,
+          page: currentPage - 1,
+          limit: perPage,
+        });
+        if (cancelled) return;
 
-    const matched = scoutMock.filter((candidate) => {
-      const isNameMatched = candidate.name
-        .toLowerCase()
-        .includes(normalizedQuery);
-      const isJobMatched =
-        selectedJob === "all" || candidate.matchJob === selectedJob;
-      const isFilterMatched =
-        selectedFilter === "all" || candidate.skillMatch === selectedFilter;
+        const mapped: ScoutCandidate[] = (response.data.data ?? []).map(
+          (item) => ({
+            id: item.id,
+            name:
+              item.user_name ||
+              `${item.first_name ?? ""} ${item.last_name ?? ""}`.trim() ||
+              item.email,
+            matchJob: "-",
+            description: item.email,
+            skillMatch: `${item.match_skill} Skill Match`,
+            isStar: item.is_star,
+          }),
+        );
 
-      return isNameMatched && isJobMatched && isFilterMatched;
-    });
-
-    return [...matched].sort((first, second) => {
-      if (sortBy === "oldest") {
-        return first.createdAt - second.createdAt;
+        setCandidates(mapped);
+        setTotal(response.data.total ?? 0);
+        setSelectedStars((prev) => {
+          const next = { ...prev };
+          mapped.forEach((candidate) => {
+            if (next[candidate.id] === undefined) {
+              next[candidate.id] = candidate.isStar;
+            }
+          });
+          return next;
+        });
+      } catch {
+        if (cancelled) return;
+        setCandidates([]);
+        setTotal(0);
+        setErrorMessage("Failed to load scout candidates");
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
+    };
 
-      if (sortBy === "name") {
-        return first.name.localeCompare(second.name);
-      }
+    void fetchScoutCandidates();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentPage]);
 
-      return second.createdAt - first.createdAt;
-    });
-  }, [searchQuery, selectedFilter, selectedJob, sortBy]);
+  const pagedCandidates = useMemo(() => candidates, [candidates]);
 
-  const pagedCandidates = useMemo(() => {
-    const start = (currentPage - 1) * perPage;
-    return filteredCandidates.slice(start, start + perPage);
-  }, [currentPage, filteredCandidates]);
-
-  const jobOptions = [
-    "all",
-    ...Array.from(new Set(scoutMock.map((candidate) => candidate.matchJob))),
-  ];
-
-  const toggleStar = (candidateId: number) => {
+  const toggleStar = (candidateId: string) => {
     setSelectedStars((previous) => ({
       ...previous,
       [candidateId]: !previous[candidateId],
@@ -116,97 +119,29 @@ export default function ScoutPage() {
             </span>
           </div>
 
-          <section className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-12">
-            <div className="md:col-span-3">
-              <p className="mb-1 text-base font-medium">Search</p>
-              <Input
-                placeholder="Search name"
-                value={searchQuery}
-                onChange={(event) => {
-                  setSearchQuery(event.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
-
-            <div className="md:col-span-5">
-              <p className="mb-1 text-base font-medium">Job name</p>
-              <Select
-                value={selectedJob}
-                onValueChange={(value) => {
-                  setSelectedJob(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All jobs</SelectItem>
-                  {jobOptions
-                    .filter((jobOption) => jobOption !== "all")
-                    .map((jobOption) => (
-                      <SelectItem key={jobOption} value={jobOption}>
-                        {jobOption}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="md:col-span-2">
-              <p className="mb-1 text-base font-medium">Filter</p>
-              <Select
-                value={selectedFilter}
-                onValueChange={(value) => {
-                  setSelectedFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="3 Skill Match">3 Skill Match</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="md:col-span-2">
-              <p className="mb-1 text-base font-medium">Sort By</p>
-              <Select
-                value={sortBy}
-                onValueChange={(value) => {
-                  setSortBy(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="oldest">Oldest</SelectItem>
-                  <SelectItem value="name">Name</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </section>
-
-          <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {pagedCandidates.map((candidate) => (
-              <ScoutCandidateCard
-                key={candidate.id}
-                candidate={candidate}
-                isStarSelected={Boolean(selectedStars[candidate.id])}
-                onToggleStar={toggleStar}
-              />
-            ))}
-          </section>
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          ) : errorMessage ? (
+            <p className="text-sm text-destructive">{errorMessage}</p>
+          ) : pagedCandidates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No scout candidates found
+            </p>
+          ) : (
+            <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {pagedCandidates.map((candidate) => (
+                <ScoutCandidateCard
+                  key={candidate.id}
+                  candidate={candidate}
+                  isStarSelected={Boolean(selectedStars[candidate.id])}
+                  onToggleStar={toggleStar}
+                />
+              ))}
+            </section>
+          )}
 
           <SectionPagination
-            total={filteredCandidates.length}
+            total={total}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
             perPage={perPage}

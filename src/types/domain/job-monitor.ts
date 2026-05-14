@@ -1,7 +1,8 @@
 export type JobMonitorCard = {
   id: number;
+  jobId: string;
   title: string;
-  status: "Active" | "Closed";
+  status: string;
   jobStatus: "open" | "closed";
   period: string;
   applied: string;

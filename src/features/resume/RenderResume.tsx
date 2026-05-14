@@ -35,18 +35,7 @@ const RenderResume = ({ resume, templateId }: Props) => {
   } | null>(null);
   const Template = templateMap[templateId] || Template1;
   const resumeFileUrl = resume.resume_file?.trim() ?? "";
-  const resumeFileMimeType =
-    typeof resume.resume_file_metadata?.content_type === "string"
-      ? resume.resume_file_metadata.content_type.toLowerCase()
-      : "";
-  const isPdfResumeFile =
-    Boolean(resumeFileUrl) &&
-    (resumeFileMimeType.includes("pdf") ||
-      resumeFileUrl.toLowerCase().includes(".pdf"));
-  const isImageResumeFile =
-    Boolean(resumeFileUrl) &&
-    (resumeFileMimeType.startsWith("image/") ||
-      /\.(png|jpe?g|webp|gif)$/i.test(resumeFileUrl));
+  const hasResumeFile = Boolean(resumeFileUrl);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -180,20 +169,12 @@ const RenderResume = ({ resume, templateId }: Props) => {
         ref={containerRef}
         className="absolute inset-0 select-none overflow-auto overscroll-contain touch-pan-x touch-pan-y cursor-grab bg-neutral-50 border border-neutral-200 rounded-lg p-0"
       >
-        {isPdfResumeFile ? (
+        {hasResumeFile ? (
           <div className="h-full w-full bg-white">
             <iframe
-              title="Imported resume PDF"
+              title="Imported resume file"
               src={resumeFileUrl}
               className="h-full w-full border-0"
-            />
-          </div>
-        ) : isImageResumeFile ? (
-          <div className="flex h-full w-full items-center justify-center bg-white p-4">
-            <img
-              src={resumeFileUrl}
-              alt="Imported resume"
-              className="max-h-full max-w-full object-contain"
             />
           </div>
         ) : (

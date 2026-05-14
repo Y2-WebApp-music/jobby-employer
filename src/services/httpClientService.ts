@@ -48,12 +48,6 @@ httpClient.interceptors.request.use(
       useAuthStore.getState().getToken() ??
       readSessionTokenFromCookie() ??
       readPersistedAuthToken();
-    console.log(
-      "[httpClient] url:",
-      config.url,
-      "| token:",
-      token ? token.slice(0, 8) + "..." : null,
-    );
     if (token) {
       const headers = AxiosHeaders.from(config.headers);
       headers.set("Authorization", `Bearer ${token}`);

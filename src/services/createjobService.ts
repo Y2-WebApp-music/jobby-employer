@@ -5,6 +5,7 @@ import type {
   GetJobDetailResponse,
   UtilityOptionTypeResponse,
   SkillSearchResultItem,
+  SkillDetailResponse,
 } from "@/types/createJobTypes";
 
 // post {{employer-bff}}/job     create job
@@ -45,6 +46,14 @@ export const apiGetUtilityOptionType = () => {
 export const apiSearchSkills = (searchName: string) => {
   return apiService.fetchData<SkillSearchResultItem[]>({
     url: `/utility/skills/search/${encodeURIComponent(searchName)}`,
+    method: "get",
+  });
+};
+
+// get {{employer-bff}}/utility/skills/:id     skill detail
+export const apiGetSkillDetailById = (skillId: string) => {
+  return apiService.fetchData<SkillDetailResponse>({
+    url: `/utility/skills/${encodeURIComponent(skillId)}`,
     method: "get",
   });
 };
