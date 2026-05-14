@@ -70,6 +70,7 @@ export default function ProfileCompanyNamePopup({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraftValue(cloneDraftValue(value));
       setAddressForm(mapAddressToForm(value));
     }

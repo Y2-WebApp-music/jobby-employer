@@ -6,7 +6,11 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import type { SignInFormState } from "@/types/authSignUpTypes";
-import { apiSignInWithEmail } from "@/services/authService";
+import {
+  authClient,
+  hydrateAuthStoreFromPayload,
+  hydrateAuthStoreFromSession,
+} from "@/services/authClient";
 import { useAuthStore } from "@/store/auth";
 
 const initialSignInFormState: SignInFormState = {
@@ -27,37 +31,30 @@ export default function SignInPage() {
     setErrorMsg("");
     setIsLoading(true);
     try {
-      const body = {
-        email: signInFormState.email,
+      const result = await authClient.signIn.email({
+        email: signInFormState.email.trim(),
         password: signInFormState.password,
-      };
-      console.log("[sign-in] body:", body);
-      const result = await apiSignInWithEmail(body);
-      console.log("[sign-in] response:", result);
-      if (result.data) {
-        useAuthStore.getState().setToken(result.data.token);
-        useAuthStore.getState().setUser({
-          id: result.data.user.id,
-          name: result.data.user.name ?? result.data.user.email,
-          email: result.data.user.email,
-          role: (result.data.user.role as string) ?? "user",
-          permissions: [],
-        });
-        navigate("/");
-      } else {
-        if (axios.isAxiosError(result.error)) {
-          const code = (result.error.response?.data as { code?: string })?.code;
-          if (code === "INVALID_ORIGIN") {
-            setErrorMsg(
-              "Sign in failed: invalid origin. Please run the app on http://localhost:5173.",
-            );
-          } else {
-            setErrorMsg("Sign in failed. Please check your credentials.");
-          }
-        } else {
-          setErrorMsg("Sign in failed. Please check your credentials.");
-        }
+      });
+
+      if (result.error) {
+        setErrorMsg(
+          result.error.message ||
+            "Sign in failed. Please check your credentials.",
+        );
+        return;
       }
+
+      const hydrated = hydrateAuthStoreFromPayload(result);
+      if (!hydrated) {
+        await hydrateAuthStoreFromSession();
+      }
+
+      if (useAuthStore.getState().user) {
+        navigate("/");
+        return;
+      }
+
+      setErrorMsg("Sign in failed. Please check your credentials.");
     } catch {
       setErrorMsg("Sign in failed. Please check your credentials.");
     } finally {

@@ -23,8 +23,24 @@ export const clearAuthStore = () => {
   useAuthStore.getState().logout();
 };
 
+type AuthHydrationPayload = {
+  data?: AuthHydrationPayload;
+  user?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    role?: string | null;
+    permissions?: string[] | null;
+  };
+  token?: string | null;
+  session?: {
+    token?: string | null;
+  };
+};
+
 export const hydrateAuthStoreFromPayload = (payload: unknown) => {
-  const data = (payload as any)?.data ?? payload;
+  const payloadData = payload as AuthHydrationPayload;
+  const data = payloadData.data ?? payloadData;
   const user = data?.user;
   const token = data?.token ?? data?.session?.token ?? null;
 
@@ -45,7 +61,7 @@ export const hydrateAuthStoreFromPayload = (payload: unknown) => {
 
 export const hydrateAuthStoreFromSession = async () => {
   try {
-    const sessionResult = (await authClient.getSession()) as any;
+    const sessionResult = (await authClient.getSession()) as unknown;
     const hydrated = hydrateAuthStoreFromPayload(sessionResult);
     if (!hydrated) {
       const { user, token } = useAuthStore.getState();

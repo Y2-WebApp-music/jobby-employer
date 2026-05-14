@@ -135,6 +135,7 @@ export default function ProfileAboutPopup({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraftValue(value);
     }
   }, [open, value]);
