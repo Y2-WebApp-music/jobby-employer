@@ -18,6 +18,7 @@ import ApplymonitorPopupPage from "@/pages/applymonitor/ApplymonitorPopupPage";
 import {
   apiGetApplyMonitorJobApplies,
   apiApplyMonitorSearchApply,
+  apiPatchApplyMonitorApplyStar,
   apiPatchApplyMonitorApplyViewed,
   apiApplyMonitorSearchJob,
   apiGetApplyMonitorApplyDetail,
@@ -102,9 +103,9 @@ export function ApplymonitorPage() {
   const [selectedCard, setSelectedCard] = useState<ApplicationCard | null>(
     null,
   );
-  const [selectedStars, setSelectedStars] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [applyStars, setApplyStars] = useState<Record<string, boolean>>({});
+  const [jobStars, setJobStars] = useState<Record<string, boolean>>({});
+  const [starLoading, setStarLoading] = useState<Record<string, boolean>>({});
 
   const navigate = useNavigate();
   const gradientBorderStyle = {
@@ -198,11 +199,17 @@ export function ApplymonitorPage() {
             status: item.status_name.en,
             detail: `Applied In: ${item.job_name}`,
             skillMatch: `${item.match_skill} Skill Match`,
+            isStar: item.is_star,
             highlighted: !item.is_viewed,
           }),
         );
         setApplyCards(mapped);
         setApplyTotal(res.data.total ?? 0);
+        setApplyStars(
+          Object.fromEntries(
+            mapped.map((item) => [item.applyId, Boolean(item.isStar)]),
+          ),
+        );
       } catch {
         if (cancelled) return;
         setApplyCards([]);
@@ -318,8 +325,54 @@ export function ApplymonitorPage() {
   }, [jobCards]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  const toggleStar = (starKey: string) => {
-    setSelectedStars((prev) => ({ ...prev, [starKey]: !prev[starKey] }));
+  const toggleApplyStar = async (applyId?: string) => {
+    if (!applyId || starLoading[applyId]) return;
+    const current = Boolean(applyStars[applyId]);
+    const next = !current;
+
+    setApplyStars((prev) => ({ ...prev, [applyId]: next }));
+    setStarLoading((prev) => ({ ...prev, [applyId]: true }));
+
+    try {
+      const res = await apiPatchApplyMonitorApplyStar(applyId, {
+        is_star: next,
+      });
+      setApplyStars((prev) => ({
+        ...prev,
+        [applyId]: Boolean(res.data?.is_star),
+      }));
+    } catch {
+      setApplyStars((prev) => ({ ...prev, [applyId]: current }));
+    } finally {
+      setStarLoading((prev) => ({ ...prev, [applyId]: false }));
+    }
+  };
+
+  const toggleJobStar = async (jobId?: string) => {
+    if (!jobId || starLoading[jobId]) return;
+    const current = Boolean(jobStars[jobId]);
+    const next = !current;
+
+    setJobStars((prev) => ({ ...prev, [jobId]: next }));
+    setStarLoading((prev) => ({ ...prev, [jobId]: true }));
+
+    try {
+      const res = await apiGetApplyMonitorJobApplies(jobId, {
+        page: 0,
+        limit: 100,
+      });
+      const applyIds = (res.data.data ?? []).map((item) => item.id);
+
+      await Promise.allSettled(
+        applyIds.map((applyId) =>
+          apiPatchApplyMonitorApplyStar(applyId, { is_star: next }),
+        ),
+      );
+    } catch {
+      setJobStars((prev) => ({ ...prev, [jobId]: current }));
+    } finally {
+      setStarLoading((prev) => ({ ...prev, [jobId]: false }));
+    }
   };
 
   const handleOpenDetail = (card: ApplicationCard) => {
@@ -573,8 +626,9 @@ export function ApplymonitorPage() {
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                   {displayApplyCards.map((card) => {
                     const isInactive = !card.highlighted;
-                    const starKey = `new-${card.id}`;
-                    const isStarSelected = Boolean(selectedStars[starKey]);
+                    const isStarSelected = Boolean(
+                      card.applyId ? applyStars[card.applyId] : false,
+                    );
                     return (
                       <article
                         key={card.id}
@@ -608,7 +662,7 @@ export function ApplymonitorPage() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleStar(starKey);
+                              void toggleApplyStar(card.applyId);
                             }}
                             aria-label={isStarSelected ? "Unselect" : "Select"}
                             className="rounded-sm bg-transparent p-0 hover:bg-transparent"
@@ -718,8 +772,9 @@ export function ApplymonitorPage() {
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                   {displayJobCards.map((activity) => {
                     const isInactive = !activity.highlighted;
-                    const starKey = `activity-${activity.id}`;
-                    const isStarSelected = Boolean(selectedStars[starKey]);
+                    const isStarSelected = Boolean(
+                      activity.jobId ? jobStars[activity.jobId] : false,
+                    );
                     return (
                       <article
                         key={activity.id}
@@ -746,7 +801,7 @@ export function ApplymonitorPage() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleStar(starKey);
+                              void toggleJobStar(activity.jobId);
                             }}
                             aria-label={isStarSelected ? "Unselect" : "Select"}
                             className="rounded-sm"

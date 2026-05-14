@@ -50,7 +50,7 @@ export default function SignInPage() {
       }
 
       if (useAuthStore.getState().user) {
-        navigate("/");
+        navigate("/profile");
         return;
       }
 

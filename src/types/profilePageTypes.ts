@@ -1,8 +1,10 @@
 export type OpenJobCardProps = {
+  jobId: string;
   title: string;
   location: string;
   dateRange: string;
   applied: string;
+  prefill?: Record<string, unknown>;
 };
 
 export type AddressFormValue = {

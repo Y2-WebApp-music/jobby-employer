@@ -1,7 +1,6 @@
 export * from "./apiServiceTypes";
 export * from "./accountManagementTypes";
 export * from "./applymonitorTypes";
-export * from "./approveWorkTypes";
 export * from "./createJobTypes";
 export * from "./userTypes";
 export * from "./envConfigTypes";

@@ -429,6 +429,10 @@ export interface ApplyMonitorStarApplyResponse {
   is_star: boolean;
 }
 
+export interface ApplyMonitorStarApplyRequest {
+  is_star: boolean;
+}
+
 export interface ApplyMonitorUpdateApplyStatusRequest {
   status: number;
 }

@@ -362,13 +362,6 @@ export default function ApplymonitorPopupPage({
                     </div>
                   </div>
                 )}
-
-                <div>
-                  <h3 className="mb-2 text-lg font-medium">
-                    How much impact does it have on our company?
-                  </h3>
-                  <div className="h-48 rounded-2xl border-2 border-dashed border-secondary/60 bg-background" />
-                </div>
               </div>
             )}
           </div>

@@ -64,10 +64,6 @@ const items3 = [
     title: "Account Management",
     url: "/account",
   },
-  {
-    title: "Approve Work",
-    url: "/approvework",
-  },
 ];
 
 export function AppSidebar() {

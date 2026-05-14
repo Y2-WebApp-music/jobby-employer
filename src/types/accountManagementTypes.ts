@@ -17,6 +17,9 @@ export interface EmployeeListItem {
   company_id: string;
   email: string;
   role: number;
+  first_name: string | null;
+  last_name: string | null;
+  role_name: string;
 }
 
 export interface GetEmployeeListResponse {
