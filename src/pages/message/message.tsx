@@ -33,8 +33,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 type ChatThread = {
   id: string;
@@ -236,9 +236,14 @@ export default function MessagePage() {
 
   const selectedThreadIdRef = useRef(selectedThreadId);
   const pendingImagesRef = useRef(pendingImages);
+  const messagesByThreadRef = useRef(messagesByThread);
+  const threadsRef = useRef<ChatThread[]>([]);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   pendingImagesRef.current = pendingImages;
+  messagesByThreadRef.current = messagesByThread;
+  threadsRef.current = threads;
+  const creatingThreadsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     selectedThreadIdRef.current = selectedThreadId;
@@ -352,7 +357,7 @@ export default function MessagePage() {
 
       const incomingThreadId =
         senderId === currentUserId ? receiverId : senderId;
-      const incomingList = messagesByThread[incomingThreadId] ?? [];
+      const incomingList = messagesByThreadRef.current[incomingThreadId] ?? [];
       const mapped = mapMessageFromApi(
         payload,
         currentUserId,
@@ -475,7 +480,9 @@ export default function MessagePage() {
       socket.off("message_deleted", onMessageDeleted);
       socket.off("message_likes_updated", onMessageLikesUpdated);
     };
-  }, [currentUserId, messagesByThread]);
+  }, [currentUserId]);
+
+  // Note: socket is connected in the main socket effect after listeners are attached.
 
   useEffect(() => {
     const socket = getSocketClient();
@@ -484,7 +491,7 @@ export default function MessagePage() {
   }, [selectedThreadId]);
 
   useEffect(() => {
-    const loadThreads = async () => {
+    const refreshThreads = async () => {
       if (!currentUserId) {
         setThreads([]);
         setSelectedThreadId("");
@@ -516,7 +523,7 @@ export default function MessagePage() {
         setSelectedThreadId("");
       }
     };
-    void loadThreads();
+    void refreshThreads();
   }, [chatServiceBaseUrl, currentUserId]);
 
   useEffect(() => {
@@ -884,6 +891,167 @@ export default function MessagePage() {
     });
     setSelectedThreadId(userId);
   };
+
+  const openChatWithUser = async (userId: string) => {
+    if (!userId || userId === currentUserId) return;
+    // prevent duplicate concurrent attempts to open/create same thread
+    if (creatingThreadsRef.current.has(userId)) return;
+    creatingThreadsRef.current.add(userId);
+
+    const alreadyExists = threadsRef.current.some(
+      (thread) => thread.id === userId,
+    );
+    setThreads((prev) => {
+      if (prev.some((thread) => thread.id === userId)) return prev;
+      return [
+        {
+          id: userId,
+          name: userId,
+          role: "User",
+          lastMessage: "",
+          lastAt: "",
+          unread: 0,
+          online: false,
+        },
+        ...prev,
+      ];
+    });
+
+    setMessagesByThread((prev) => {
+      if (prev[userId]) return prev;
+      return { ...prev, [userId]: [] };
+    });
+    setSelectedThreadId(userId);
+
+    // try to create a server-side thread (some backends require explicit creation)
+    try {
+      if (currentUserId) {
+        await fetch(`${chatServiceBaseUrl}/chat/threads`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: currentUserId, otherUserId: userId }),
+        });
+      }
+    } catch {
+      // ignore create errors
+    }
+
+    // ensure the socket joins the conversation (create/join on server) as soon as possible
+    try {
+      const socket = getSocketClient();
+      if (socket.connected) {
+        socket.emit("join_conversation", { otherUserId: userId });
+      } else {
+        socket.connect();
+        const handleOnce = () => {
+          socket.emit("join_conversation", { otherUserId: userId });
+          socket.off("connect", handleOnce);
+        };
+        socket.on("connect", handleOnce);
+      }
+    } catch {
+      // ignore socket errors here
+    }
+    // If this is a new thread (no existing thread), send a small initial message
+    // so backends that create threads on first message will create it.
+    if (!alreadyExists) {
+      try {
+        const socket = getSocketClient();
+        const sendInitial = () => {
+          try {
+            if (!socket.connected) {
+              socket.connect();
+            }
+            // ensure we only send once per userId
+            if (!creatingThreadsRef.current.has(`${userId}:sent`)) {
+              creatingThreadsRef.current.add(`${userId}:sent`);
+              socket.emit(
+                "message",
+                {
+                  receive_user_id: userId,
+                  message_type: ChatMessageType.Text,
+                  message_data: "",
+                },
+                () => {
+                  // ignore ack errors here
+                },
+              );
+            }
+          } catch {
+            // ignore
+          }
+        };
+
+        // Delay slightly to allow join_conversation to be handled first.
+        setTimeout(sendInitial, 300);
+
+        // refresh threads list so newly created thread appears in UI
+        setTimeout(() => {
+          void refreshThreads();
+          // cleanup markers after a short while
+          creatingThreadsRef.current.delete(userId);
+          creatingThreadsRef.current.delete(`${userId}:sent`);
+        }, 900);
+      } catch {
+        // ignore
+        creatingThreadsRef.current.delete(userId);
+        creatingThreadsRef.current.delete(`${userId}:sent`);
+      }
+    } else {
+      // if thread already existed, remove the creating marker immediately
+      creatingThreadsRef.current.delete(userId);
+    }
+  };
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const refreshThreads = useCallback(async () => {
+    if (!currentUserId) {
+      setThreads([]);
+      setSelectedThreadId("");
+      return;
+    }
+    try {
+      const params = new URLSearchParams({
+        userId: currentUserId,
+        limit: "100",
+      });
+      const response = await fetch(
+        `${chatServiceBaseUrl}/chat/threads?${params.toString()}`,
+      );
+      if (!response.ok) throw new Error();
+      const data = (await response.json()) as ChatThreadApi[];
+      const mapped = data.map((thread) => ({
+        id: thread.otherUserId,
+        name: thread.name || thread.otherUserId,
+        role: thread.role || "User",
+        lastMessage: thread.lastMessage ?? "",
+        lastAt: formatTime(thread.lastAt),
+        unread: Number(thread.unread ?? 0),
+        online: Boolean(thread.online),
+      }));
+      setThreads(mapped);
+      setSelectedThreadId((prev) => prev || mapped[0]?.id || "");
+    } catch {
+      setThreads([]);
+      setSelectedThreadId("");
+    }
+  }, [chatServiceBaseUrl, currentUserId]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const otherUser = params.get("otherUserId") || params.get("userId");
+    if (!otherUser) return;
+    if (otherUser === currentUserId) return;
+    void openChatWithUser(otherUser);
+    // remove query param so it doesn't reopen repeatedly
+    navigate(location.pathname, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search, currentUserId]);
+
+  useEffect(() => {
+    void refreshThreads();
+  }, [refreshThreads]);
 
   const handleDraftChange = (value: string) => {
     setDraft(value);
