@@ -37,6 +37,7 @@ const readPersistedAuthToken = (): string | null => {
 
 const httpClient: AxiosInstance = axios.create({
   timeout: 60000,
+  baseURL: (import.meta.env.VITE_APP_BASE_URL ?? "").trim(),
   headers: { "Content-Type": "application/json" },
 });
 

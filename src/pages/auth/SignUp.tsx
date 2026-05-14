@@ -9,6 +9,11 @@ import type {
   SignUpFormErrors,
   SignUpFormState,
 } from "@/types/authSignUpTypes";
+import {
+  authClient,
+  hydrateAuthStoreFromPayload,
+  hydrateAuthStoreFromSession,
+} from "@/services/authClient";
 
 const initialFormState: SignUpFormState = {
   email: "",
@@ -43,14 +48,16 @@ export default function SignUpPage() {
   const [formState, setFormState] = useState<SignUpFormState>(initialFormState);
   const [errors, setErrors] = useState<SignUpFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
 
   const isFormValid = useMemo(() => {
     return Object.keys(validateSignUpForm(formState)).length === 0;
   }, [formState]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrorMsg("");
 
     const nextErrors = validateSignUpForm(formState);
     setErrors(nextErrors);
@@ -60,9 +67,33 @@ export default function SignUpPage() {
     }
 
     setIsSubmitting(true);
-    window.setTimeout(() => {
+    try {
+      const email = formState.email.trim();
+      const fallbackName = email.split("@")[0] || "Employer";
+      const result = await authClient.signUp.email({
+        email,
+        password: formState.password,
+        name: fallbackName,
+      });
+
+      if (result.error) {
+        setErrorMsg(
+          result.error.message || "Sign up failed. Please try again.",
+        );
+        return;
+      }
+
+      const hydrated = hydrateAuthStoreFromPayload(result);
+      if (!hydrated) {
+        await hydrateAuthStoreFromSession();
+      }
+
       navigate("/company-setup");
-    }, 220);
+    } catch {
+      setErrorMsg("Sign up failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -188,6 +219,12 @@ export default function SignUpPage() {
                   {isSubmitting ? "Joining..." : "Join"}
                 </Button>
               </div>
+
+              {errorMsg ? (
+                <p className="text-center text-sm text-destructive">
+                  {errorMsg}
+                </p>
+              ) : null}
 
               <p className="pt-1 text-center text-xs text-muted-foreground">
                 Already have an account?
