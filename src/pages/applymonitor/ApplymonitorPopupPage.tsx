@@ -189,7 +189,6 @@ export default function ApplymonitorPopupPage({
 
   useEffect(() => {
     if (!open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsSkillPopupOpen(false);
       setIsRejectPopupOpen(false);
       setActiveSkillIndex(null);
@@ -415,7 +414,9 @@ export default function ApplymonitorPopupPage({
                   const otherId = user?.id ?? detail?.user?.id ?? "";
                   if (!otherId) return;
                   onOpenChange(false);
-                  navigate(`/message?otherUserId=${encodeURIComponent(otherId)}`);
+                  navigate(
+                    `/message?otherUserId=${encodeURIComponent(otherId)}`,
+                  );
                 }}
               >
                 Message

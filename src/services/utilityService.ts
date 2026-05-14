@@ -108,7 +108,8 @@ export const apiResumeExport = async (
       getHeaderString(response.headers["content-type"]) ??
       "application/octet-stream",
     filename:
-      parseContentDispositionFilename(response.headers["content-disposition"]) ||
-      `resume-${resumeId}.pdf`,
+      parseContentDispositionFilename(
+        response.headers["content-disposition"],
+      ) || `resume-${resumeId}.pdf`,
   };
 };

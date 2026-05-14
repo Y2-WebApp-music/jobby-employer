@@ -355,18 +355,29 @@ export default function MessagePage() {
       const receiverId = String(payload.receive_user_id ?? "").trim();
       if (!senderId || !receiverId) return;
 
-      const incomingThreadId = senderId === currentUserId ? receiverId : senderId;
+      const incomingThreadId =
+        senderId === currentUserId ? receiverId : senderId;
       const incomingList = messagesByThreadRef.current[incomingThreadId] ?? [];
-      const mapped = mapMessageFromApi(payload, currentUserId, incomingList.length);
+      const mapped = mapMessageFromApi(
+        payload,
+        currentUserId,
+        incomingList.length,
+      );
       const isMine = senderId === currentUserId;
 
       setMessagesByThread((prev) => {
         const existing = prev[incomingThreadId] ?? [];
-        if (payload.id && existing.some((message) => message.serverId === payload.id))
+        if (
+          payload.id &&
+          existing.some((message) => message.serverId === payload.id)
+        )
           return prev;
         return {
           ...prev,
-          [incomingThreadId]: [...existing, { ...mapped, id: existing.length + 1 }],
+          [incomingThreadId]: [
+            ...existing,
+            { ...mapped, id: existing.length + 1 },
+          ],
         };
       });
 
@@ -377,7 +388,10 @@ export default function MessagePage() {
                 ? thread
                 : {
                     ...thread,
-                    lastMessage: threadPreviewLabel(mapped.messageType, mapped.text),
+                    lastMessage: threadPreviewLabel(
+                      mapped.messageType,
+                      mapped.text,
+                    ),
                     lastAt: mapped.at,
                     unread:
                       selectedThreadIdRef.current === incomingThreadId || isMine
@@ -390,7 +404,10 @@ export default function MessagePage() {
                 id: incomingThreadId,
                 name: incomingThreadId,
                 role: "User",
-                lastMessage: threadPreviewLabel(mapped.messageType, mapped.text),
+                lastMessage: threadPreviewLabel(
+                  mapped.messageType,
+                  mapped.text,
+                ),
                 lastAt: mapped.at,
                 unread: isMine ? 0 : 1,
                 online: false,
@@ -399,7 +416,11 @@ export default function MessagePage() {
             ],
       );
 
-      if (!isMine && selectedThreadIdRef.current === incomingThreadId && payload.id) {
+      if (
+        !isMine &&
+        selectedThreadIdRef.current === incomingThreadId &&
+        payload.id
+      ) {
         markMessagesAsRead(incomingThreadId, [payload.id]);
       }
     };
@@ -411,7 +432,9 @@ export default function MessagePage() {
         const next: Record<string, ChatMessage[]> = {};
         for (const [threadId, messages] of Object.entries(prev)) {
           next[threadId] = messages.map((message) =>
-            message.serverId && ids.has(message.serverId) ? { ...message, read: true } : message,
+            message.serverId && ids.has(message.serverId)
+              ? { ...message, read: true }
+              : message,
           );
         }
         return next;
@@ -875,7 +898,9 @@ export default function MessagePage() {
     if (creatingThreadsRef.current.has(userId)) return;
     creatingThreadsRef.current.add(userId);
 
-    const alreadyExists = threadsRef.current.some((thread) => thread.id === userId);
+    const alreadyExists = threadsRef.current.some(
+      (thread) => thread.id === userId,
+    );
     setThreads((prev) => {
       if (prev.some((thread) => thread.id === userId)) return prev;
       return [
@@ -947,7 +972,7 @@ export default function MessagePage() {
                   message_type: ChatMessageType.Text,
                   message_data: "",
                 },
-                (_ack?: { error?: string }) => {
+                () => {
                   // ignore ack errors here
                 },
               );
