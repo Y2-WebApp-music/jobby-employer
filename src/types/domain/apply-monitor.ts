@@ -8,6 +8,7 @@ export type ApplicationCard = {
   status: string;
   detail: string;
   skillMatch: string;
+  isStar?: boolean;
   highlighted?: boolean;
 };
 

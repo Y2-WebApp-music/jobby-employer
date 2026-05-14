@@ -11,6 +11,7 @@ import type {
   ApplyMonitorSearchApplyResponse,
   ApplyMonitorSearchJobParams,
   ApplyMonitorSearchJobResponse,
+  ApplyMonitorStarApplyRequest,
   ApplyMonitorStarApplyResponse,
   ApplyMonitorUpdateApplyStatusRequest,
   ApplyMonitorUpdateApplyStatusResponse,
@@ -45,6 +46,7 @@ export type {
   ApplyMonitorSearchJobItem,
   ApplyMonitorSearchJobParams,
   ApplyMonitorSearchJobResponse,
+  ApplyMonitorStarApplyRequest,
   ApplyMonitorStarApplyResponse,
   ApplyMonitorUpdateApplyStatusRequest,
   ApplyMonitorUpdateApplyStatusResponse,
@@ -208,10 +210,14 @@ export const apiGetApplyMonitorJobDetail = (jobId: string) => {
 };
 
 // patch {{employer-bff}}/apply-monitor/apply/:apply_id/star     star apply
-export const apiPatchApplyMonitorApplyStar = (applyId: string) => {
+export const apiPatchApplyMonitorApplyStar = (
+  applyId: string,
+  data: ApplyMonitorStarApplyRequest,
+) => {
   return apiService.fetchData<ApplyMonitorStarApplyResponse>({
     url: `/apply-monitor/apply/${applyId}/star`,
     method: "patch",
+    data,
   });
 };
 
