@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import logo from "@/assets/icons/JobbyEmployer.png";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import type { SignInFormState } from "@/types/authSignUpTypes";
 import { apiSignInWithEmail } from "@/services/authService";
 import { useAuthStore } from "@/store/auth";
@@ -44,7 +45,18 @@ export default function SignInPage() {
         });
         navigate("/");
       } else {
-        setErrorMsg("Sign in failed. Please check your credentials.");
+        if (axios.isAxiosError(result.error)) {
+          const code = (result.error.response?.data as { code?: string })?.code;
+          if (code === "INVALID_ORIGIN") {
+            setErrorMsg(
+              "Sign in failed: invalid origin. Please run the app on http://localhost:5173.",
+            );
+          } else {
+            setErrorMsg("Sign in failed. Please check your credentials.");
+          }
+        } else {
+          setErrorMsg("Sign in failed. Please check your credentials.");
+        }
       }
     } catch {
       setErrorMsg("Sign in failed. Please check your credentials.");

@@ -20,6 +20,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      port: 5173,
+      strictPort: true,
       proxy: {
         "/api/auth-employer": {
           target: betterAuthProxyTarget,
@@ -35,7 +37,11 @@ export default defineConfig(({ mode }) => {
           target: appBaseURL,
           changeOrigin: true,
         },
-        "/job": {
+        "^/job(?:/|$)": {
+          target: appBaseURL,
+          changeOrigin: true,
+        },
+        "/apply-monitor": {
           target: appBaseURL,
           changeOrigin: true,
         },

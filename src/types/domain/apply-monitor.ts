@@ -2,9 +2,10 @@ import type { ReactNode } from "react";
 
 export type ApplicationCard = {
   id: number;
+  applyId: string;
   create_date: string;
   title: string;
-  status: "Apply" | "Open";
+  status: string;
   detail: string;
   skillMatch: string;
   highlighted?: boolean;
@@ -14,11 +15,12 @@ export type ActivityCard = {
   id: number;
   create_date: string;
   title: string;
-  status: "Open" | "Apply";
+  status: string;
   period: string;
   applied: string;
   badgeText: string;
   highlighted?: boolean;
+  jobId?: string;
 };
 
 export type ApplymonitorPopupPageProps = {

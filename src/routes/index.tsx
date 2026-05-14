@@ -1,6 +1,7 @@
 import LandingPage from "@/pages/LandingPage";
 import ProfilePage from "@/pages/profile/Profile";
 import ApplymonitorPage from "@/pages/applymonitor/applymonitor";
+import ApplymonitorJobPage from "@/pages/applymonitor/ApplymonitorJobPage";
 import ApplyByTitlePage from "@/pages/applybytitle/ApplyByTitle";
 import JobMonitorPage from "@/pages/jobmonitor/JobMonitor";
 import MessagePage from "@/pages/message/message";
@@ -46,6 +47,10 @@ export const router = createBrowserRouter(
     {
       path: "/applymonitor",
       element: <ApplymonitorPage />,
+    },
+    {
+      path: "/applymonitor/job/:jobId",
+      element: <ApplymonitorJobPage />,
     },
     {
       path: "/jobmonitor",

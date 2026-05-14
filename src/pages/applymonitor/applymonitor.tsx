@@ -1,16 +1,10 @@
 import PageLayout from "@/components/layout/PageLayout";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Multiselect from "@/components/ui/multiselect";
+import ToggleSelect from "@/components/ui/toggle-select";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,38 +16,72 @@ import {
 import SectionPagination from "@/components/ui/pagination";
 import ApplymonitorPopupPage from "@/pages/applymonitor/ApplymonitorPopupPage";
 import {
-  activityCards,
-  applyStatusOptions,
-  jobStatusOptions,
-  newAppliedCards,
-  skillOptions,
-  workCategoryOptions,
-} from "@/mock/applymonitorMock";
-import type { ApplicationCard } from "@/types/domain/apply-monitor";
+  apiGetApplyMonitorJobApplies,
+  apiApplyMonitorSearchApply,
+  apiPatchApplyMonitorApplyViewed,
+  apiApplyMonitorSearchJob,
+} from "@/services/applymonitorService";
+import { apiGetUtilityOptionType } from "@/services/utilityService";
+import { apiSearchSkills } from "@/services/createjobService";
+import type { ActivityCard, ApplicationCard } from "@/types/domain/apply-monitor";
+import type { UtilityOptionTypeItem } from "@/types/utilityTypes";
 import { Star } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-function StatusText({ status }: { status: "Apply" | "Open" }) {
+const CARDS_PER_PAGE = 6;
+
+function StatusText({ status }: { status: string }) {
   return <span className="text-primary">{status}</span>;
 }
 
 export function ApplymonitorPage() {
-  const [alignItemWithTrigger] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [activityPage, setActivityPage] = useState(1);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedNewAppliedCard, setSelectedNewAppliedCard] =
-    useState<ApplicationCard | null>(null);
-  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
-  const [selectedStars, setSelectedStars] = useState<Record<string, boolean>>(
-    {},
-  );
+  // ── Apply (New Applied) ──────────────────────────────────────────────────
+  const [applyCards, setApplyCards] = useState<ApplicationCard[]>([]);
+  const [applyTotal, setApplyTotal] = useState(0);
+  const [applyLoading, setApplyLoading] = useState(false);
+  const [applyError, setApplyError] = useState("");
+  const [applyPage, setApplyPage] = useState(1);
+
+  // ── Job (Latest Job activities) ──────────────────────────────────────────
+  const [jobCards, setJobCards] = useState<ActivityCard[]>([]);
+  const [jobTotal, setJobTotal] = useState(0);
+  const [jobLoading, setJobLoading] = useState(false);
+  const [jobError, setJobError] = useState("");
+  const [jobPage, setJobPage] = useState(1);
+
+  // ── Filters ──────────────────────────────────────────────────────────────
   const [searchApplyQuery, setSearchApplyQuery] = useState("");
-  const [searchJobQuery, setSearchJobQuery] = useState("");
   const [applyStatusValues, setApplyStatusValues] = useState<string[]>([]);
   const [jobStatusValues, setJobStatusValues] = useState<string[]>([]);
   const [workCategoryValues, setWorkCategoryValues] = useState<string[]>([]);
+  const [searchJobQuery, setSearchJobQuery] = useState("");
   const [skillValues, setSkillValues] = useState<string[]>([]);
+  const [applySortById, setApplySortById] = useState("");
+
+  // ── Skill search suggest ───────────────────────────────────────────────────
+  const [skillSearchQuery, setSkillSearchQuery] = useState("");
+  const [skillSearchOptions, setSkillSearchOptions] = useState<{ label: string; value: string }[]>([]);
+  const skillDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Options ───────────────────────────────────────────────────────────────
+  const [applyStatusOptions, setApplyStatusOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [jobStatusOptions, setJobStatusOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [workCategoryOptions, setWorkCategoryOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [sortByOptions, setSortByOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+
+  // ── UI ────────────────────────────────────────────────────────────────────
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<ApplicationCard | null>(null);
+  const [selectedStars, setSelectedStars] = useState<Record<string, boolean>>({});
+
   const navigate = useNavigate();
   const gradientBorderStyle = {
     border: "1px solid transparent",
@@ -63,183 +91,248 @@ export function ApplymonitorPage() {
     backgroundClip: "padding-box, border-box",
   } as const;
 
-  const getJobStatus = (id: number) => (id % 3 === 0 ? "closed" : "open");
-
-  const getWorkCategory = (id: number) => {
-    if (id % 3 === 0) {
-      return "operations";
-    }
-
-    if (id % 2 === 0) {
-      return "technology";
-    }
-
-    return "business";
-  };
-
-  const getSkills = (id: number) => {
-    if (id % 3 === 0) {
-      return ["communication", "excel"];
-    }
-
-    if (id % 2 === 0) {
-      return ["react", "excel"];
-    }
-
-    return ["react", "communication"];
-  };
-
-  const matchesSelectedFilters = ({
-    id,
-    status,
-  }: {
-    id: number;
-    status: "Apply" | "Open";
-  }) => {
-    const normalizedStatus = status.toLowerCase();
-    const jobStatus = getJobStatus(id);
-    const workCategory = getWorkCategory(id);
-    const skills = getSkills(id);
-
-    const matchesApplyStatus =
-      applyStatusValues.length === 0 ||
-      applyStatusValues.includes(normalizedStatus);
-    const matchesJobStatus =
-      jobStatusValues.length === 0 || jobStatusValues.includes(jobStatus);
-    const matchesWorkCategory =
-      workCategoryValues.length === 0 ||
-      workCategoryValues.includes(workCategory);
-    const matchesSkill =
-      skillValues.length === 0 ||
-      skillValues.some((skill) => skills.includes(skill));
-
-    return (
-      matchesApplyStatus &&
-      matchesJobStatus &&
-      matchesWorkCategory &&
-      matchesSkill
-    );
-  };
-
-  const sortByCreateDate = <T extends { create_date: string }>(cards: T[]) => {
-    const sortedCards = [...cards].sort(
-      (firstCard, secondCard) =>
-        new Date(firstCard.create_date).getTime() -
-        new Date(secondCard.create_date).getTime(),
-    );
-
-    return sortBy === "oldest" ? sortedCards : sortedCards.reverse();
-  };
-
-  const filteredNewAppliedCards = useMemo(() => {
-    const normalizedApplyQuery = searchApplyQuery.trim().toLowerCase();
-
-    const filteredCards = newAppliedCards.filter((card) => {
-      const matchesSearchApply =
-        normalizedApplyQuery.length === 0 ||
-        card.title.toLowerCase().includes(normalizedApplyQuery);
-
-      return (
-        matchesSearchApply &&
-        matchesSelectedFilters({ id: card.id, status: card.status })
-      );
-    });
-
-    return sortByCreateDate(filteredCards);
-  }, [
-    searchApplyQuery,
-    applyStatusValues,
-    jobStatusValues,
-    workCategoryValues,
-    skillValues,
-    sortBy,
-  ]);
-
-  const filteredActivityCards = useMemo(() => {
-    const normalizedJobQuery = searchJobQuery.trim().toLowerCase();
-
-    const filteredCards = activityCards.filter((card) => {
-      const matchesSearchJob =
-        normalizedJobQuery.length === 0 ||
-        card.title.toLowerCase().includes(normalizedJobQuery);
-
-      return (
-        matchesSearchJob &&
-        matchesSelectedFilters({
-          id: card.id + 1000,
-          status: card.status,
-        })
-      );
-    });
-
-    return sortByCreateDate(filteredCards);
-  }, [
-    searchJobQuery,
-    applyStatusValues,
-    jobStatusValues,
-    workCategoryValues,
-    skillValues,
-    sortBy,
-  ]);
-
-  const cardsPerPage = 6;
-  const totalCards = filteredNewAppliedCards.length;
-  const totalActivityCards = filteredActivityCards.length;
-  const totalPages = Math.max(1, Math.ceil(totalCards / cardsPerPage));
-  const totalActivityPages = Math.max(
-    1,
-    Math.ceil(totalActivityCards / cardsPerPage),
-  );
-
+  // ── Load utility options ──────────────────────────────────────────────────
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
+    const load = async () => {
+      try {
+        const response = await apiGetUtilityOptionType();
+        const data = response.data;
+        const toOptions = (arr: UtilityOptionTypeItem[]) =>
+          arr.map((item) => ({ label: item.text_eng, value: String(item.id) }));
+        setApplyStatusOptions(toOptions(data.apply_status ?? []));
+        setJobStatusOptions(toOptions(data.job_status ?? []));
+        setWorkCategoryOptions(toOptions(data.work_category ?? []));
+        setSortByOptions(toOptions(data.sort_by ?? []));
+      } catch {
+        // leave options empty
+      }
+    };
+    void load();
+  }, []);
 
+  // ── Skill debounced search ─────────────────────────────────────────────────
   useEffect(() => {
-    if (activityPage > totalActivityPages) {
-      setActivityPage(totalActivityPages);
+    if (skillDebounceRef.current) clearTimeout(skillDebounceRef.current);
+    if (!skillSearchQuery.trim()) {
+      setSkillSearchOptions([]);
+      return;
     }
-  }, [activityPage, totalActivityPages]);
+    skillDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await apiSearchSkills(skillSearchQuery.trim());
+        const items = Array.isArray(res.data) ? res.data : [];
+        setSkillSearchOptions(
+          items.map((item) => ({
+            label: item.skill_name ?? item.name ?? "",
+            value: item.skill_id ?? item.eid ?? item.skillElementId ?? item.id ?? "",
+          })).filter((opt) => opt.value !== ""),
+        );
+      } catch {
+        setSkillSearchOptions([]);
+      }
+    }, 500);
+    return () => {
+      if (skillDebounceRef.current) clearTimeout(skillDebounceRef.current);
+    };
+  }, [skillSearchQuery]);
 
-  const startIndex = (currentPage - 1) * cardsPerPage;
-  const endIndex = startIndex + cardsPerPage;
-  const pagedNewAppliedCards = filteredNewAppliedCards.slice(
-    startIndex,
-    endIndex,
-  );
-  const activityStartIndex = (activityPage - 1) * cardsPerPage;
-  const activityEndIndex = activityStartIndex + cardsPerPage;
-  const pagedActivityCards = filteredActivityCards.slice(
-    activityStartIndex,
-    activityEndIndex,
-  );
-  const isLatestJobOnlyMode = searchJobQuery.trim().length > 0;
-  const isNewAppliedOnlyMode =
-    !isLatestJobOnlyMode &&
-    (searchApplyQuery.trim().length > 0 || applyStatusValues.length > 0);
+  // ── Reset pages when filters change ──────────────────────────────────────
+  useEffect(() => { setApplyPage(1); }, [searchApplyQuery, applyStatusValues, jobStatusValues, workCategoryValues, skillValues, applySortById]);
+  useEffect(() => { setJobPage(1); }, [searchJobQuery]);
 
+  // ── Fetch New Applied ─────────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    const fetch = async () => {
+      setApplyLoading(true);
+      setApplyError("");
+      try {
+        const res = await apiApplyMonitorSearchApply({
+          search: searchApplyQuery.trim() || undefined,
+          applyStatusId: applyStatusValues.length > 0 ? applyStatusValues.map(Number) : undefined,
+          jobStatus: jobStatusValues.length > 0 ? jobStatusValues.map(Number) : undefined,
+          workType: workCategoryValues.length > 0 ? workCategoryValues.map(Number) : undefined,
+          skillIds: skillValues.length > 0 ? skillValues : undefined,
+          sortById: applySortById ? Number(applySortById) : undefined,
+          page: applyPage - 1,
+          limit: CARDS_PER_PAGE,
+        });
+        if (cancelled) return;
+        const mapped: ApplicationCard[] = (res.data.data ?? []).map(
+          (item, index) => ({
+            id: index + 1,
+            applyId: item.id,
+            create_date: item.created_at,
+            title: item.user_name,
+            status: item.status_name.en,
+            detail: `Applied In: ${item.job_name}`,
+            skillMatch: `${item.match_skill} Skill Match`,
+            highlighted: !item.is_viewed,
+          }),
+        );
+        setApplyCards(mapped);
+        setApplyTotal(res.data.total ?? 0);
+      } catch {
+        if (cancelled) return;
+        setApplyCards([]);
+        setApplyTotal(0);
+        setApplyError("Failed to load apply data");
+      } finally {
+        if (!cancelled) setApplyLoading(false);
+      }
+    };
+    void fetch();
+    return () => { cancelled = true; };
+  }, [searchApplyQuery, applyStatusValues, jobStatusValues, workCategoryValues, skillValues, applySortById, applyPage]);
+
+  // ── Fetch Latest Job activities ───────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    const fetch = async () => {
+      setJobLoading(true);
+      setJobError("");
+      try {
+        const res = await apiApplyMonitorSearchJob({
+          search: searchJobQuery.trim() || undefined,
+          sortById: applySortById ? Number(applySortById) : undefined,
+          page: jobPage - 1,
+          limit: CARDS_PER_PAGE,
+        });
+        if (cancelled) return;
+        const formatPeriodDate = (iso: string) => {
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) return iso;
+          return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+        };
+        const formatDateRange = (range: string) => {
+          const parts = range.split(" - ");
+          if (parts.length !== 2) return range;
+          return `${formatPeriodDate(parts[0])} - ${formatPeriodDate(parts[1])}`;
+        };
+        const mapped: ActivityCard[] = (res.data.items ?? []).map(
+          (item, index) => ({
+            id: index + 1,
+            create_date: new Date().toISOString(),
+            title: item.job_name,
+            status: item.status,
+            period: formatDateRange(item.date_range),
+            applied: `${item.applied_count} Applied`,
+            badgeText:
+              item.new_applied_count > 0
+                ? `${item.new_applied_count} New Applied`
+                : "",
+            highlighted: item.new_applied_count > 0,
+            jobId: item.job_id,
+          }),
+        );
+        setJobCards(mapped);
+        setJobTotal(res.data.total ?? 0);
+      } catch {
+        if (cancelled) return;
+        setJobCards([]);
+        setJobTotal(0);
+        setJobError("Failed to load job data");
+      } finally {
+        if (!cancelled) setJobLoading(false);
+      }
+    };
+    void fetch();
+    return () => { cancelled = true; };
+  }, [searchJobQuery, applySortById, jobPage]);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
   const toggleStar = (starKey: string) => {
-    setSelectedStars((prev) => ({
-      ...prev,
-      [starKey]: !prev[starKey],
-    }));
+    setSelectedStars((prev) => ({ ...prev, [starKey]: !prev[starKey] }));
   };
 
-  const handleSeeApplied = (title: string) => {
-    navigate(`/apply/${encodeURIComponent(title)}`);
-  };
-
-  const handleOpenNewAppliedDetail = (card: ApplicationCard) => {
-    setSelectedNewAppliedCard(card);
+  const handleOpenDetail = (card: ApplicationCard) => {
+    if (card.applyId && card.highlighted) {
+      void apiPatchApplyMonitorApplyViewed(card.applyId, { is_viewed: true });
+      setApplyCards((prev) =>
+        prev.map((item) =>
+          item.applyId === card.applyId ? { ...item, highlighted: false } : item,
+        ),
+      );
+    }
+    setSelectedCard(card);
     setIsDetailOpen(true);
   };
+
+  const handleSeeApplied = (jobId?: string) => {
+    if (jobId) {
+      // Best-effort update: mark applies in this job as viewed before navigating.
+      void (async () => {
+        try {
+          const limit = 100;
+          let page = 0;
+          let hasMore = true;
+
+          while (hasMore) {
+            const res = await apiGetApplyMonitorJobApplies(jobId, { page, limit });
+            const applies = res.data.data ?? [];
+            const unviewedIds = applies
+              .filter((item) => !item.is_viewed)
+              .map((item) => item.id);
+
+            if (unviewedIds.length > 0) {
+              await Promise.allSettled(
+                unviewedIds.map((applyId) =>
+                  apiPatchApplyMonitorApplyViewed(applyId, { is_viewed: true }),
+                ),
+              );
+            }
+
+            page += 1;
+            const total = res.data.total ?? applies.length;
+            hasMore = page * limit < total && applies.length > 0;
+          }
+        } catch {
+          // Keep navigation behavior even if patch update fails.
+        }
+      })();
+      navigate(`/applymonitor/job/${jobId}`);
+    }
+  };
+
+  // Search Apply → only show New Applied (hide Job Activities)
+  // Search Job → filter both sections client-side by job name
+  // "most applied" sort → only show Latest Job activities
+
+  // Detect if selected sort option is "most applied"
+  const selectedSortOption = sortByOptions.find((opt) => opt.value === applySortById);
+  const isMostAppliedSort = selectedSortOption
+    ? selectedSortOption.label.toLowerCase().includes("most") || selectedSortOption.label.toLowerCase().includes("applied")
+    : false;
+
+  const isApplyFilterActive = Boolean(searchApplyQuery.trim()) || applyStatusValues.length > 0 || Boolean(applySortById);
+  const isJobSearchActive = Boolean(searchJobQuery.trim());
+
+  // When Search Apply is active OR most-applied sort → hide Job Activities
+  // When most-applied sort is active → show only Job Activities (hide New Applied)
+  const shouldHideJobSection = isApplyFilterActive && !isMostAppliedSort;
+  const shouldHideApplySection = isMostAppliedSort;
+
+  // Filter New Applied cards by job name when Search Job is active
+  const filteredApplyCards = isJobSearchActive
+    ? applyCards.filter((card) =>
+        card.detail.toLowerCase().includes(searchJobQuery.trim().toLowerCase()),
+      )
+    : applyCards;
+
+  const displayApplyCards = filteredApplyCards;
+
+  const shouldShowNoMatchMessage =
+    !applyLoading &&
+    !jobLoading &&
+    displayApplyCards.length === 0 &&
+    (shouldHideJobSection || jobCards.length === 0) &&
+    (isApplyFilterActive || isJobSearchActive);
 
   return (
     <PageLayout>
       <div className="w-full bg-background px-6 py-6 overflow-y-auto">
         <div className="mx-auto my-[-0%] max-w-6xl ml-4">
+          {/* Breadcrumb */}
           <div className="mb-3 mx-[1%]">
             <Breadcrumb>
               <BreadcrumbList>
@@ -260,8 +353,10 @@ export function ApplymonitorPage() {
             Apply Monitor
           </h1>
 
-          <section className="mt-[1%] mb-4 grid grid-cols-1 gap-3 md:grid-cols-10">
-            <div className="md:col-span-3">
+          {/* ── Filters ─────────────────────────────────────────────────── */}
+          <section className="mt-3 mb-4 grid grid-cols-1 gap-x-3 gap-y-2 md:grid-cols-12">
+            {/* Row 1 */}
+            <div className="md:col-span-4">
               <p className="text-foreground mb-1 text-xs">Search Apply</p>
               <Input
                 placeholder="name"
@@ -272,19 +367,19 @@ export function ApplymonitorPage() {
             <div className="md:col-span-2">
               <p className="text-foreground mb-1 text-xs">Apply Status</p>
               <Multiselect
+                placeholder="apply status"
                 options={applyStatusOptions}
                 selectedValues={applyStatusValues}
                 onSelectedValuesChange={setApplyStatusValues}
-                placeholder="Select"
               />
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-3">
               <p className="text-foreground mb-1 text-xs">Job Status</p>
               <Multiselect
                 options={jobStatusOptions}
                 selectedValues={jobStatusValues}
                 onSelectedValuesChange={setJobStatusValues}
-                placeholder="Select"
+                placeholder="job status"
               />
             </div>
             <div className="md:col-span-3">
@@ -293,10 +388,11 @@ export function ApplymonitorPage() {
                 options={workCategoryOptions}
                 selectedValues={workCategoryValues}
                 onSelectedValuesChange={setWorkCategoryValues}
-                placeholder="Select"
+                placeholder="work category"
               />
             </div>
-            <div className="md:col-span-4">
+            {/* Row 2 */}
+            <div className="md:col-span-5">
               <p className="text-foreground mb-1 text-xs">Search Job</p>
               <Input
                 placeholder="Job name"
@@ -304,65 +400,81 @@ export function ApplymonitorPage() {
                 onChange={(event) => setSearchJobQuery(event.target.value)}
               />
             </div>
-            <div className="md:col-span-4">
+            <div className="md:col-span-5">
               <p className="text-foreground mb-1 text-xs">Skill</p>
               <Multiselect
-                options={skillOptions}
+                options={skillSearchOptions}
                 selectedValues={skillValues}
                 onSelectedValuesChange={setSkillValues}
-                placeholder="Select"
+                placeholder="skill name"
+                searchQuery={skillSearchQuery}
+                onSearchQueryChange={setSkillSearchQuery}
               />
             </div>
             <div className="md:col-span-2">
               <p className="text-foreground mb-1 text-xs">Sort By</p>
-              <Select
-                value={sortBy}
-                onValueChange={(value) =>
-                  setSortBy(value as "newest" | "oldest")
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent
-                  position={alignItemWithTrigger ? "item-aligned" : "popper"}
-                >
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="oldest">Oldest</SelectItem>
-                </SelectContent>
-              </Select>
+              <ToggleSelect
+                placeholder="Select"
+                options={sortByOptions}
+                value={applySortById}
+                onValueChange={setApplySortById}
+              />
             </div>
           </section>
 
-          {!isLatestJobOnlyMode && (
-            <section className="mb-3">
-              <h2 className="text-foreground mb-2 text-lg font-semibold">
-                New Applied
-              </h2>
+          {shouldShowNoMatchMessage && (
+            <div className="mb-4 rounded-md border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+              no match Applied or Job
+            </div>
+          )}
+
+          {/* ── New Applied ──────────────────────────────────────────────── */}
+          {!shouldHideApplySection && (
+          <section className="mb-3">
+            <h2 className="text-foreground mb-2 text-lg font-semibold">
+              New Applied
+            </h2>
+            {applyLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : applyError ? (
+              <p className="text-sm text-destructive">{applyError}</p>
+            ) : applyCards.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No apply data found</p>
+            ) : (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                {pagedNewAppliedCards.map((card) => {
+                {displayApplyCards.map((card) => {
                   const isInactive = !card.highlighted;
                   const starKey = `new-${card.id}`;
                   const isStarSelected = Boolean(selectedStars[starKey]);
-                  const cardContent = (
-                    <>
+                  return (
+                    <article
+                      key={card.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleOpenDetail(card)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleOpenDetail(card);
+                        }
+                      }}
+                      className={
+                        card.highlighted
+                          ? "rounded-xl bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
+                          : "rounded-xl border border-border bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
+                      }
+                      style={card.highlighted ? gradientBorderStyle : undefined}
+                    >
                       <div
                         className={[
                           "mb-1 flex items-center gap-1.5 text-sm font-normal",
-                          isInactive
-                            ? "text-muted-foreground"
-                            : "text-foreground",
+                          isInactive ? "text-muted-foreground" : "text-foreground",
                         ].join(" ")}
                       >
                         <button
                           type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            toggleStar(starKey);
-                          }}
-                          aria-label={
-                            isStarSelected ? "Unselect card" : "Select card"
-                          }
+                          onClick={(e) => { e.stopPropagation(); toggleStar(starKey); }}
+                          aria-label={isStarSelected ? "Unselect" : "Select"}
                           className="rounded-sm bg-transparent p-0 hover:bg-transparent"
                         >
                           <Star
@@ -377,24 +489,10 @@ export function ApplymonitorPage() {
                         </button>
                         <span>{card.title}</span>
                       </div>
-                      <p
-                        className={
-                          isInactive
-                            ? "text-xs text-muted-foreground"
-                            : "text-xs"
-                        }
-                      >
+                      <p className={isInactive ? "text-xs text-muted-foreground" : "text-xs"}>
                         Status: <StatusText status={card.status} />
                       </p>
-                      <p
-                        className={
-                          isInactive
-                            ? "text-muted-foreground mb-2 text-[11px]"
-                            : "text-muted-foreground mb-2 text-[11px]"
-                        }
-                      >
-                        {card.detail}
-                      </p>
+                      <p className="text-muted-foreground mb-2 text-[11px]">{card.detail}</p>
                       <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                         {isInactive ? (
                           <>
@@ -408,10 +506,7 @@ export function ApplymonitorPage() {
                               variant="ghost"
                               size="xs"
                               className="hover:bg-transparent rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleOpenNewAppliedDetail(card);
-                              }}
+                              onClick={(e) => { e.stopPropagation(); handleOpenDetail(card); }}
                             >
                               See Detail
                             </Button>
@@ -419,86 +514,77 @@ export function ApplymonitorPage() {
                         ) : (
                           <>
                             <Badge variant="gradient" className="rounded-full">
-                              <span className="gradient-text">
-                                {card.skillMatch}
-                              </span>
+                              <span className="gradient-text">{card.skillMatch}</span>
                             </Badge>
                             <Button
                               variant="ghost"
                               size="xs"
                               className="hover:bg-transparent rounded-full border bg-transparent"
                               style={gradientBorderStyle}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleOpenNewAppliedDetail(card);
-                              }}
+                              onClick={(e) => { e.stopPropagation(); handleOpenDetail(card); }}
                             >
                               <span className="gradient-text">See Detail</span>
                             </Button>
                           </>
                         )}
                       </div>
-                    </>
-                  );
-
-                  return (
-                    <article
-                      key={card.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => handleOpenNewAppliedDetail(card)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          handleOpenNewAppliedDetail(card);
-                        }
-                      }}
-                      className={
-                        card.highlighted
-                          ? "rounded-xl bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
-                          : "rounded-xl border border-border bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
-                      }
-                      style={card.highlighted ? gradientBorderStyle : undefined}
-                    >
-                      {cardContent}
                     </article>
                   );
                 })}
               </div>
-            </section>
-          )}
+            )}
 
-          {!isLatestJobOnlyMode && (
             <SectionPagination
-              total={totalCards}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-              perPage={cardsPerPage}
+              total={applyTotal}
+              currentPage={applyPage}
+              onPageChange={setApplyPage}
+              perPage={CARDS_PER_PAGE}
             />
+          </section>
           )}
 
-          {!isNewAppliedOnlyMode && (
-            <section>
-              <h2 className="text-foreground mb-2 text-lg font-semibold">
-                Latest Job activities
-              </h2>
+          {/* ── Latest Job activities ────────────────────────────────────── */}
+          {!shouldHideJobSection && (
+          <section>
+            <h2 className="text-foreground mb-2 text-lg font-semibold">
+              Latest Job activities
+            </h2>
+            {jobLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : jobError ? (
+              <p className="text-sm text-destructive">{jobError}</p>
+            ) : jobCards.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No job data found</p>
+            ) : (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                {pagedActivityCards.map((activity) => {
+                {jobCards.map((activity) => {
                   const isInactive = !activity.highlighted;
                   const starKey = `activity-${activity.id}`;
                   const isStarSelected = Boolean(selectedStars[starKey]);
-                  const cardContent = (
-                    <>
+                  return (
+                    <article
+                      key={activity.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleSeeApplied(activity.jobId)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSeeApplied(activity.jobId);
+                        }
+                      }}
+                      className={
+                        activity.highlighted
+                          ? "rounded-xl bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
+                          : "rounded-xl border border-border bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
+                      }
+                      style={activity.highlighted ? gradientBorderStyle : undefined}
+                    >
                       <div className="mb-1 flex items-center gap-1.5">
                         <button
                           type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            toggleStar(starKey);
-                          }}
-                          aria-label={
-                            isStarSelected ? "Unselect card" : "Select card"
-                          }
+                          onClick={(e) => { e.stopPropagation(); toggleStar(starKey); }}
+                          aria-label={isStarSelected ? "Unselect" : "Select"}
                           className="rounded-sm"
                         >
                           <Star
@@ -521,33 +607,11 @@ export function ApplymonitorPage() {
                           {activity.title}
                         </h3>
                       </div>
-                      <p
-                        className={
-                          isInactive
-                            ? "text-xs text-muted-foreground"
-                            : "text-xs"
-                        }
-                      >
+                      <p className={isInactive ? "text-xs text-muted-foreground" : "text-xs"}>
                         Status: <StatusText status={activity.status} />
                       </p>
-                      <p
-                        className={
-                          isInactive
-                            ? "text-muted-foreground text-[11px]"
-                            : "text-muted-foreground text-[11px]"
-                        }
-                      >
-                        {activity.period}
-                      </p>
-                      <p
-                        className={
-                          isInactive
-                            ? "text-muted-foreground mb-2 text-[11px]"
-                            : "text-muted-foreground mb-2 text-[11px]"
-                        }
-                      >
-                        {activity.applied}
-                      </p>
+                      <p className="text-muted-foreground text-[11px]">{activity.period}</p>
+                      <p className="text-muted-foreground mb-2 text-[11px]">{activity.applied}</p>
                       <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                         {activity.badgeText ? (
                           isInactive ? (
@@ -559,9 +623,7 @@ export function ApplymonitorPage() {
                             </Badge>
                           ) : (
                             <Badge variant="gradient" className="rounded-full">
-                              <span className="gradient-text">
-                                {activity.badgeText}
-                              </span>
+                              <span className="gradient-text">{activity.badgeText}</span>
                             </Badge>
                           )
                         ) : (
@@ -572,10 +634,7 @@ export function ApplymonitorPage() {
                             variant="ghost"
                             size="xs"
                             className="hover:bg-transparent rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleSeeApplied(activity.title);
-                            }}
+                            onClick={(e) => { e.stopPropagation(); handleSeeApplied(activity.jobId); }}
                           >
                             See Applied
                           </Button>
@@ -585,58 +644,31 @@ export function ApplymonitorPage() {
                             size="xs"
                             className="hover:bg-transparent rounded-full border bg-transparent"
                             style={gradientBorderStyle}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleSeeApplied(activity.title);
-                            }}
+                            onClick={(e) => { e.stopPropagation(); handleSeeApplied(activity.jobId); }}
                           >
                             <span className="gradient-text">See Applied</span>
                           </Button>
                         )}
                       </div>
-                    </>
-                  );
-
-                  return (
-                    <article
-                      key={activity.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => handleSeeApplied(activity.title)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          handleSeeApplied(activity.title);
-                        }
-                      }}
-                      className={
-                        activity.highlighted
-                          ? "rounded-xl bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
-                          : "rounded-xl border border-border bg-card px-3 py-2.5 min-h-34.5 flex flex-col"
-                      }
-                      style={
-                        activity.highlighted ? gradientBorderStyle : undefined
-                      }
-                    >
-                      {cardContent}
                     </article>
                   );
                 })}
               </div>
+            )}
 
-              <SectionPagination
-                total={totalActivityCards}
-                currentPage={activityPage}
-                onPageChange={setActivityPage}
-                perPage={cardsPerPage}
-              />
-            </section>
+            <SectionPagination
+              total={jobTotal}
+              currentPage={jobPage}
+              onPageChange={setJobPage}
+              perPage={CARDS_PER_PAGE}
+            />
+          </section>
           )}
 
           <ApplymonitorPopupPage
             open={isDetailOpen}
             onOpenChange={setIsDetailOpen}
-            card={selectedNewAppliedCard}
+            card={selectedCard}
           />
         </div>
       </div>

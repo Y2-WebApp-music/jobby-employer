@@ -14,6 +14,7 @@ import type {
   ApplyMonitorStarApplyResponse,
   ApplyMonitorUpdateApplyStatusRequest,
   ApplyMonitorUpdateApplyStatusResponse,
+  ApplyMonitorUpdateApplyViewedRequest,
   ApplyMonitorUpdateApplyViewedResponse,
   GetJobMonitorJobsParams,
   GetJobMonitorJobsResponse,
@@ -47,6 +48,7 @@ export type {
   ApplyMonitorStarApplyResponse,
   ApplyMonitorUpdateApplyStatusRequest,
   ApplyMonitorUpdateApplyStatusResponse,
+  ApplyMonitorUpdateApplyViewedRequest,
   ApplyMonitorUpdateApplyViewedResponse,
   GetJobMonitorJobsParams,
   JobMonitorJobItem,
@@ -75,19 +77,9 @@ export const apiApplyMonitorSearchJob = (
   params: ApplyMonitorSearchJobParams = {},
 ) => {
   const {
-    applyStatusId,
     search,
-    jobStatus,
-    workType,
-    jobName,
-    skill,
-    userSkillMoreThan,
-    experienceMoreThan,
-    achievementMoreThan,
-    projectMoreThan,
-    yearExperienceMoreThan,
-    starredOnly,
-    sortBy,
+    sortById,
+    jobStatusIds,
     page = 0,
     limit = 10,
   } = params;
@@ -96,21 +88,9 @@ export const apiApplyMonitorSearchJob = (
     url: "/apply-monitor/search/job",
     method: "get",
     params: {
-      ...(applyStatusId !== undefined ? { applyStatusId } : {}),
       ...(search !== undefined ? { search } : {}),
-      ...(jobStatus !== undefined ? { jobStatus } : {}),
-      ...(workType !== undefined ? { workType } : {}),
-      ...(jobName !== undefined ? { jobName } : {}),
-      ...(skill !== undefined ? { skill } : {}),
-      ...(userSkillMoreThan !== undefined ? { userSkillMoreThan } : {}),
-      ...(experienceMoreThan !== undefined ? { experienceMoreThan } : {}),
-      ...(achievementMoreThan !== undefined ? { achievementMoreThan } : {}),
-      ...(projectMoreThan !== undefined ? { projectMoreThan } : {}),
-      ...(yearExperienceMoreThan !== undefined
-        ? { yearExperienceMoreThan }
-        : {}),
-      ...(starredOnly !== undefined ? { starredOnly } : {}),
-      ...(sortBy !== undefined ? { sortBy } : {}),
+      ...(sortById !== undefined ? { sortById } : {}),
+      ...(jobStatusIds && jobStatusIds.length > 0 ? { jobStatusIds: jobStatusIds.join(",") } : {}),
       page,
       limit,
     },
@@ -121,12 +101,18 @@ export const apiApplyMonitorSearchJob = (
 export const apiApplyMonitorSearchApply = (
   params: ApplyMonitorSearchApplyParams = {},
 ) => {
-  const { sortById, page = 0, limit = 10 } = params;
+  const { search, applyStatusId, jobStatus, workType, jobName, skillIds, sortById, page = 0, limit = 10 } = params;
 
   return apiService.fetchData<ApplyMonitorSearchApplyResponse>({
     url: "/apply-monitor/search/apply",
     method: "get",
     params: {
+      ...(search !== undefined ? { search } : {}),
+      ...(applyStatusId !== undefined ? { applyStatusId } : {}),
+      ...(jobStatus && jobStatus.length > 0 ? { jobStatus } : {}),
+      ...(workType && workType.length > 0 ? { workType } : {}),
+      ...(jobName !== undefined ? { jobName } : {}),
+      ...(skillIds && skillIds.length > 0 ? { skillIds } : {}),
       ...(sortById !== undefined ? { sortById } : {}),
       page,
       limit,
@@ -236,9 +222,13 @@ export const apiPatchApplyMonitorApplyStatus = (
 };
 
 // patch {{employer-bff}}/apply-monitor/apply/:apply_id/viewed     update apply viewed
-export const apiPatchApplyMonitorApplyViewed = (applyId: string) => {
+export const apiPatchApplyMonitorApplyViewed = (
+  applyId: string,
+  data: ApplyMonitorUpdateApplyViewedRequest,
+) => {
   return apiService.fetchData<ApplyMonitorUpdateApplyViewedResponse>({
     url: `/apply-monitor/apply/${applyId}/viewed`,
     method: "patch",
+    data,
   });
 };

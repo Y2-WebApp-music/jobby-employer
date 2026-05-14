@@ -23,7 +23,6 @@ export interface GetJobMonitorJobsResponse {
 export interface ApplyMonitorSearchJobParams {
   applyStatusId?: number;
   search?: string;
-  jobStatus?: number;
   workType?: string;
   jobName?: string;
   skill?: string;
@@ -33,7 +32,8 @@ export interface ApplyMonitorSearchJobParams {
   projectMoreThan?: number;
   yearExperienceMoreThan?: number;
   starredOnly?: boolean;
-  sortBy?: number;
+  sortById?: number;
+  jobStatusIds?: number[];
   page?: number;
   limit?: number;
 }
@@ -107,22 +107,35 @@ export interface ApplyMonitorJobAppliesResponse {
 }
 
 export interface ApplyMonitorSearchApplyParams {
+  search?: string;
+  applyStatusId?: number[];
+  jobStatus?: number[];
+  workType?: number[];
+  jobName?: string;
+  skillIds?: string[];
   sortById?: number;
   page?: number;
   limit?: number;
 }
 
 export interface ApplyMonitorSearchApplyItem {
-  [key: string]: unknown;
+  id: string;
+  status: number;
+  status_name: ApplyStatusName;
+  created_at: string;
+  user_name: string;
+  job_id: string;
+  job_name: string;
+  match_skill: number;
+  is_viewed: boolean;
+  is_star: boolean;
 }
 
 export interface ApplyMonitorSearchApplyResponse {
-  section?: string;
-  total: number;
+  data: ApplyMonitorSearchApplyItem[];
   page: number;
   limit: number;
-  items: ApplyMonitorSearchApplyItem[];
-  [key: string]: unknown;
+  total: number;
 }
 
 export interface ApplyMonitorOptionJobSkillsParams {
@@ -420,6 +433,10 @@ export interface ApplyMonitorUpdateApplyStatusRequest {
 
 export interface ApplyMonitorUpdateApplyStatusResponse {
   status: number;
+}
+
+export interface ApplyMonitorUpdateApplyViewedRequest {
+  is_viewed: boolean;
 }
 
 export interface ApplyMonitorUpdateApplyViewedResponse {
