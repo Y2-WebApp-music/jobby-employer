@@ -19,21 +19,15 @@ import { useAuthStore } from "@/store/auth";
 import {
   apiGetProfileCompanyProfile,
   apiGetCompanyIdByUserId,
+  apiGetProfileCompanyJobList,
   apiPatchProfileCompanyInfo,
   apiPatchProfileCompanyAbout,
   apiPatchProfileCompanyAdditionInformation,
   apiPatchProfileCompanyMedia,
 } from "@/services/profileService";
+import { formatDate } from "@/utils/formatDate";
 import type { ProfileUpdateCompanyInfoRequest } from "@/types/profileTypes";
-
-const jobCards = Array.from({ length: 6 }).map((_, index) => ({
-  id: index + 1,
-  title:
-    "Personal Assistant 25 - 35 K (WFH 80%) ตำแหน่งงานการปฏิบัติงานที่สำนักงานใหญ่",
-  location: "Lat Krabang, Bangkok",
-  dateRange: "25 Nov 2025 - 30 Jan 2026",
-  applied: "1123 Applied",
-}));
+import type { ProfileCompanyJobListItem } from "@/services/profileService";
 
 export default function ProfilePage() {
   const authUser = useAuthStore((state) => state.user);
@@ -68,6 +62,7 @@ export default function ProfilePage() {
   const [isCompanyInformationPopupOpen, setIsCompanyInformationPopupOpen] =
     useState(false);
   const [companyId, setCompanyId] = useState("");
+  const [openJobs, setOpenJobs] = useState<ProfileCompanyJobListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -94,8 +89,12 @@ export default function ProfilePage() {
         setCompanyId(companyId);
 
         console.log("[GET profile] companyId:", companyId);
-        const result = await apiGetProfileCompanyProfile(companyId);
-        const data = result.data;
+        const [profileResult, openJobResult] = await Promise.all([
+          apiGetProfileCompanyProfile(companyId),
+          apiGetProfileCompanyJobList(companyId, { page: 0, limit: 10 }),
+        ]);
+
+        const data = profileResult.data;
         if (!data) return;
 
         setCompanyProfile({
@@ -123,6 +122,7 @@ export default function ProfilePage() {
           data.addition_information_rtf ?? data.addition_information ?? "",
         );
         if (data.logo) setCompanyProfileImageUrl(data.logo);
+        setOpenJobs(openJobResult.data?.data ?? []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -269,15 +269,58 @@ export default function ProfilePage() {
                 <div className="rounded-xl border border-border bg-background px-4 py-3">
                   <h2 className="mb-3 text-lg font-semibold">Open Job</h2>
                   <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                    {jobCards.map((job) => (
-                      <OpenJobCard
-                        key={job.id}
-                        title={job.title}
-                        location={job.location}
-                        dateRange={job.dateRange}
-                        applied={job.applied}
-                      />
-                    ))}
+                    {openJobs.map((job) => {
+                      const district =
+                        job.district?.district_name_en ??
+                        job.district?.district_name_th ??
+                        "";
+                      const province =
+                        job.province?.province_name_en ??
+                        job.province?.province_name_th ??
+                        "";
+
+                      const location = [district, province]
+                        .filter((item) => item.trim().length > 0)
+                        .join(", ");
+
+                      const startDate = job.start_apply
+                        ? formatDate({
+                            date: job.start_apply,
+                            format: "DD/MM/YYYY",
+                          })
+                        : "-";
+                      const endDate = job.end_apply
+                        ? formatDate({
+                            date: job.end_apply,
+                            format: "DD/MM/YYYY",
+                          })
+                        : "-";
+
+                      return (
+                        <OpenJobCard
+                          key={job.id}
+                          jobId={job.id}
+                          title={job.name}
+                          location={location}
+                          dateRange={`${startDate} - ${endDate}`}
+                          applied={`${job.applied_count} Applied`}
+                          prefill={{
+                            jobId: job.id,
+                            name: job.name,
+                            start_apply: job.start_apply,
+                            end_apply: job.end_apply,
+                            province_name:
+                              job.province?.province_name_en ??
+                              job.province?.province_name_th ??
+                              "",
+                            district_name:
+                              job.district?.district_name_en ??
+                              job.district?.district_name_th ??
+                              "",
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               </div>

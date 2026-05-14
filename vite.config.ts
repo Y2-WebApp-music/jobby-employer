@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const betterAuthProxyTarget = (env.VITE_BETTER_AUTH_PROXY_TARGET ?? "").trim();
   const appBaseURL = (env.VITE_APP_BASE_URL ?? "").trim();
-  const proxy: Record<string, { target: string; changeOrigin: boolean; cookieDomainRewrite?: string }> = {};
+  const proxy: Record<string, object> = {};
 
   if (betterAuthProxyTarget) {
     proxy["/api/auth-employer"] = {
@@ -32,6 +32,24 @@ export default defineConfig(({ mode }) => {
     proxy["/job"] = {
       target: appBaseURL,
       changeOrigin: true,
+    };
+    proxy["/apply-monitor"] = {
+      target: appBaseURL,
+      changeOrigin: true,
+    };
+    proxy["/employee"] = {
+      target: appBaseURL,
+      changeOrigin: true,
+    };
+    proxy["/scout"] = {
+      target: appBaseURL,
+      changeOrigin: true,
+      bypass: (req: { headers: Record<string, string | string[] | undefined> }) => {
+        const accept = req.headers["accept"] ?? "";
+        if (typeof accept === "string" && accept.includes("text/html")) {
+          return "/index.html";
+        }
+      },
     };
     proxy["/utility"] = {
       target: appBaseURL,

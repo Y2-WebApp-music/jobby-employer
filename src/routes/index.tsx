@@ -5,10 +5,9 @@ import ApplymonitorJobPage from "@/pages/applymonitor/ApplymonitorJobPage";
 import ApplyByTitlePage from "@/pages/applybytitle/ApplyByTitle";
 import JobMonitorPage from "@/pages/jobmonitor/JobMonitor";
 import MessagePage from "@/pages/message/message";
-import AccountPage from "@/pages/Account";
+import AccountPage from "@/pages/account/AccountPage";
 import CreatejobPage from "@/pages/createjob/Createjob";
 import ScoutPage from "@/pages/scout/Scout";
-import ApproveWorkPage from "@/pages/approvework/approvework";
 import SignUpPage from "@/pages/auth/SignUp";
 import CompanySetupPage from "@/pages/auth/CompanySetup";
 import SignInPage from "@/pages/auth/SignIn";
@@ -67,10 +66,6 @@ export const router = createBrowserRouter(
     {
       path: "/account",
       element: <AccountPage />,
-    },
-    {
-      path: "/approvework",
-      element: <ApproveWorkPage />,
     },
     {
       path: "/createjob",

@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import type { OpenJobCardProps } from "@/types/profilePageTypes";
 
 export default function OpenJobCard({
+  jobId,
   title,
   location,
   dateRange,
   applied,
+  prefill,
 }: OpenJobCardProps) {
   const navigate = useNavigate();
 
@@ -22,7 +24,16 @@ export default function OpenJobCard({
           variant="outline"
           size="sm"
           className="h-7 rounded-full px-4 text-xs"
-          onClick={() => navigate("/createjob")}
+          onClick={() =>
+            navigate("/createjob", {
+              state: {
+                prefill: {
+                  ...(prefill ?? {}),
+                  jobId,
+                },
+              },
+            })
+          }
         >
           Edit
         </Button>
@@ -30,7 +41,7 @@ export default function OpenJobCard({
           size="sm"
           className="h-7 rounded-full px-4 text-xs text-white"
           style={{ background: "var(--gradient-primary)" }}
-          onClick={() => navigate("/applymonitor")}
+          onClick={() => navigate(`/applymonitor/job/${jobId}`)}
         >
           View Applied
         </Button>

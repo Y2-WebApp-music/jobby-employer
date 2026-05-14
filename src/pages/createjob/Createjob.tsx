@@ -55,6 +55,7 @@ import CreateJobAddSkillPopup from "./CreateJobAddSkillPopup";
 import {
   apiCreateJob,
   apiPatchJobById,
+  apiGetJobById,
   apiGetUtilityOptionType,
 } from "@/services/createjobService";
 import type {
@@ -191,6 +192,10 @@ export default function CreatejobPage() {
   const prefill =
     (location.state as { prefill?: Record<string, unknown> } | null)?.prefill ??
     null;
+  const editJobIdFromQuery = new URLSearchParams(location.search).get("jobId");
+  const editJobId =
+    editJobIdFromQuery ??
+    (prefill?.jobId != null ? String(prefill.jobId) : null);
   // Company state
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [companyAddress, setCompanyAddress] =
@@ -611,28 +616,73 @@ export default function CreatejobPage() {
         if (!cId) return;
         setCompanyId(cId);
 
-        // Pre-fill edit mode: if prefill.jobId present, use job address instead of company profile
-        if (prefill?.jobId != null) {
-          setCreatedJobId(String(prefill.jobId));
-          setCompanyAddress({
-            addressLine: String(prefill.address_line ?? ""),
-            no: String(prefill.no ?? ""),
-            moo: String(prefill.moo ?? ""),
-            soi: String(prefill.soi ?? ""),
-            street: String(prefill.street ?? ""),
-            province: String(prefill.province_name ?? ""),
-            district: String(prefill.district_name ?? ""),
-            subDistrict: String(prefill.sub_district_name ?? ""),
-            postalCode: String(prefill.postal_code ?? ""),
-          });
-          setCompanyAddressCodes({
-            subDistrictCode: Number(prefill.sub_district_code ?? 0),
-            districtCode: Number(prefill.district_code ?? 0),
-            provinceCode: Number(prefill.province_code ?? 0),
-            countryCode: Number(prefill.country_code ?? 0),
-            postalCodeNum: Number(prefill.postal_code ?? 0),
-          });
-          return;
+        // Edit mode: if job id is provided, load full job detail and set form for patch
+        if (editJobId) {
+          const jobDetailResult = await apiGetJobById(editJobId);
+          const jobDetail = jobDetailResult.data;
+
+          if (jobDetail) {
+            setCreatedJobId(jobDetail.id);
+            setJobName(jobDetail.name ?? "");
+            setWorkOption(
+              jobDetail.work_options?.[0]?.work_option_id
+                ? String(jobDetail.work_options[0].work_option_id)
+                : "",
+            );
+            setWorkTypeId(
+              jobDetail.work_types?.[0]?.work_type_id
+                ? String(jobDetail.work_types[0].work_type_id)
+                : "",
+            );
+            setStartDate(
+              jobDetail.start_apply ? new Date(jobDetail.start_apply) : undefined,
+            );
+            setEndDate(
+              jobDetail.end_apply ? new Date(jobDetail.end_apply) : undefined,
+            );
+            setJobDescription(
+              jobDetail.description_rtf || jobDetail.description || "",
+            );
+            setCoverLetter(Boolean(jobDetail.cover_letter));
+            setWorkExperience(Boolean(jobDetail.work_experience));
+            setEducation(Boolean(jobDetail.education));
+            setSkills(
+              (jobDetail.skills ?? []).map((skill, index) => ({
+                index,
+                skill_id: skill.skill_id,
+                skill_name: skill.skill_name,
+              })),
+            );
+
+            setCompanyAddress({
+              addressLine: jobDetail.address_line ?? "",
+              no: jobDetail.no ?? "",
+              moo: jobDetail.moo ?? "",
+              soi: jobDetail.soi ?? "",
+              street: jobDetail.street ?? "",
+              province:
+                (typeof prefill?.province_name === "string"
+                  ? prefill.province_name
+                  : "") || "",
+              district:
+                (typeof prefill?.district_name === "string"
+                  ? prefill.district_name
+                  : "") || "",
+              subDistrict:
+                (typeof prefill?.sub_district_name === "string"
+                  ? prefill.sub_district_name
+                  : "") || "",
+              postalCode: String(jobDetail.postal_code ?? ""),
+            });
+            setCompanyAddressCodes({
+              subDistrictCode: jobDetail.sub_district_code ?? 0,
+              districtCode: jobDetail.district_code ?? 0,
+              provinceCode: jobDetail.province_code ?? 0,
+              countryCode: jobDetail.country_code ?? 0,
+              postalCodeNum: jobDetail.postal_code ?? 0,
+            });
+            return;
+          }
         }
 
         const profileResult = await apiGetProfileCompanyProfile(cId);
