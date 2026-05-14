@@ -3,7 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X, Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { apiGetSkillDetailById, apiSearchSkills } from "@/services/createjobService";
+import {
+  apiGetSkillDetailById,
+  apiSearchSkills,
+} from "@/services/createjobService";
 import type {
   CreateJobAddSkillPopupProps,
   SkillDetailResponse,
@@ -68,7 +71,8 @@ export default function CreateJobAddSkillPopup({
     skill.skill_id ?? skill.eid ?? skill.skillElementId ?? skill.id ?? "";
 
   const getDetailSkillName = () =>
-    detailSkill?.name ?? (selectedSkill ? getSkillDisplayName(selectedSkill) : "");
+    detailSkill?.name ??
+    (selectedSkill ? getSkillDisplayName(selectedSkill) : "");
 
   const getSelectedSkillId = (skill: SkillSearchResultItem | null) => {
     if (!skill) return "";
@@ -172,7 +176,8 @@ export default function CreateJobAddSkillPopup({
                       onClick={() => setSelectedSkill(skill)}
                       className={`rounded-full border px-4 py-2 text-sm transition-colors ${
                         selectedSkill &&
-                        getSearchSkillId(selectedSkill) === getSearchSkillId(skill)
+                        getSearchSkillId(selectedSkill) ===
+                          getSearchSkillId(skill)
                           ? "bg-primary/10 border-primary text-primary"
                           : "border-primary/40 text-primary hover:bg-primary/5"
                       }`}
@@ -212,7 +217,9 @@ export default function CreateJobAddSkillPopup({
             {detailSkill && (
               <div className="space-y-3 rounded-md border border-border p-3">
                 <div>
-                  <p className="mb-1 text-base font-medium">Skill Description</p>
+                  <p className="mb-1 text-base font-medium">
+                    Skill Description
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {detailSkill.description?.trim() || "-"}
                   </p>
@@ -220,23 +227,23 @@ export default function CreateJobAddSkillPopup({
 
                 <div>
                   <p className="mb-2 text-base font-medium">Pre-Skill</p>
-                  {((detailSkill.pre_skills ?? detailSkill.preSkills ?? []).length >
-                    0 && (
+                  {((detailSkill.pre_skills ?? detailSkill.preSkills ?? [])
+                    .length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {(detailSkill.pre_skills ?? detailSkill.preSkills ?? []).map(
-                        (preSkill, index) => (
-                          <span
-                            key={`${preSkill}-${index}`}
-                            className="rounded-full border border-muted-foreground/30 bg-muted px-3 py-1 text-sm text-muted-foreground"
-                          >
-                            {preSkill}
-                          </span>
-                        ),
-                      )}
+                      {(
+                        detailSkill.pre_skills ??
+                        detailSkill.preSkills ??
+                        []
+                      ).map((preSkill, index) => (
+                        <span
+                          key={`${preSkill}-${index}`}
+                          className="rounded-full border border-muted-foreground/30 bg-muted px-3 py-1 text-sm text-muted-foreground"
+                        >
+                          {preSkill}
+                        </span>
+                      ))}
                     </div>
-                  )) || (
-                    <p className="text-sm text-muted-foreground">-</p>
-                  )}
+                  )) || <p className="text-sm text-muted-foreground">-</p>}
                 </div>
 
                 <div className="flex gap-2 pt-1">

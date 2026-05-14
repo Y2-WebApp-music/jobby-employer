@@ -38,8 +38,14 @@ function StatusText({ status }: { status: string }) {
   return <span className="text-primary">{status}</span>;
 }
 
-function mapApplyItemToCard(item: ApplyMonitorJobApplyItem, index: number): ApplicationCard {
-  const appliedAt = formatDate({ date: item.created_at, format: "DD/MM/YYYY HH:mm" });
+function mapApplyItemToCard(
+  item: ApplyMonitorJobApplyItem,
+  index: number,
+): ApplicationCard {
+  const appliedAt = formatDate({
+    date: item.created_at,
+    format: "DD/MM/YYYY HH:mm",
+  });
   return {
     id: index + 1,
     applyId: item.id,
@@ -56,7 +62,8 @@ export function ApplymonitorJobPage() {
   const { jobId } = useParams<{ jobId: string }>();
 
   // ── Job detail ─────────────────────────────────────────────────────────
-  const [jobDetail, setJobDetail] = useState<ApplyMonitorJobDetailResponse | null>(null);
+  const [jobDetail, setJobDetail] =
+    useState<ApplyMonitorJobDetailResponse | null>(null);
   const [jobDetailLoading, setJobDetailLoading] = useState(false);
 
   // ── New Applied (not viewed) ───────────────────────────────────────────
@@ -75,13 +82,21 @@ export function ApplymonitorJobPage() {
   const [sortById, setSortById] = useState("");
 
   // ── Options ────────────────────────────────────────────────────────────
-  const [applyStatusOptions, setApplyStatusOptions] = useState<{ label: string; value: string }[]>([]);
-  const [sortByOptions, setSortByOptions] = useState<{ label: string; value: string }[]>([]);
+  const [applyStatusOptions, setApplyStatusOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [sortByOptions, setSortByOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
 
   // ── Popup ──────────────────────────────────────────────────────────────
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<ApplicationCard | null>(null);
-  const [selectedStars, setSelectedStars] = useState<Record<string, boolean>>({});
+  const [selectedCard, setSelectedCard] = useState<ApplicationCard | null>(
+    null,
+  );
+  const [selectedStars, setSelectedStars] = useState<Record<string, boolean>>(
+    {},
+  );
   const [isJobDetailPopupOpen, setIsJobDetailPopupOpen] = useState(false);
 
   const gradientBorderStyle = {
@@ -99,7 +114,9 @@ export function ApplymonitorJobPage() {
   const handleOpenDetail = (card: ApplicationCard) => {
     if (card.applyId && card.highlighted) {
       void apiPatchApplyMonitorApplyViewed(card.applyId, { is_viewed: true });
-      setNewApplySource((prev) => prev.filter((item) => item.applyId !== card.applyId));
+      setNewApplySource((prev) =>
+        prev.filter((item) => item.applyId !== card.applyId),
+      );
       setApplySource((prev) => [{ ...card, highlighted: false }, ...prev]);
     }
     setSelectedCard(card);
@@ -139,7 +156,9 @@ export function ApplymonitorJobPage() {
       }
     };
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [jobId]);
 
   useEffect(() => {
@@ -154,9 +173,10 @@ export function ApplymonitorJobPage() {
     const load = async () => {
       setAppliesLoading(true);
       try {
-        const applyStatusId = applyStatusValues.length > 0
-          ? Number(applyStatusValues[0])
-          : undefined;
+        const applyStatusId =
+          applyStatusValues.length > 0
+            ? Number(applyStatusValues[0])
+            : undefined;
         const sortByIdNum = sortById ? Number(sortById) : undefined;
         const limit = 100;
         let page = 0;
@@ -196,7 +216,9 @@ export function ApplymonitorJobPage() {
       }
     };
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [jobId, searchQuery, applyStatusValues, sortById, newApplyRefreshTick]);
 
   const newApplyTotal = newApplySource.length;
@@ -228,7 +250,9 @@ export function ApplymonitorJobPage() {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{jobDetailLoading ? "Loading..." : jobName}</BreadcrumbPage>
+                <BreadcrumbPage>
+                  {jobDetailLoading ? "Loading..." : jobName}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -236,12 +260,19 @@ export function ApplymonitorJobPage() {
           {/* ── Header ─────────────────────────────────────────────────── */}
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-foreground text-xl font-semibold">{jobName}</h1>
+              <h1 className="text-foreground text-xl font-semibold">
+                {jobName}
+              </h1>
               <p className="text-sm">
                 Status: <StatusText status={jobStatusName} />
               </p>
             </div>
-            <Button variant="outline" size="sm" className="rounded-full shrink-0" onClick={() => setIsJobDetailPopupOpen(true)}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full shrink-0"
+              onClick={() => setIsJobDetailPopupOpen(true)}
+            >
               View Job Detail
             </Button>
           </div>
@@ -249,7 +280,9 @@ export function ApplymonitorJobPage() {
           {/* ── Skills ─────────────────────────────────────────────────── */}
           {skills.length > 0 && (
             <div>
-              <p className="text-foreground mb-1.5 text-sm font-medium">Skill Use In This Job</p>
+              <p className="text-foreground mb-1.5 text-sm font-medium">
+                Skill Use In This Job
+              </p>
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill) => (
                   <Badge
@@ -296,11 +329,15 @@ export function ApplymonitorJobPage() {
 
           {/* ── New Applied ─────────────────────────────────────────────── */}
           <section className="mb-3">
-            <h2 className="text-foreground mb-2 text-lg font-semibold">New Applied</h2>
+            <h2 className="text-foreground mb-2 text-lg font-semibold">
+              New Applied
+            </h2>
             {appliesLoading ? (
               <p className="text-sm text-muted-foreground">Loading...</p>
             ) : newApplyCards.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No new applies found</p>
+              <p className="text-sm text-muted-foreground">
+                No new applies found
+              </p>
             ) : (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                 {newApplyCards.map((card) => {
@@ -324,7 +361,10 @@ export function ApplymonitorJobPage() {
                       <div className="mb-1 flex items-center gap-1.5 text-sm font-normal text-foreground">
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); toggleStar(starKey); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleStar(starKey);
+                          }}
                           aria-label={isStarSelected ? "Unselect" : "Select"}
                           className="rounded-sm bg-transparent p-0 hover:bg-transparent"
                         >
@@ -341,17 +381,24 @@ export function ApplymonitorJobPage() {
                       <p className="text-xs">
                         Status: <StatusText status={card.status} />
                       </p>
-                      <p className="text-muted-foreground mb-2 text-[11px]">{card.detail}</p>
+                      <p className="text-muted-foreground mb-2 text-[11px]">
+                        {card.detail}
+                      </p>
                       <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                         <Badge variant="gradient" className="rounded-full">
-                          <span className="gradient-text">{card.skillMatch}</span>
+                          <span className="gradient-text">
+                            {card.skillMatch}
+                          </span>
                         </Badge>
                         <Button
                           variant="ghost"
                           size="xs"
                           className="hover:bg-transparent rounded-full border bg-transparent"
                           style={gradientBorderStyle}
-                          onClick={(e) => { e.stopPropagation(); handleOpenDetail(card); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDetail(card);
+                          }}
                         >
                           <span className="gradient-text">See Detail</span>
                         </Button>
@@ -371,7 +418,9 @@ export function ApplymonitorJobPage() {
 
           {/* ── Applied ─────────────────────────────────────────────────── */}
           <section>
-            <h2 className="text-foreground mb-2 text-lg font-semibold">Applied</h2>
+            <h2 className="text-foreground mb-2 text-lg font-semibold">
+              Applied
+            </h2>
             {appliesLoading ? (
               <p className="text-sm text-muted-foreground">Loading...</p>
             ) : applyCards.length === 0 ? (
@@ -398,7 +447,10 @@ export function ApplymonitorJobPage() {
                       <div className="mb-1 flex items-center gap-1.5 text-sm font-normal text-muted-foreground">
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); toggleStar(starKey); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleStar(starKey);
+                          }}
                           aria-label={isStarSelected ? "Unselect" : "Select"}
                           className="rounded-sm bg-transparent p-0 hover:bg-transparent"
                         >
@@ -411,12 +463,16 @@ export function ApplymonitorJobPage() {
                           />
                         </button>
                         <span>{card.title}</span>
-                        <span className="ml-auto text-[10px] text-muted-foreground">Viewed</span>
+                        <span className="ml-auto text-[10px] text-muted-foreground">
+                          Viewed
+                        </span>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Status: <StatusText status={card.status} />
                       </p>
-                      <p className="text-muted-foreground mb-2 text-[11px]">{card.detail}</p>
+                      <p className="text-muted-foreground mb-2 text-[11px]">
+                        {card.detail}
+                      </p>
                       <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                         <Badge
                           variant="ghost"
@@ -428,7 +484,10 @@ export function ApplymonitorJobPage() {
                           variant="ghost"
                           size="xs"
                           className="hover:bg-transparent rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground"
-                          onClick={(e) => { e.stopPropagation(); handleOpenDetail(card); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDetail(card);
+                          }}
                         >
                           See Detail
                         </Button>

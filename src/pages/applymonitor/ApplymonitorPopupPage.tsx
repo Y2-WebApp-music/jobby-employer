@@ -5,7 +5,10 @@ import { Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import ApplymonitorSkillPopup from "@/pages/applymonitor/ApplymonitorSkillPopup";
 import ApplymonitorRejectPopup from "@/pages/applymonitor/ApplymonitorRejectPopup";
-import { apiGetApplyMonitorApplyDetail, apiPatchApplyMonitorApplyStatus } from "@/services/applymonitorService";
+import {
+  apiGetApplyMonitorApplyDetail,
+  apiPatchApplyMonitorApplyStatus,
+} from "@/services/applymonitorService";
 import type { ApplyMonitorApplyDetailResponse } from "@/services/applymonitorService";
 import { formatDate } from "@/utils/formatDate";
 
@@ -20,7 +23,9 @@ export default function ApplymonitorPopupPage({
   const [selectedSkillName, setSelectedSkillName] = useState("React");
   const [activeSkillIndex, setActiveSkillIndex] = useState<number | null>(null);
   const [isStarSelected, setIsStarSelected] = useState(false);
-  const [detail, setDetail] = useState<ApplyMonitorApplyDetailResponse | null>(null);
+  const [detail, setDetail] = useState<ApplyMonitorApplyDetailResponse | null>(
+    null,
+  );
   const [detailLoading, setDetailLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -90,7 +95,9 @@ export default function ApplymonitorPopupPage({
       }
     };
     void fetch();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [open, card?.applyId]);
 
   if (!card) return null;
@@ -99,10 +106,15 @@ export default function ApplymonitorPopupPage({
   const user = resume?.user ?? detail?.user;
   const skills = resume?.skills ?? [];
   const email = user?.email ?? "";
-  const phone = user?.phone ? `(${user.phone_region ?? "+66"}) ${user.phone}` : "";
+  const phone = user?.phone
+    ? `(${user.phone_region ?? "+66"}) ${user.phone}`
+    : "";
   const contacts = resume?.contacts ?? [];
-  const github = contacts.find((c) => c.label.toLowerCase().includes("github"))?.link ?? "";
-  const linkedin = contacts.find((c) => c.label.toLowerCase().includes("linkedin"))?.link ?? "";
+  const github =
+    contacts.find((c) => c.label.toLowerCase().includes("github"))?.link ?? "";
+  const linkedin =
+    contacts.find((c) => c.label.toLowerCase().includes("linkedin"))?.link ??
+    "";
   const statusLabel = detail?.status_name?.en ?? card.status;
   const currentStatus = detail?.status;
   const isAlreadyRejected = currentStatus === 3;
@@ -134,7 +146,9 @@ export default function ApplymonitorPopupPage({
                     <h2>{detail?.user_name ?? card.title}</h2>
                     <button
                       type="button"
-                      aria-label={isStarSelected ? "Unstar candidate" : "Star candidate"}
+                      aria-label={
+                        isStarSelected ? "Unstar candidate" : "Star candidate"
+                      }
                       onClick={() => setIsStarSelected((p) => !p)}
                       className="rounded-sm"
                     >

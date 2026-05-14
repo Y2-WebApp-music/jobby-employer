@@ -89,7 +89,10 @@ export default function ToggleSelect({
         </button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-2" align="start">
+      <PopoverContent
+        className="w-(--radix-popover-trigger-width) p-2"
+        align="start"
+      >
         <div className="space-y-1">
           {options.map((option) => {
             const isSelected = option.value === value;
