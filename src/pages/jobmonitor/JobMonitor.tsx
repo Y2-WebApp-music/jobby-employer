@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import SectionPagination from "@/components/ui/pagination";
 import Multiselect, {
   type MultiselectOption,
 } from "@/components/ui/multiselect";
@@ -20,28 +21,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  jobMonitorLatestCards,
-  jobMonitorNewAppliedCards,
-} from "@/mock/jobMonitorMock";
+  apiApplyMonitorSearchJob,
+  apiGetApplyMonitorJobDetail,
+} from "@/services/applymonitorService";
+import { apiGetUtilityOptionType } from "@/services/utilityService";
+import { formatDate } from "@/utils/formatDate";
 import type { JobMonitorCard } from "@/types/domain/job-monitor";
-import { useMemo, useState } from "react";
+import type { ApplyMonitorJobDetailResponse } from "@/types/applymonitorTypes";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import JobMonitorDetailPopup from "@/pages/jobmonitor/JobMonitorDetailPopup";
 
-const jobStatusOptions: MultiselectOption[] = [
-  { label: "Open", value: "open" },
-  { label: "Closed", value: "closed" },
-];
-
 export default function JobMonitorPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusValues, setStatusValues] = useState<string[]>([
-    "open",
-    "closed",
-  ]);
-  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+  const [statusValues, setStatusValues] = useState<string[]>([]);
+  const [sortById, setSortById] = useState<string>("");
   const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<JobMonitorCard | null>(null);
+  const [latestCards, setLatestCards] = useState<JobMonitorCard[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [jobStatusOptions, setJobStatusOptions] = useState<MultiselectOption[]>(
+    [],
+  );
+  const [sortByOptions, setSortByOptions] = useState<
+    Array<{ id: string; label: string }>
+  >([]);
+  const [jobDetailsMap, setJobDetailsMap] = useState<
+    Record<string, ApplyMonitorJobDetailResponse>
+  >({});
+  const cardsPerPage = 10;
 
   const gradientBorderStyle = {
     border: "1px solid transparent",
@@ -51,40 +62,151 @@ export default function JobMonitorPage() {
     backgroundClip: "padding-box, border-box",
   } as const;
 
-  const sortCards = (cards: JobMonitorCard[]) => {
-    const sortedCards = [...cards].sort(
-      (firstCard, secondCard) => firstCard.id - secondCard.id,
-    );
-    return sortBy === "oldest" ? sortedCards : sortedCards.reverse();
-  };
+  const apiSortById = sortById ? Number(sortById) : undefined;
 
-  const filterCards = (cards: JobMonitorCard[]) => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
+  // Fetch status and sort options from API
+  useEffect(() => {
+    let isCancelled = false;
 
-    const filteredCards = cards.filter((card) => {
-      const matchesSearch =
-        normalizedQuery.length === 0 ||
-        [card.title, card.status, card.period, card.applied].some((value) =>
-          value.toLowerCase().includes(normalizedQuery),
+    const fetchOptions = async () => {
+      try {
+        const response = await apiGetUtilityOptionType();
+        if (isCancelled) return;
+
+        const statusData = response.data?.job_status ?? [];
+        const sortData = response.data?.sort_by ?? [];
+
+        const mappedStatusOptions: MultiselectOption[] = statusData.map(
+          (item) => ({
+            label: item.text_eng,
+            value: String(item.id),
+          }),
         );
-      const matchesStatus =
-        statusValues.length === 0 || statusValues.includes(card.jobStatus);
 
-      return matchesSearch && matchesStatus;
+        const mappedSortOptions = sortData.map((item) => ({
+          id: String(item.id),
+          label: item.text_eng,
+        }));
+
+        setJobStatusOptions(mappedStatusOptions);
+        setSortByOptions(mappedSortOptions);
+      } catch {
+        // Options fetch failure is non-blocking
+      }
+    };
+
+    void fetchOptions();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortById]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchJobs = async () => {
+      try {
+        setIsLoading(true);
+        setErrorMessage("");
+
+        const response = await apiApplyMonitorSearchJob({
+          search: searchQuery.trim() || undefined,
+          sortById: apiSortById,
+          page: currentPage - 1,
+          limit: cardsPerPage,
+        });
+
+        if (isCancelled) return;
+
+        const data = response.data;
+        const mappedCards: JobMonitorCard[] = (data.items ?? []).map(
+          (item, index) => {
+            const dateRangeParts = (item.date_range ?? "").split(" - ");
+            const startDate = dateRangeParts[0] ?? "";
+            const endDate = dateRangeParts[1] ?? "";
+            const period =
+              startDate && endDate
+                ? `${formatDate({ date: startDate, format: "DD/MM/YYYY" })} - ${formatDate({ date: endDate, format: "DD/MM/YYYY" })}`
+                : item.date_range;
+
+            return {
+              id: currentPage * 1000 + index,
+              jobId: item.job_id,
+              title: item.job_name,
+              status: item.status,
+              jobStatus:
+                item.status?.toLowerCase() === "open" ? "open" : "closed",
+              period,
+              applied: `${item.applied_count} Applied`,
+              companyName: "-",
+              locationPosted: `${item.new_applied_count} New Applied`,
+            };
+          },
+        );
+
+        setLatestCards(mappedCards);
+        setTotalPages(Math.max(1, data.total || 1));
+      } catch {
+        if (isCancelled) return;
+        setLatestCards([]);
+        setTotalPages(1);
+        setErrorMessage("Failed to load job activities");
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchJobs();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [searchQuery, apiSortById, currentPage]);
+
+  // Fetch job details for client-side status filtering
+  useEffect(() => {
+    if (latestCards.length === 0) return;
+    const ids = latestCards
+      .map((c) => c.jobId)
+      .filter((id): id is string => Boolean(id));
+    void Promise.allSettled(
+      ids.map((id) => apiGetApplyMonitorJobDetail(id)),
+    ).then((results) => {
+      const map: Record<string, ApplyMonitorJobDetailResponse> = {};
+      results.forEach((r, i) => {
+        if (r.status === "fulfilled" && r.value.data) {
+          map[ids[i]!] = r.value.data;
+        }
+      });
+      setJobDetailsMap(map);
     });
+  }, [latestCards]);
 
-    return sortCards(filteredCards);
-  };
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
-  const newAppliedCards = useMemo(
-    () => filterCards(jobMonitorNewAppliedCards),
-    [searchQuery, sortBy, statusValues],
-  );
+  const paginationTotal =
+    latestCards.length === 0 && currentPage === 1
+      ? 0
+      : totalPages * cardsPerPage;
 
-  const latestCards = useMemo(
-    () => filterCards(jobMonitorLatestCards),
-    [searchQuery, sortBy, statusValues],
-  );
+  // Client-side filter by job status using fetched details
+  const displayCards = latestCards.filter((card) => {
+    if (statusValues.length === 0) return true;
+    const detail = card.jobId ? jobDetailsMap[card.jobId] : undefined;
+    if (!detail) return true; // still loading detail, keep visible
+    return statusValues.map(Number).includes(detail.status);
+  });
 
   const handleOpenDetailPopup = (card: JobMonitorCard) => {
     setSelectedCard(card);
@@ -167,29 +289,18 @@ export default function JobMonitorPage() {
               <p className="text-foreground mb-1 text-base font-medium">
                 Sort By
               </p>
-              <Select
-                value={sortBy}
-                onValueChange={(value) =>
-                  setSortBy(value as "newest" | "oldest")
-                }
-              >
+              <Select value={sortById} onValueChange={setSortById}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent position="item-aligned">
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="oldest">Oldest</SelectItem>
+                  {sortByOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-            </div>
-          </section>
-
-          <section className="mb-4">
-            <h2 className="text-foreground mb-2 text-lg font-semibold">
-              New Applied
-            </h2>
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-              {newAppliedCards.map(renderCard)}
             </div>
           </section>
 
@@ -197,9 +308,26 @@ export default function JobMonitorPage() {
             <h2 className="text-foreground mb-2 text-lg font-semibold">
               Latest Job activities
             </h2>
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-              {latestCards.map(renderCard)}
-            </div>
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : errorMessage ? (
+              <p className="text-sm text-destructive">{errorMessage}</p>
+            ) : displayCards.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No job activities found
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
+                {displayCards.map(renderCard)}
+              </div>
+            )}
+
+            <SectionPagination
+              total={paginationTotal}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              perPage={cardsPerPage}
+            />
           </section>
 
           <JobMonitorDetailPopup

@@ -1,6 +1,7 @@
 import apiService from "./apiService";
 import type {
   UtilityDistrictsByProvinceResponse,
+  UtilityOptionTypeResponse,
   UtilityPostalCodesBySubDistrictResponse,
   UtilityProvincesResponse,
   UtilitySubDistrictsByDistrictResponse,
@@ -10,6 +11,8 @@ export type {
   UtilityCountryRef,
   UtilityDistrictItem,
   UtilityDistrictsByProvinceResponse,
+  UtilityOptionTypeItem,
+  UtilityOptionTypeResponse,
   UtilityPostalCodeItem,
   UtilityPostalCodesBySubDistrictResponse,
   UtilityProvinceItem,
@@ -18,6 +21,14 @@ export type {
   UtilitySubDistrictItem,
   UtilitySubDistrictsByDistrictResponse,
 } from "@/types/utilityTypes";
+
+// get {{bff-service}}/utility/option-type     filter master data
+export const apiGetUtilityOptionType = () => {
+  return apiService.fetchData<UtilityOptionTypeResponse>({
+    url: "/utility/option-type",
+    method: "get",
+  });
+};
 
 // get {{bff-service}}/utility/province
 export const apiGetUtilityProvinces = () => {

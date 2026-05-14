@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 "use client";
 
 import * as React from "react";
@@ -23,7 +24,6 @@ import {
 } from "@/components/ui/tooltip";
 import type { SidebarContextProps } from "@/types/ui";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { PanelLeftIcon } from "lucide-react";
 import jobbyemployerLogo from "@/assets/icons/JobbyEmployer.png";
 import sidebarTriggerIcon from "@/assets/icons/SidebarTrigger.png";
 

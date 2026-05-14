@@ -7,10 +7,41 @@ import svgr from "vite-plugin-svgr";
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const betterAuthProxyTarget = (
-    env.VITE_BETTER_AUTH_PROXY_TARGET
-  ).trim();
+  const betterAuthProxyTarget = (env.VITE_BETTER_AUTH_PROXY_TARGET ?? "").trim();
   const appBaseURL = (env.VITE_APP_BASE_URL ?? "").trim();
+  const proxy: Record<string, { target: string; changeOrigin: boolean; cookieDomainRewrite?: string }> = {};
+
+  if (betterAuthProxyTarget) {
+    proxy["/api/auth-employer"] = {
+      target: betterAuthProxyTarget,
+      changeOrigin: true,
+      cookieDomainRewrite: "localhost",
+    };
+    proxy["/api/auth"] = {
+      target: betterAuthProxyTarget,
+      changeOrigin: true,
+      cookieDomainRewrite: "localhost",
+    };
+  }
+
+  if (appBaseURL) {
+    proxy["/company"] = {
+      target: appBaseURL,
+      changeOrigin: true,
+    };
+    proxy["/job"] = {
+      target: appBaseURL,
+      changeOrigin: true,
+    };
+    proxy["/utility"] = {
+      target: appBaseURL,
+      changeOrigin: true,
+    };
+    proxy["/api"] = {
+      target: appBaseURL,
+      changeOrigin: true,
+    };
+  }
 
   return {
     plugins: [react(), tailwindcss(), svgr()],
@@ -20,34 +51,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      proxy: {
-        "/api/auth-employer": {
-          target: betterAuthProxyTarget,
-          changeOrigin: true,
-          cookieDomainRewrite: "localhost",
-        },
-        "/api/auth": {
-          target: betterAuthProxyTarget,
-          changeOrigin: true,
-          cookieDomainRewrite: "localhost",
-        },
-        "/company": {
-          target: appBaseURL,
-          changeOrigin: true,
-        },
-        "/job": {
-          target: appBaseURL,
-          changeOrigin: true,
-        },
-        "/utility": {
-          target: appBaseURL,
-          changeOrigin: true,
-        },
-        "/api": {
-          target: appBaseURL,
-          changeOrigin: true,
-        },
-      },
+      proxy,
     },
   };
 });

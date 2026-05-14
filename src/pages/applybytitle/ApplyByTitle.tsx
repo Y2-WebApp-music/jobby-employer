@@ -118,6 +118,7 @@ export default function ApplyByTitlePage() {
   }, [applyStatusFilter, searchQuery, sortBy]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNewAppliedPage(1);
     setAppliedPage(1);
     setInterviewPage(1);
@@ -148,6 +149,7 @@ export default function ApplyByTitlePage() {
     );
 
     if (newAppliedPage > newAppliedPages) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNewAppliedPage(newAppliedPages);
     }
 

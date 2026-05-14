@@ -8,6 +8,7 @@ const sharedLocationPosted = "Chon Buri, Thailand · posted 1 week ago";
 export const jobMonitorNewAppliedCards: JobMonitorCard[] = [
   {
     id: 1,
+    jobId: "mock-job-1",
     title: sharedTitle,
     status: "Active",
     jobStatus: "open",
@@ -21,6 +22,7 @@ export const jobMonitorNewAppliedCards: JobMonitorCard[] = [
 export const jobMonitorLatestCards: JobMonitorCard[] = [
   {
     id: 2,
+    jobId: "mock-job-2",
     title: sharedTitle,
     status: "Active",
     jobStatus: "open",
@@ -31,6 +33,7 @@ export const jobMonitorLatestCards: JobMonitorCard[] = [
   },
   {
     id: 3,
+    jobId: "mock-job-3",
     title: sharedTitle,
     status: "Active",
     jobStatus: "open",
@@ -41,6 +44,7 @@ export const jobMonitorLatestCards: JobMonitorCard[] = [
   },
   {
     id: 4,
+    jobId: "mock-job-4",
     title: sharedTitle,
     status: "Active",
     jobStatus: "open",
@@ -51,6 +55,7 @@ export const jobMonitorLatestCards: JobMonitorCard[] = [
   },
   {
     id: 5,
+    jobId: "mock-job-5",
     title: sharedTitle,
     status: "Active",
     jobStatus: "open",
@@ -61,6 +66,7 @@ export const jobMonitorLatestCards: JobMonitorCard[] = [
   },
   {
     id: 6,
+    jobId: "mock-job-6",
     title: sharedTitle,
     status: "Active",
     jobStatus: "open",
@@ -71,6 +77,7 @@ export const jobMonitorLatestCards: JobMonitorCard[] = [
   },
   {
     id: 7,
+    jobId: "mock-job-7",
     title: sharedTitle,
     status: "Active",
     jobStatus: "open",

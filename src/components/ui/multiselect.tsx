@@ -17,6 +17,8 @@ export function Multiselect({
   placeholder = "Select",
   className,
   maxDisplayCount = 1,
+  searchQuery,
+  onSearchQueryChange,
 }: MultiselectProps) {
   const [open, setOpen] = useState(false);
 
@@ -128,22 +130,37 @@ export function Multiselect({
         align="start"
       >
         <div className="space-y-1">
-          {options.map((option) => {
-            const checked = selectedValues.includes(option.value);
-
-            return (
-              <label
-                key={option.value}
-                className="hover:bg-muted flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5"
-              >
-                <Checkbox
-                  checked={checked}
-                  onCheckedChange={() => toggleValue(option.value)}
-                />
-                <span className="text-sm">{option.label}</span>
-              </label>
-            );
-          })}
+          {onSearchQueryChange !== undefined && (
+            <input
+              type="text"
+              className="border-input mb-1 w-full rounded-md border bg-transparent px-2.5 py-1 text-sm outline-none placeholder:text-muted-foreground"
+              placeholder="Search..."
+              value={searchQuery ?? ""}
+              onChange={(e) => onSearchQueryChange(e.target.value)}
+              onPointerDown={(e) => e.stopPropagation()}
+            />
+          )}
+          {options.length === 0 && onSearchQueryChange !== undefined ? (
+            <p className="px-2 py-1.5 text-sm text-muted-foreground">
+              {(searchQuery ?? "").trim() ? "No results" : "Type to search"}
+            </p>
+          ) : (
+            options.map((option) => {
+              const checked = selectedValues.includes(option.value);
+              return (
+                <label
+                  key={option.value}
+                  className="hover:bg-muted flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={() => toggleValue(option.value)}
+                  />
+                  <span className="text-sm">{option.label}</span>
+                </label>
+              );
+            })
+          )}
         </div>
       </PopoverContent>
     </Popover>

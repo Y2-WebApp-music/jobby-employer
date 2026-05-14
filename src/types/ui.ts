@@ -28,6 +28,8 @@ export type MultiselectProps = {
   placeholder?: string;
   className?: string;
   maxDisplayCount?: number;
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 };
 
 export type PaginationLinkProps = {
