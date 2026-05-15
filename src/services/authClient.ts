@@ -1,5 +1,8 @@
 import { createAuthClient } from "better-auth/client";
 import { useAuthStore } from "@/store/auth";
+import { apiGetCompanyIdByUserId } from "@/services/profileService";
+
+const COMPANY_ID_STORAGE_KEY = "company_id";
 
 const raw = import.meta.env.VITE_BETTER_AUTH_URL ?? "";
 const proxyTarget = (
@@ -21,6 +24,27 @@ export const authClient = createAuthClient({
 
 export const clearAuthStore = () => {
   useAuthStore.getState().logout();
+  window.localStorage.removeItem(COMPANY_ID_STORAGE_KEY);
+};
+
+export const hydrateCompanyIdFromUserId = async (userId: string) => {
+  if (!userId) {
+    window.localStorage.removeItem(COMPANY_ID_STORAGE_KEY);
+    return;
+  }
+
+  try {
+    const result = await apiGetCompanyIdByUserId(userId);
+    const companyId = result.data?.company_id;
+    if (companyId) {
+      window.localStorage.setItem(COMPANY_ID_STORAGE_KEY, companyId);
+      return;
+    }
+  } catch {
+    // Ignore fetch errors and clear stale company id.
+  }
+
+  window.localStorage.removeItem(COMPANY_ID_STORAGE_KEY);
 };
 
 type AuthHydrationPayload = {

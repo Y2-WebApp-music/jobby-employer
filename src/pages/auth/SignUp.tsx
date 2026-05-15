@@ -12,8 +12,10 @@ import type {
 import {
   authClient,
   hydrateAuthStoreFromPayload,
+  hydrateCompanyIdFromUserId,
   hydrateAuthStoreFromSession,
 } from "@/services/authClient";
+import { useAuthStore } from "@/store/auth";
 
 const initialFormState: SignUpFormState = {
   email: "",
@@ -86,6 +88,11 @@ export default function SignUpPage() {
       const hydrated = hydrateAuthStoreFromPayload(result);
       if (!hydrated) {
         await hydrateAuthStoreFromSession();
+      }
+
+      const user = useAuthStore.getState().user;
+      if (user) {
+        await hydrateCompanyIdFromUserId(user.id);
       }
 
       navigate("/company-setup");

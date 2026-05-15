@@ -215,9 +215,6 @@ export default function ApplymonitorJobDetailPopup({
               <h3 className="text-lg font-semibold text-foreground">
                 About this job
               </h3>
-              <h4 className="mt-1 text-base font-semibold text-foreground">
-                Company Description
-              </h4>
               {isLoading ? (
                 <p className="mt-2 text-base text-muted-foreground">
                   Loading...

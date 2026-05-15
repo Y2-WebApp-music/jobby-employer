@@ -8,6 +8,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -55,9 +56,16 @@ import CreateJobAddSkillPopup from "./CreateJobAddSkillPopup";
 import {
   apiCreateJob,
   apiPatchJobById,
+  apiPatchJobStatusById,
   apiGetJobById,
   apiGetUtilityOptionType,
 } from "@/services/createjobService";
+import {
+  apiGetUtilityDistrictsByProvinceCode,
+  apiGetUtilityPostalCodesBySubDistrictCode,
+  apiGetUtilityProvinces,
+  apiGetUtilitySubDistrictsByDistrictCode,
+} from "@/services/utilityService";
 import type {
   AddressAutoFillOption,
   AdditionQuestionType,
@@ -68,37 +76,14 @@ import type {
   UtilityWorkOption,
   UtilityWorkType,
 } from "@/types/createJobTypes";
+import type {
+  UtilityDistrictItem,
+  UtilityPostalCodeItem,
+  UtilityProvinceItem,
+  UtilitySubDistrictItem,
+} from "@/types/utilityTypes";
 
-const initialAdditionQuestions: AdditionQuestionSection[] = [
-  {
-    id: "open-answer",
-    type: "open",
-    question:
-      "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
-    answers: [],
-  },
-  {
-    id: "radio-answer",
-    type: "radio",
-    question:
-      "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
-    answers: Array.from({ length: 5 }, (_, index) => ({
-      id: `radio-answer-item-${index + 1}`,
-      text: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
-    })),
-  },
-  {
-    id: "checkbox-answer",
-    type: "checkbox",
-    question:
-      "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
-    answers: Array.from({ length: 2 }, (_, index) => ({
-      id: `checkbox-answer-item-${index + 1}`,
-      text: "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่",
-    })),
-    maxSelect: "3",
-  },
-];
+const initialAdditionQuestions: AdditionQuestionSection[] = [];
 
 const additionQuestionTypeLabel: Record<AdditionQuestionType, string> = {
   open: "Open Answer",
@@ -136,9 +121,10 @@ function SortableAnswerItem({ answer, onChange }: SortableAnswerItemProps) {
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <Input
+      <Textarea
         value={answer.text}
         onChange={(event) => onChange(event.target.value)}
+        className="min-h-10 resize-y"
       />
     </div>
   );
@@ -148,10 +134,8 @@ function createAdditionQuestionSection(
   type: AdditionQuestionType,
   id: string,
 ): AdditionQuestionSection {
-  const defaultQuestion =
-    "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่";
-  const defaultAnswer =
-    "Personal Assistant 25 - 35 K (WFH 80%) ย่านพัฒนาการ ยินดีรับนักศึกษาจบใหม่";
+  const defaultQuestion = "";
+  const defaultAnswer = "";
 
   if (type === "open") {
     return {
@@ -186,6 +170,32 @@ function createAdditionQuestionSection(
   };
 }
 
+type AdditionFileSection = {
+  id: string;
+  fileType: string;
+  label: string;
+  description: string;
+};
+
+const createAdditionFileSection = (id: string): AdditionFileSection => ({
+  id,
+  fileType: "",
+  label: "",
+  description: "",
+});
+
+const createEmptyCompanyAddress = (): AddressAutoFillOption => ({
+  postalCode: "",
+  addressLine: "",
+  no: "",
+  moo: "",
+  soi: "",
+  street: "",
+  province: "",
+  district: "",
+  subDistrict: "",
+});
+
 export default function CreatejobPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -207,6 +217,18 @@ export default function CreatejobPage() {
     countryCode: number;
     postalCodeNum: number;
   } | null>(null);
+  const [provinceOptions, setProvinceOptions] = useState<UtilityProvinceItem[]>(
+    [],
+  );
+  const [districtOptions, setDistrictOptions] = useState<UtilityDistrictItem[]>(
+    [],
+  );
+  const [subDistrictOptions, setSubDistrictOptions] = useState<
+    UtilitySubDistrictItem[]
+  >([]);
+  const [postalCodeOptions, setPostalCodeOptions] = useState<
+    UtilityPostalCodeItem[]
+  >([]);
   // Form States
   const [jobName, setJobName] = useState<string>(
     typeof prefill?.name === "string" ? prefill.name : "",
@@ -243,11 +265,33 @@ export default function CreatejobPage() {
   const [education, setEducation] = useState(
     typeof prefill?.education === "boolean" ? prefill.education : true,
   );
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [selectedFileType, setSelectedFileType] = useState<string>("");
-  const [additionFileLabel, setAdditionFileLabel] = useState<string>("");
-  const [additionFileDescription, setAdditionFileDescription] =
-    useState<string>("");
+  const [additionFiles, setAdditionFiles] = useState<AdditionFileSection[]>(
+    () => {
+      const source = prefill?.addition_file;
+      if (Array.isArray(source) && source.length > 0) {
+        return source.map((item, index) => {
+          const candidate = item as {
+            id?: string | number;
+            type?: number;
+            label?: string;
+            description?: string;
+          };
+          const typeFromApi: Record<number, string> = {
+            1: "pdf",
+            2: "jpeg",
+            3: "txt",
+          };
+          return {
+            id: String(candidate.id ?? `addition-file-${index + 1}`),
+            fileType: typeFromApi[candidate.type ?? 0] ?? "",
+            label: candidate.label ?? "",
+            description: candidate.description ?? "",
+          };
+        });
+      }
+      return [];
+    },
+  );
   const [skills, setSkills] = useState<SkillRequest[]>(
     Array.isArray(prefill?.skills) ? (prefill.skills as SkillRequest[]) : [],
   );
@@ -273,6 +317,7 @@ export default function CreatejobPage() {
       0,
     ),
   );
+  const additionFileIdCounter = useRef(additionFiles.length);
 
   const answerDndSensors = useSensors(
     useSensor(PointerSensor, {
@@ -293,23 +338,6 @@ export default function CreatejobPage() {
     WebkitBackgroundClip: "text",
     backgroundClip: "text",
     color: "transparent",
-  };
-
-  const getAcceptedExtensions = (fileType: string): string => {
-    const typeMap: Record<string, string> = {
-      pdf: ".pdf",
-      txt: ".txt",
-      jpeg: ".jpeg,.jpg",
-      png: ".png",
-    };
-    return typeMap[fileType] || "";
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      setUploadedFiles((prev) => [...prev, ...Array.from(files)]);
-    }
   };
 
   const mapAdditionQuestionTypeToApi = (type: AdditionQuestionType): number => {
@@ -334,6 +362,123 @@ export default function CreatejobPage() {
     return map[type] || 0;
   };
 
+  const updateCompanyAddressField = (
+    field: keyof AddressAutoFillOption,
+    value: string,
+  ) => {
+    setCompanyAddress((previous) => ({
+      ...(previous ?? createEmptyCompanyAddress()),
+      [field]: value,
+    }));
+
+    if (field === "postalCode") {
+      setCompanyAddressCodes((previous) => ({
+        subDistrictCode: previous?.subDistrictCode ?? 0,
+        districtCode: previous?.districtCode ?? 0,
+        provinceCode: previous?.provinceCode ?? 0,
+        countryCode: previous?.countryCode ?? 0,
+        postalCodeNum: Number.parseInt(value, 10) || 0,
+      }));
+    }
+  };
+
+  const handleProvinceChange = (value: string) => {
+    const selectedProvince = provinceOptions.find(
+      (province) => String(province.province_code) === value,
+    );
+
+    setCompanyAddress((previous) => ({
+      ...(previous ?? createEmptyCompanyAddress()),
+      province:
+        selectedProvince?.province_name_en ??
+        selectedProvince?.province_name_th ??
+        "",
+      district: "",
+      subDistrict: "",
+      postalCode: "",
+    }));
+
+    setCompanyAddressCodes((previous) => ({
+      subDistrictCode: 0,
+      districtCode: 0,
+      provinceCode: Number.parseInt(value, 10) || 0,
+      countryCode:
+        selectedProvince?.country_id ?? previous?.countryCode ?? 76400,
+      postalCodeNum: 0,
+    }));
+
+    setDistrictOptions([]);
+    setSubDistrictOptions([]);
+    setPostalCodeOptions([]);
+  };
+
+  const handleDistrictChange = (value: string) => {
+    const selectedDistrict = districtOptions.find(
+      (district) => String(district.district_code) === value,
+    );
+
+    setCompanyAddress((previous) => ({
+      ...(previous ?? createEmptyCompanyAddress()),
+      district:
+        selectedDistrict?.district_name_en ??
+        selectedDistrict?.district_name_th ??
+        "",
+      subDistrict: "",
+      postalCode: "",
+    }));
+
+    setCompanyAddressCodes((previous) => ({
+      subDistrictCode: 0,
+      districtCode: Number.parseInt(value, 10) || 0,
+      provinceCode: previous?.provinceCode ?? 0,
+      countryCode: previous?.countryCode ?? 76400,
+      postalCodeNum: 0,
+    }));
+
+    setSubDistrictOptions([]);
+    setPostalCodeOptions([]);
+  };
+
+  const handleSubDistrictChange = (value: string) => {
+    const selectedSubDistrict = subDistrictOptions.find(
+      (subDistrict) => String(subDistrict.sub_district_code) === value,
+    );
+
+    setCompanyAddress((previous) => ({
+      ...(previous ?? createEmptyCompanyAddress()),
+      subDistrict:
+        selectedSubDistrict?.sub_district_name_en ??
+        selectedSubDistrict?.sub_district_name_th ??
+        "",
+      postalCode: "",
+    }));
+
+    setCompanyAddressCodes((previous) => ({
+      subDistrictCode: Number.parseInt(value, 10) || 0,
+      districtCode: previous?.districtCode ?? 0,
+      provinceCode: previous?.provinceCode ?? 0,
+      countryCode: previous?.countryCode ?? 76400,
+      postalCodeNum: 0,
+    }));
+
+    setPostalCodeOptions([]);
+  };
+
+  const handlePostalCodeChange = (value: string) => {
+    setCompanyAddress((previous) => ({
+      ...(previous ?? createEmptyCompanyAddress()),
+      postalCode: value,
+    }));
+
+    setCompanyAddressCodes((previous) => ({
+      subDistrictCode: previous?.subDistrictCode ?? 0,
+      districtCode: previous?.districtCode ?? 0,
+      provinceCode: previous?.provinceCode ?? 0,
+      countryCode: previous?.countryCode ?? 76400,
+      postalCodeNum: Number.parseInt(value, 10) || 0,
+    }));
+  };
+
   const buildCreateJobPayloadForSubmit = (): CreateJobRequest => {
     const additionQuestionsPayload = additionQuestions.map(
       (section, questionIndex) => ({
@@ -349,19 +494,17 @@ export default function CreatejobPage() {
       }),
     );
 
-    const additionFilePayload =
-      additionFileLabel.trim() ||
-      additionFileDescription.trim() ||
-      selectedFileType
-        ? [
-            {
-              id: 0,
-              type: mapAdditionFileTypeToApi(selectedFileType),
-              label: additionFileLabel,
-              description: additionFileDescription,
-            },
-          ]
-        : [];
+    const additionFilePayload = additionFiles
+      .filter(
+        (item) =>
+          item.label.trim() || item.description.trim() || item.fileType.trim(),
+      )
+      .map((item, index) => ({
+        id: index,
+        type: mapAdditionFileTypeToApi(item.fileType),
+        label: item.label,
+        description: item.description,
+      }));
 
     return {
       name: jobName,
@@ -414,13 +557,32 @@ export default function CreatejobPage() {
     return true;
   };
 
-  const removeFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  const addAdditionFile = () => {
+    additionFileIdCounter.current += 1;
+    setAdditionFiles((previous) => [
+      ...previous,
+      createAdditionFileSection(
+        `addition-file-${additionFileIdCounter.current}`,
+      ),
+    ]);
   };
 
-  const triggerFileInput = () => {
-    const input = document.getElementById("file-upload") as HTMLInputElement;
-    input?.click();
+  const removeAdditionFile = (sectionId: string) => {
+    setAdditionFiles((previous) =>
+      previous.filter((section) => section.id !== sectionId),
+    );
+  };
+
+  const updateAdditionFile = (
+    sectionId: string,
+    field: "label" | "description" | "fileType",
+    value: string,
+  ) => {
+    setAdditionFiles((previous) =>
+      previous.map((section) =>
+        section.id === sectionId ? { ...section, [field]: value } : section,
+      ),
+    );
   };
 
   const moveAdditionQuestion = (fromIndex: number, toIndex: number) => {
@@ -438,14 +600,11 @@ export default function CreatejobPage() {
 
   const addAdditionQuestion = (type: AdditionQuestionType) => {
     additionQuestionIdCounter.current += 1;
+    const sectionId = `${type}-answer-${additionQuestionIdCounter.current}`;
+    const newSection = createAdditionQuestionSection(type, sectionId);
+    additionQuestionAnswerIdCounter.current += newSection.answers.length;
 
-    setAdditionQuestions((previous) => [
-      ...previous,
-      createAdditionQuestionSection(
-        type,
-        `${type}-answer-${additionQuestionIdCounter.current}`,
-      ),
-    ]);
+    setAdditionQuestions((previous) => [...previous, newSection]);
   };
 
   const updateAdditionQuestion = (sectionId: string, question: string) => {
@@ -481,6 +640,7 @@ export default function CreatejobPage() {
 
   const addAnswerToAdditionQuestion = (sectionId: string) => {
     additionQuestionAnswerIdCounter.current += 1;
+    const answerId = `${sectionId}-item-${additionQuestionAnswerIdCounter.current}`;
 
     setAdditionQuestions((previous) =>
       previous.map((section) =>
@@ -490,7 +650,7 @@ export default function CreatejobPage() {
               answers: [
                 ...section.answers,
                 {
-                  id: `${section.id}-item-${additionQuestionAnswerIdCounter.current}`,
+                  id: answerId,
                   text: "",
                 },
               ],
@@ -550,6 +710,13 @@ export default function CreatejobPage() {
     );
   };
 
+  const removeAdditionQuestion = (sectionId: string) => {
+    setAdditionQuestions((previous) =>
+      previous.filter((section) => section.id !== sectionId),
+    );
+    delete additionQuestionRefs.current[sectionId];
+  };
+
   const addSkill = (skill: SkillRequest) => {
     setSkills((previous) => [
       ...previous,
@@ -567,11 +734,24 @@ export default function CreatejobPage() {
 
   const handleCreateJob = async () => {
     if (!validateJobForm()) return;
+    if (!companyId) {
+      toast.error("Company ID is missing. Please sign in again.");
+      return;
+    }
     try {
       setIsLoading(true);
-      const response = await apiCreateJob(buildCreateJobPayloadForSubmit());
-      const jobId = response.data?.jobId;
-      if (jobId) setCreatedJobId(jobId);
+      const response = await apiCreateJob(
+        companyId,
+        buildCreateJobPayloadForSubmit(),
+      );
+      const jobId = response.data?.id;
+
+      if (jobId) {
+        await apiPatchJobStatusById(jobId, { status: 3 });
+        setCreatedJobId(jobId);
+      }
+      navigate("/jobmonitor");
+
       toast.success("Job created successfully!");
     } catch {
       toast.error("Failed to create job. Please try again.");
@@ -603,15 +783,18 @@ export default function CreatejobPage() {
       }
       try {
         // Fetch work options/types and company data in parallel
-        const [optionTypeResult, companyIdResult] = await Promise.all([
-          apiGetUtilityOptionType(),
-          apiGetCompanyIdByUserId(userId),
-        ]);
+        const [optionTypeResult, companyIdResult, provincesResult] =
+          await Promise.all([
+            apiGetUtilityOptionType(),
+            apiGetCompanyIdByUserId(userId),
+            apiGetUtilityProvinces(),
+          ]);
         if (optionTypeResult.data) {
           const d = optionTypeResult.data;
           setWorkOptions(d.work_options ?? d.work_option ?? []);
           setWorkTypes(d.work_types ?? d.work_type ?? []);
         }
+        setProvinceOptions(provincesResult.data ?? []);
         const cId = companyIdResult.data?.company_id;
         if (!cId) return;
         setCompanyId(cId);
@@ -680,7 +863,7 @@ export default function CreatejobPage() {
               subDistrictCode: jobDetail.sub_district_code ?? 0,
               districtCode: jobDetail.district_code ?? 0,
               provinceCode: jobDetail.province_code ?? 0,
-              countryCode: jobDetail.country_code ?? 0,
+              countryCode: jobDetail.country_code ?? 76400,
               postalCodeNum: jobDetail.postal_code ?? 0,
             });
             return;
@@ -705,7 +888,7 @@ export default function CreatejobPage() {
           subDistrictCode: data.sub_district?.sub_district_code ?? 0,
           districtCode: data.district?.district_code ?? 0,
           provinceCode: data.province?.province_code ?? 0,
-          countryCode: data.country?.country_code ?? 0,
+          countryCode: data.country?.country_code ?? 76400,
           postalCodeNum: parseInt(
             String(data.postal_code?.postal_code ?? "0"),
             10,
@@ -755,6 +938,65 @@ export default function CreatejobPage() {
 
     previousQuestionPositions.current = nextPositions;
   }, [additionQuestions]);
+
+  useEffect(() => {
+    const provinceCode = companyAddressCodes?.provinceCode ?? 0;
+    if (!provinceCode) {
+      setDistrictOptions([]);
+      return;
+    }
+
+    const fetchDistricts = async () => {
+      try {
+        const result = await apiGetUtilityDistrictsByProvinceCode(provinceCode);
+        setDistrictOptions(result.data?.districts ?? []);
+      } catch {
+        setDistrictOptions([]);
+      }
+    };
+
+    void fetchDistricts();
+  }, [companyAddressCodes?.provinceCode]);
+
+  useEffect(() => {
+    const districtCode = companyAddressCodes?.districtCode ?? 0;
+    if (!districtCode) {
+      setSubDistrictOptions([]);
+      return;
+    }
+
+    const fetchSubDistricts = async () => {
+      try {
+        const result =
+          await apiGetUtilitySubDistrictsByDistrictCode(districtCode);
+        setSubDistrictOptions(result.data?.sub_districts ?? []);
+      } catch {
+        setSubDistrictOptions([]);
+      }
+    };
+
+    void fetchSubDistricts();
+  }, [companyAddressCodes?.districtCode]);
+
+  useEffect(() => {
+    const subDistrictCode = companyAddressCodes?.subDistrictCode ?? 0;
+    if (!subDistrictCode) {
+      setPostalCodeOptions([]);
+      return;
+    }
+
+    const fetchPostalCodes = async () => {
+      try {
+        const result =
+          await apiGetUtilityPostalCodesBySubDistrictCode(subDistrictCode);
+        setPostalCodeOptions(result.data ?? []);
+      } catch {
+        setPostalCodeOptions([]);
+      }
+    };
+
+    void fetchPostalCodes();
+  }, [companyAddressCodes?.subDistrictCode]);
 
   return (
     <PageLayout>
@@ -936,8 +1178,10 @@ export default function CreatejobPage() {
                 <label className="text-sm dark:text-accent">Address line</label>
                 <Input
                   value={companyAddress?.addressLine ?? ""}
-                  placeholder="Auto fill from company profile"
-                  readOnly
+                  placeholder="address line"
+                  onChange={(event) =>
+                    updateCompanyAddressField("addressLine", event.target.value)
+                  }
                 />
               </div>
 
@@ -947,8 +1191,10 @@ export default function CreatejobPage() {
                 </label>
                 <Input
                   value={companyAddress?.no ?? ""}
-                  placeholder="Auto fill"
-                  readOnly
+                  placeholder="no."
+                  onChange={(event) =>
+                    updateCompanyAddressField("no", event.target.value)
+                  }
                 />
               </div>
 
@@ -958,8 +1204,10 @@ export default function CreatejobPage() {
                 </label>
                 <Input
                   value={companyAddress?.moo ?? ""}
-                  placeholder="Auto fill"
-                  readOnly
+                  placeholder="moo"
+                  onChange={(event) =>
+                    updateCompanyAddressField("moo", event.target.value)
+                  }
                 />
               </div>
 
@@ -969,8 +1217,10 @@ export default function CreatejobPage() {
                 </label>
                 <Input
                   value={companyAddress?.soi ?? ""}
-                  placeholder="Auto fill"
-                  readOnly
+                  placeholder="soi"
+                  onChange={(event) =>
+                    updateCompanyAddressField("soi", event.target.value)
+                  }
                 />
               </div>
 
@@ -980,8 +1230,10 @@ export default function CreatejobPage() {
                 </label>
                 <Input
                   value={companyAddress?.street ?? ""}
-                  placeholder="Auto fill"
-                  readOnly
+                  placeholder="street"
+                  onChange={(event) =>
+                    updateCompanyAddressField("street", event.target.value)
+                  }
                 />
               </div>
 
@@ -989,44 +1241,100 @@ export default function CreatejobPage() {
                 <label className="text-sm text-foreground dark:text-accent">
                   Province
                 </label>
-                <Input
-                  value={companyAddress?.province ?? ""}
-                  placeholder="Auto fill"
-                  readOnly
-                />
+                <Select
+                  value={String(companyAddressCodes?.provinceCode ?? "")}
+                  onValueChange={handleProvinceChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select province" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {provinceOptions.map((province) => (
+                      <SelectItem
+                        key={province.province_code}
+                        value={String(province.province_code)}
+                      >
+                        {province.province_name_en || province.province_name_th}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">
                   District
                 </label>
-                <Input
-                  value={companyAddress?.district ?? ""}
-                  placeholder="Auto fill"
-                  readOnly
-                />
+                <Select
+                  value={String(companyAddressCodes?.districtCode ?? "")}
+                  onValueChange={handleDistrictChange}
+                  disabled={!companyAddressCodes?.provinceCode}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select district" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {districtOptions.map((district) => (
+                      <SelectItem
+                        key={district.district_code}
+                        value={String(district.district_code)}
+                      >
+                        {district.district_name_en || district.district_name_th}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">
                   Sub-district
                 </label>
-                <Input
-                  value={companyAddress?.subDistrict ?? ""}
-                  placeholder="Auto fill"
-                  readOnly
-                />
+                <Select
+                  value={String(companyAddressCodes?.subDistrictCode ?? "")}
+                  onValueChange={handleSubDistrictChange}
+                  disabled={!companyAddressCodes?.districtCode}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select sub-district" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subDistrictOptions.map((subDistrict) => (
+                      <SelectItem
+                        key={subDistrict.sub_district_code}
+                        value={String(subDistrict.sub_district_code)}
+                      >
+                        {subDistrict.sub_district_name_en ||
+                          subDistrict.sub_district_name_th}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="text-sm text-foreground dark:text-accent">
                   Postal code
                 </label>
-                <Input
+                <Select
                   value={companyAddress?.postalCode ?? ""}
-                  placeholder="Auto fill"
-                  readOnly
-                />
+                  onValueChange={handlePostalCodeChange}
+                  disabled={!companyAddressCodes?.subDistrictCode}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select postal code" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {postalCodeOptions.map((postalCodeItem) => (
+                      <SelectItem
+                        key={postalCodeItem.id}
+                        value={postalCodeItem.postal_code}
+                      >
+                        {postalCodeItem.postal_code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
@@ -1145,6 +1453,8 @@ export default function CreatejobPage() {
                         Move Down
                       </button>
                       <button
+                        type="button"
+                        onClick={() => removeAdditionQuestion(section.id)}
                         className="hover:text-foreground inline-flex items-center gap-1"
                         aria-label="Delete"
                       >
@@ -1163,11 +1473,12 @@ export default function CreatejobPage() {
                       <label className="text-sm dark:text-accent">
                         Question
                       </label>
-                      <Input
+                      <Textarea
                         value={section.question}
                         onChange={(event) =>
                           updateAdditionQuestion(section.id, event.target.value)
                         }
+                        className="min-h-10 resize-y"
                       />
                     </div>
 
@@ -1297,90 +1608,91 @@ export default function CreatejobPage() {
               Addition File
             </h2>
 
-            <div className="rounded-lg border p-4 w-3/5">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <div>
-                  <label className="text-sm dark:text-accent">Label</label>
-                  <Input
-                    value={additionFileLabel}
-                    onChange={(event) =>
-                      setAdditionFileLabel(event.target.value)
-                    }
-                    placeholder="Text here"
-                  />
+            <div className="space-y-3">
+              {additionFiles.map((section, index) => (
+                <div key={section.id} className="rounded-lg border p-4 w-3/5">
+                  <div className="mb-3 flex items-center justify-between text-sm text-muted-foreground">
+                    <span>File requirement {index + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAdditionFile(section.id)}
+                      className="hover:text-foreground inline-flex items-center gap-1"
+                      aria-label="Delete"
+                    >
+                      <img src={IoTrashBin} alt="Delete" className="h-4 w-4" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div>
+                      <label className="text-sm dark:text-accent">Label</label>
+                      <Input
+                        value={section.label}
+                        onChange={(event) =>
+                          updateAdditionFile(
+                            section.id,
+                            "label",
+                            event.target.value,
+                          )
+                        }
+                        placeholder="Text here"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm dark:text-accent">
+                        File Type
+                      </label>
+                      <Select
+                        value={section.fileType}
+                        onValueChange={(value) =>
+                          updateAdditionFile(section.id, "fileType", value)
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pdf">PDF</SelectItem>
+                          <SelectItem value="txt">txt</SelectItem>
+                          <SelectItem value="jpeg">jpeg</SelectItem>
+                          <SelectItem value="png">png</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <label className="text-sm dark:text-accent">
+                      Description
+                    </label>
+                    <Input
+                      value={section.description}
+                      onChange={(event) =>
+                        updateAdditionFile(
+                          section.id,
+                          "description",
+                          event.target.value,
+                        )
+                      }
+                      placeholder="Type your message here"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm dark:text-accent">File Type</label>
-                  <Select
-                    value={selectedFileType}
-                    onValueChange={setSelectedFileType}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pdf">PDF</SelectItem>
-                      <SelectItem value="txt">txt</SelectItem>
-                      <SelectItem value="jpeg">jpeg</SelectItem>
-                      <SelectItem value="png">png</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              ))}
 
               <div className="mt-3">
-                <label className="text-sm dark:text-accent">Description</label>
-                <Input
-                  value={additionFileDescription}
-                  onChange={(event) =>
-                    setAdditionFileDescription(event.target.value)
-                  }
-                  placeholder="Type your message here"
-                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={addAdditionFile}
+                  className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  File
+                </Button>
               </div>
-            </div>
-
-            <div className="mt-3 space-y-2">
-              <input
-                id="file-upload"
-                type="file"
-                multiple
-                accept={getAcceptedExtensions(selectedFileType)}
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              {uploadedFiles.length > 0 ? (
-                <div className="space-y-2">
-                  {uploadedFiles.map((file, index) => (
-                    <Button
-                      key={index}
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted w-full justify-start"
-                    >
-                      <span className="flex-1 truncate text-left">
-                        {file.name}
-                      </span>
-                      <button
-                        onClick={() => removeFile(index)}
-                        className="ml-2 hover:text-foreground"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </Button>
-                  ))}
-                </div>
-              ) : null}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={triggerFileInput}
-                disabled={!selectedFileType}
-                className="rounded-full border border-muted-foreground text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                File
-              </Button>
             </div>
           </section>
 
