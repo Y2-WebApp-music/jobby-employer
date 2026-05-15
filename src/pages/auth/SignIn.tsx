@@ -8,6 +8,7 @@ import type { SignInFormState } from "@/types/authSignUpTypes";
 import {
   authClient,
   hydrateAuthStoreFromPayload,
+  hydrateCompanyIdFromUserId,
   hydrateAuthStoreFromSession,
 } from "@/services/authClient";
 import { useAuthStore } from "@/store/auth";
@@ -48,7 +49,9 @@ export default function SignInPage() {
         await hydrateAuthStoreFromSession();
       }
 
-      if (useAuthStore.getState().user) {
+      const user = useAuthStore.getState().user;
+      if (user) {
+        await hydrateCompanyIdFromUserId(user.id);
         navigate("/profile");
         return;
       }

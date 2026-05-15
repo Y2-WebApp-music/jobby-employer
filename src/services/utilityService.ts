@@ -87,7 +87,7 @@ export const apiGetUtilityPostalCodesBySubDistrictCode = (
   subDistrictCode: number | string,
 ) => {
   return apiService.fetchData<UtilityPostalCodesBySubDistrictResponse>({
-    url: `/utility/postal-code/${subDistrictCode}`,
+    url: `/utility/postal_code/${subDistrictCode}`,
     method: "get",
   });
 };
