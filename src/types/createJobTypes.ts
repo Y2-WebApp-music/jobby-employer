@@ -57,8 +57,12 @@ export interface CreateJobRequest {
 }
 
 export interface CreateJobResponse {
-  jobId?: string;
+  id?: string;
   message?: string;
+}
+
+export interface PatchJobStatusRequest {
+  status: number;
 }
 
 export interface MasterTextRef {
