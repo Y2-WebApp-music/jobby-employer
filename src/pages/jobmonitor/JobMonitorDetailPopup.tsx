@@ -31,7 +31,7 @@ export default function JobMonitorDetailPopup({
     let isCancelled = false;
 
     const fetchJobDetail = async () => {
-      if (!open || !card?.jobId) return;
+      if (!open || !card?.id) return;
 
       try {
         setIsLoading(true);
@@ -171,9 +171,6 @@ export default function JobMonitorDetailPopup({
               <h3 className="text-lg font-semibold text-foreground">
                 About this job
               </h3>
-              <h4 className="mt-1 text-base font-semibold text-foreground">
-                Company Description
-              </h4>
 
               {isLoading ? (
                 <p className="mt-2 text-base text-muted-foreground">
