@@ -76,9 +76,6 @@ export default function ApplyByTitleJobDetailPopup({
               <h3 className="text-lg font-semibold text-foreground">
                 About this job
               </h3>
-              <h4 className="mt-1 text-base font-semibold text-foreground">
-                Company Description
-              </h4>
 
               <p className="mt-2 text-base text-foreground">
                 At Western Digital, our vision is to power global innovation and
