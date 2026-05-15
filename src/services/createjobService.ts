@@ -8,10 +8,10 @@ import type {
   SkillDetailResponse,
 } from "@/types/createJobTypes";
 
-// post {{employer-bff}}/job     create job
-export const apiCreateJob = (data: CreateJobRequest) => {
+// post {{employer-bff}}/job/:company_id     create job
+export const apiCreateJob = (companyId: string, data: CreateJobRequest) => {
   return apiService.fetchData<CreateJobResponse>({
-    url: `/job`,
+    url: `/job/${companyId}`,
     method: "post",
     data,
   });
