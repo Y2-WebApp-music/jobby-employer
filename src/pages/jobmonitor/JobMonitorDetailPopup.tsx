@@ -210,7 +210,9 @@ export default function JobMonitorDetailPopup({
                 disabled={isLoading || !detail}
                 onClick={() => {
                   if (!detail) return;
-                  const prefillSkills: SkillRequest[] = (detail.skills ?? []).map((s, i) => ({
+                  const prefillSkills: SkillRequest[] = (
+                    detail.skills ?? []
+                  ).map((s, i) => ({
                     index: i,
                     skill_id: s.skill_id,
                     skill_name: s.skill_name,
@@ -227,22 +229,26 @@ export default function JobMonitorDetailPopup({
                         cover_letter: detail.cover_letter,
                         work_experience: detail.work_experience,
                         education: detail.education,
-                        work_option_id: detail.work_options?.[0]?.work_option_id ?? null,
-                        work_type_id: detail.work_types?.[0]?.work_type_id ?? null,
+                        work_option_id:
+                          detail.work_options?.[0]?.work_option_id ?? null,
+                        work_type_id:
+                          detail.work_types?.[0]?.work_type_id ?? null,
                         skills: prefillSkills,
                         address_line: detail.address_line ?? "",
                         no: detail.no ?? "",
                         moo: detail.moo ?? "",
                         soi: detail.soi ?? "",
                         street: detail.street ?? "",
-                        sub_district_code: detail.sub_district?.sub_district_code ?? 0,
+                        sub_district_code:
+                          detail.sub_district?.sub_district_code ?? 0,
                         district_code: detail.district?.district_code ?? 0,
                         province_code: detail.province?.province_code ?? 0,
                         country_code: detail.country?.country_code ?? 0,
                         postal_code: detail.postal_code_ref?.postal_code ?? 0,
                         province_name: detail.province?.province_name_en ?? "",
                         district_name: detail.district?.district_name_en ?? "",
-                        sub_district_name: detail.sub_district?.sub_district_name_en ?? "",
+                        sub_district_name:
+                          detail.sub_district?.sub_district_name_en ?? "",
                       },
                     },
                   });
