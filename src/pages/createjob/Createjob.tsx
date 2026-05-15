@@ -746,7 +746,7 @@ export default function CreatejobPage() {
       );
       const jobId = response.data?.id;
 
-      if(jobId) {
+      if (jobId) {
         await apiPatchJobStatusById(jobId, { status: 3 });
         setCreatedJobId(jobId);
       }
