@@ -14,7 +14,7 @@ import { apiGetEmployeeList } from "@/services/accountManagementService";
 import type { EmployeeListItem } from "@/services/accountManagementService";
 import { apiGetCompanyIdByUserId } from "@/services/profileService";
 import { useAuthStore } from "@/store/auth";
-import { Ellipsis, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import AddEmployerDialog from "./dialogs/AddEmployerDialog";
 
@@ -165,14 +165,13 @@ export default function AccountPage() {
                     <th className="px-5 py-3 font-semibold">Name</th>
                     <th className="px-5 py-3 font-semibold">Email</th>
                     <th className="px-5 py-3 font-semibold">Role</th>
-                    <th className="px-5 py-3" />
                   </tr>
                 </thead>
                 <tbody>
                   {isLoading ? (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={3}
                         className="px-5 py-6 text-center text-sm text-muted-foreground"
                       >
                         Loading...
@@ -181,7 +180,7 @@ export default function AccountPage() {
                   ) : errorMessage ? (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={3}
                         className="px-5 py-6 text-center text-sm text-destructive"
                       >
                         {errorMessage}
@@ -190,7 +189,7 @@ export default function AccountPage() {
                   ) : filteredEmployees.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={3}
                         className="px-5 py-6 text-center text-sm text-muted-foreground"
                       >
                         No employees found
@@ -212,15 +211,6 @@ export default function AccountPage() {
                           <td className="px-5 py-3">{fullName}</td>
                           <td className="px-5 py-3">{emp.email}</td>
                           <td className="px-5 py-3">{roleName}</td>
-                          <td className="px-5 py-3 text-right">
-                            <button
-                              type="button"
-                              className="rounded-md p-1 text-muted-foreground hover:bg-muted"
-                              aria-label={`Open actions for ${fullName}`}
-                            >
-                              <Ellipsis className="size-5" />
-                            </button>
-                          </td>
                         </tr>
                       );
                     })

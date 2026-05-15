@@ -115,7 +115,7 @@ export default function ScoutPage() {
               Scout
             </h1>
             <span className="text-4xl font-semibold text-destructive sm:text-2xl">
-              (TBC)
+
             </span>
           </div>
 
