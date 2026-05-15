@@ -56,6 +56,7 @@ import CreateJobAddSkillPopup from "./CreateJobAddSkillPopup";
 import {
   apiCreateJob,
   apiPatchJobById,
+  apiPatchJobStatusById,
   apiGetJobById,
   apiGetUtilityOptionType,
 } from "@/services/createjobService";
@@ -743,8 +744,14 @@ export default function CreatejobPage() {
         companyId,
         buildCreateJobPayloadForSubmit(),
       );
-      const jobId = response.data?.jobId;
-      if (jobId) setCreatedJobId(jobId);
+      const jobId = response.data?.id;
+
+      if(jobId) {
+        await apiPatchJobStatusById(jobId, { status: 3 });
+        setCreatedJobId(jobId);
+      }
+      navigate("/jobmonitor");
+
       toast.success("Job created successfully!");
     } catch {
       toast.error("Failed to create job. Please try again.");
