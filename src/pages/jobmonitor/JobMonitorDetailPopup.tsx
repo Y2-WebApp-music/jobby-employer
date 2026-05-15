@@ -5,8 +5,10 @@ import { apiGetApplyMonitorJobDetail } from "@/services/applymonitorService";
 import type { ApplyMonitorJobDetailResponse } from "@/types/applymonitorTypes";
 import type { JobMonitorDetailPopupProps } from "@/types/domain/job-monitor";
 import { formatDate } from "@/utils/formatDate";
+import type { SkillRequest } from "@/types/createJobTypes";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function JobMonitorDetailPopup({
   open,
@@ -18,6 +20,7 @@ export default function JobMonitorDetailPopup({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const gradientBorderStyle = {
     border: "1px solid transparent",
@@ -203,14 +206,48 @@ export default function JobMonitorDetailPopup({
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full border-muted-foreground/30 bg-muted text-muted-foreground"
-              >
-                Unpublished
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
                 className="rounded-full border-muted-foreground/30 bg-transparent text-muted-foreground"
+                disabled={isLoading || !detail}
+                onClick={() => {
+                  if (!detail) return;
+                  const prefillSkills: SkillRequest[] = (detail.skills ?? []).map((s, i) => ({
+                    index: i,
+                    skill_id: s.skill_id,
+                    skill_name: s.skill_name,
+                  }));
+                  navigate("/createjob", {
+                    state: {
+                      prefill: {
+                        jobId: detail.id,
+                        name: detail.name,
+                        description: detail.description ?? "",
+                        description_rtf: detail.description_rtf ?? "",
+                        start_apply: detail.start_apply ?? null,
+                        end_apply: detail.end_apply ?? null,
+                        cover_letter: detail.cover_letter,
+                        work_experience: detail.work_experience,
+                        education: detail.education,
+                        work_option_id: detail.work_options?.[0]?.work_option_id ?? null,
+                        work_type_id: detail.work_types?.[0]?.work_type_id ?? null,
+                        skills: prefillSkills,
+                        address_line: detail.address_line ?? "",
+                        no: detail.no ?? "",
+                        moo: detail.moo ?? "",
+                        soi: detail.soi ?? "",
+                        street: detail.street ?? "",
+                        sub_district_code: detail.sub_district?.sub_district_code ?? 0,
+                        district_code: detail.district?.district_code ?? 0,
+                        province_code: detail.province?.province_code ?? 0,
+                        country_code: detail.country?.country_code ?? 0,
+                        postal_code: detail.postal_code_ref?.postal_code ?? 0,
+                        province_name: detail.province?.province_name_en ?? "",
+                        district_name: detail.district?.district_name_en ?? "",
+                        sub_district_name: detail.sub_district?.sub_district_name_en ?? "",
+                      },
+                    },
+                  });
+                  onOpenChange(false);
+                }}
               >
                 Edit
               </Button>
@@ -219,6 +256,12 @@ export default function JobMonitorDetailPopup({
                 size="sm"
                 className="rounded-full bg-transparent"
                 style={gradientBorderStyle}
+                onClick={() => {
+                  if (card?.jobId) {
+                    navigate(`/applymonitor/job/${card.jobId}`);
+                    onOpenChange(false);
+                  }
+                }}
               >
                 <span className="gradient-text">See Apply</span>
               </Button>
