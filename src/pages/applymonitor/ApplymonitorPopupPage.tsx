@@ -162,6 +162,20 @@ export default function ApplymonitorPopupPage({
     }
   };
 
+  const handleAccept = async () => {
+    if (!detail?.id) return;
+    setActionLoading(true);
+    try {
+      await apiPatchApplyMonitorApplyStatus(detail.id, { status: 4 });
+      onRefetch?.();
+      onOpenChange(false);
+    } catch {
+      // error handling can be added here
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleReject = async () => {
     if (!detail?.id) return;
     setActionLoading(true);
@@ -400,15 +414,28 @@ export default function ApplymonitorPopupPage({
               >
                 Reject
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-full border border-primary/30 bg-transparent text-primary"
-                onClick={handleMoveToInterview}
-                disabled={actionLoading || isAlreadyInterview}
-              >
-                Move To Interview
-              </Button>
+              {currentStatus == 1 &&
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full border border-primary/30 bg-transparent text-primary"
+                  onClick={handleMoveToInterview}
+                  disabled={actionLoading || isAlreadyInterview}
+                >
+                  Move To Interview
+                </Button>
+              }
+              {currentStatus == 2 &&
+                <Button
+                  variant='default'
+                  size="sm"
+                  className=" rounded-full p-4"
+                  onClick={handleAccept}
+                  disabled={actionLoading}
+                >
+                  Accept This Application
+                </Button>
+              }
               <Button
                 onClick={() => {
                   const otherId = user?.id ?? detail?.user?.id ?? "";

@@ -1014,14 +1014,14 @@ export default function CreatejobPage() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Create Job</BreadcrumbPage>
+                  <BreadcrumbPage>{ createdJobId ? `Edit Job` : `Create Job`}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl font-medium mt-[3%] ml-[-1%]">Create Job</h1>
+          <h1 className="text-3xl font-medium mt-[3%] ml-[-1%]">{ createdJobId ? `Edit Job` : `Create Job`}</h1>
 
           {/* Basic Information */}
           <section className="mt-[1%]">
